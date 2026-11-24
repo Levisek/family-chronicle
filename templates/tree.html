@@ -1,0 +1,35 @@
+<div class="bar">
+  <div class="bar-title"><span>$tree_title</span><small>$tree_subtitle</small></div>
+  <nav class="tabs" aria-label="$tabs_label"><a href="tree.html" aria-current="page">$tab_tree</a><a href="fan.html">$tab_fan</a></nav>
+  <div class="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <input id="search" type="search" placeholder="$search_placeholder" autocomplete="off" aria-label="$search_label" role="combobox" aria-expanded="false" aria-controls="suggestions">
+    <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
+  </div>
+</div>
+
+<div class="viewport" id="viewport" tabindex="0" aria-label="$tree_surface_label">
+  <div class="tree-layer" id="surface">
+    <svg class="connectors" id="connectors" aria-hidden="true"></svg>
+    <div class="cards" id="cards"></div>
+  </div>
+</div>
+<div class="generations" id="generations" aria-hidden="true"></div>
+
+<div class="tools" role="toolbar" aria-label="$tools_label">
+  <button type="button" id="b-plus" title="$zoom_in" aria-label="$zoom_in">+</button>
+  <button type="button" id="b-minus" title="$zoom_out" aria-label="$zoom_out">−</button>
+  <button type="button" id="b-center" title="$center_title" class="text">⌂ $center</button>
+  <button type="button" id="b-all" class="text" title="$expand_all_title">$expand_all</button>
+</div>
+
+<aside class="panel" id="panel" hidden aria-live="polite">
+  <button type="button" class="panel-close" id="panel-close" aria-label="$close">×</button>
+  <div id="panel-content"></div>
+</aside>
+<div class="lightbox" id="lightbox" hidden><figure><img alt=""><figcaption></figcaption></figure></div>
+<p class="page-sources">$counts_short · $sources · $tree_note</p>
+<details class="people-list">
+<summary>$people_list</summary>
+$branches
+</details>

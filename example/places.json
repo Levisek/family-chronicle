@@ -1,0 +1,74 @@
+{
+  "Vienna": {
+    "coords": [
+      48.2082,
+      16.3738
+    ],
+    "country": {
+      "en": "Austria",
+      "cs": "Rakousko"
+    },
+    "aliases": [
+      "Wien"
+    ]
+  },
+  "Linz": {
+    "coords": [
+      48.3069,
+      14.2858
+    ],
+    "country": {
+      "en": "Austria",
+      "cs": "Rakousko"
+    },
+    "aliases": []
+  },
+  "Prague": {
+    "coords": [
+      50.0755,
+      14.4378
+    ],
+    "country": {
+      "en": "Czechia",
+      "cs": "Česká republika"
+    },
+    "aliases": [
+      "Praha"
+    ]
+  },
+  "Brno": {
+    "coords": [
+      49.1951,
+      16.6068
+    ],
+    "country": {
+      "en": "Czechia",
+      "cs": "Česká republika"
+    },
+    "aliases": []
+  },
+  "Kraków": {
+    "coords": [
+      50.0647,
+      19.945
+    ],
+    "country": {
+      "en": "Poland",
+      "cs": "Polsko"
+    },
+    "aliases": [
+      "Krakow"
+    ]
+  },
+  "Budapest": {
+    "coords": [
+      47.4979,
+      19.0402
+    ],
+    "country": {
+      "en": "Hungary",
+      "cs": "Maďarsko"
+    },
+    "aliases": []
+  }
+}

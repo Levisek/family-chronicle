@@ -1,0 +1,47 @@
+[
+  {
+    "id": "manual-kowalski-1956-move",
+    "type": "move",
+    "year": 1956,
+    "date": "1956",
+    "place": "Vienna",
+    "branch": "kowalski",
+    "people": ["I10", "I11"],
+    "description": {
+      "en": "move — Jan Kowalski and Judit Szabó leave Budapest and settle in Vienna",
+      "cs": "stěhování — Jan Kowalski a Judit Szabó opouštějí Budapešť a usazují se ve Vídni"
+    },
+    "documents": [],
+    "certainty": "chronicle"
+  },
+  {
+    "id": "manual-kowalski-1944-war",
+    "type": "war",
+    "year": 1944,
+    "date": "about 1944",
+    "place": "Kraków",
+    "branch": "kowalski",
+    "people": ["I10"],
+    "description": {
+      "en": "war — the family shelters in Kraków during the last year of the war",
+      "cs": "válka — rodina přečkává poslední rok války v Krakově"
+    },
+    "documents": [],
+    "certainty": "uncertain"
+  },
+  {
+    "id": "manual-kowalski-1945-transport",
+    "type": "transport",
+    "year": 1945,
+    "date": "1945",
+    "place": "Budapest",
+    "branch": "kowalski",
+    "people": ["I11"],
+    "description": {
+      "en": "transport — Judit travels by train from Kraków to Budapest",
+      "cs": "transport — Judit cestuje vlakem z Krakova do Budapešti"
+    },
+    "documents": [],
+    "certainty": "uncertain"
+  }
+]

@@ -1,0 +1,75 @@
+<div class="canvas-wrap" id="wrap">
+  <canvas id="canvas" aria-label="$map_canvas_label" role="img"></canvas>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+</div>
+
+<div class="cartouche">
+  <div class="cartouche-text">
+    <span class="cartouche-top">$map_cartouche_top</span>
+    <h1>$film_title</h1>
+    <span class="cartouche-sub" id="cartouche-sub"></span>
+  </div>
+</div>
+
+<svg class="compass" viewBox="-60 -60 120 120" aria-hidden="true">
+  <g class="compass-rings">
+    <circle r="44" fill="none" stroke-width="0.8"/>
+    <circle r="40" fill="none" stroke-width="0.4"/>
+    <circle r="28" fill="none" stroke-width="0.4" stroke-dasharray="1 2"/>
+  </g>
+  <g class="compass-points-minor">
+    <path d="M0 -30 L4 -4 L0 0 Z" transform="rotate(45)"/><path d="M0 -30 L-4 -4 L0 0 Z" transform="rotate(45)" class="light"/>
+    <path d="M0 -30 L4 -4 L0 0 Z" transform="rotate(135)"/><path d="M0 -30 L-4 -4 L0 0 Z" transform="rotate(135)" class="light"/>
+    <path d="M0 -30 L4 -4 L0 0 Z" transform="rotate(225)"/><path d="M0 -30 L-4 -4 L0 0 Z" transform="rotate(225)" class="light"/>
+    <path d="M0 -30 L4 -4 L0 0 Z" transform="rotate(315)"/><path d="M0 -30 L-4 -4 L0 0 Z" transform="rotate(315)" class="light"/>
+  </g>
+  <g class="compass-points">
+    <path d="M0 -50 L6 -6 L0 0 Z"/><path d="M0 -50 L-6 -6 L0 0 Z" class="light"/>
+    <path d="M0 -50 L6 -6 L0 0 Z" transform="rotate(90)"/><path d="M0 -50 L-6 -6 L0 0 Z" transform="rotate(90)" class="light"/>
+    <path d="M0 -50 L6 -6 L0 0 Z" transform="rotate(180)"/><path d="M0 -50 L-6 -6 L0 0 Z" transform="rotate(180)" class="light"/>
+    <path d="M0 -50 L6 -6 L0 0 Z" transform="rotate(270)"/><path d="M0 -50 L-6 -6 L0 0 Z" transform="rotate(270)" class="light"/>
+  </g>
+  <circle r="2.4" class="center"/>
+  <text y="-53" text-anchor="middle">$compass_north</text>
+</svg>
+
+<section class="film-intro" id="film-intro" hidden>
+  <p class="film-intro-top">$film_intro_top</p>
+  <h2>$film_title</h2>
+  <div class="ornament" aria-hidden="true"><span></span>❦<span></span></div>
+  <p class="film-intro-sub" id="film-intro-sub">$film_intro_sub</p>
+  <div class="film-intro-buttons">
+    <button class="btn-main" id="start" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>$film_start</button>
+    <button class="btn-text" id="full-map" type="button">$film_skip</button>
+  </div>
+</section>
+
+<section class="chapter-title" id="chapter-title" aria-live="polite" hidden>
+  <p class="ct-number" id="ct-number"></p>
+  <h2 id="ct-heading"></h2>
+  <p class="ct-sub" id="ct-sub"></p>
+  <div class="ornament" aria-hidden="true"><span></span><b id="ct-years"></b><span></span></div>
+</section>
+
+<aside class="card" id="card" aria-live="polite" hidden></aside>
+
+<nav class="controls" id="controls" aria-label="$player_label">
+  <div class="ctl-buttons">
+    <button type="button" id="b-prev" title="$player_prev" aria-label="$player_prev"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></button>
+    <button type="button" id="b-play" class="play" title="$player_play_pause" aria-label="$map_play"><svg viewBox="0 0 24 24" class="icon-play"><path d="M8 5v14l11-7z"/></svg><svg viewBox="0 0 24 24" class="icon-pause"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+    <button type="button" id="b-next" title="$player_next" aria-label="$player_next"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z"/></svg></button>
+  </div>
+  <div class="timeline" id="timeline" role="slider" tabindex="0" aria-label="$player_seek" aria-valuemin="0">
+    <div class="timeline-track" id="timeline-track"></div>
+    <div class="timeline-thumb" id="timeline-thumb"><span id="timeline-year"></span></div>
+    <div class="timeline-bubble" id="timeline-bubble" hidden></div>
+  </div>
+  <div class="ctl-buttons">
+    <button type="button" id="b-speed" class="text" title="$player_speed" aria-label="$player_speed">1×</button>
+    <button type="button" id="b-end" class="text" title="$player_to_end" aria-label="$player_to_end">$player_end&nbsp;⇥</button>
+  </div>
+</nav>
+
+<div class="lightbox" id="lightbox" hidden><figure><img alt=""><figcaption></figcaption></figure></div>
+<p class="page-sources">$sources · $map_attribution</p>

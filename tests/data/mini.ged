@@ -1,0 +1,122 @@
+0 HEAD
+1 CHAR UTF-8
+0 @I1@ INDI
+1 NAME John /Smith/
+2 GIVN John
+2 SURN Smith
+1 SEX M
+1 BIRT
+2 DATE 5 JAN 1995
+2 PLAC Springfield
+1 RESI
+2 EMAIL x@@y.example
+2 ADDR 12 Main Street
+1 SOUR @S1@
+1 NOTE secret note
+1 OCCU agent
+1 FAMC @F1@
+1 FAMS @F5@
+0 @I2@ INDI
+1 NAME Peter /Smith/
+1 SEX M
+1 BIRT
+2 DATE 1972
+1 FAMC @F2@
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME Jane /Smithson/
+1 SEX F
+1 FAMS @F1@
+1 FAMC @F3@
+0 @I4@ INDI
+1 NAME Joseph /Smith/
+1 SEX M
+1 BIRT
+2 DATE ABT 1890
+1 DEAT
+2 CAUS tuberculosis
+1 OCCU weaver, Mill Lane 5
+2 DATE 1921
+2 PLAC Millbrook
+1 OCCU sexton
+1 FAMC @F4@
+1 FAMS @F2@
+0 @I5@ INDI
+1 NAME Mary /Smithson/
+1 SEX F
+1 BIRT
+2 DATE SEP 1921
+1 DEAT
+2 DATE 3 MAR 1999
+1 FAMS @F2@
+0 @I6@ INDI
+1 NAME James /Smith/
+1 SEX M
+1 BIRT
+2 DATE 1895
+1 DEAT
+1 FAMC @F4@
+0 @I7@ INDI
+1 NAME Eve /Newman/
+1 SEX F
+1 FAMS @F5@
+0 @I8@ INDI
+1 NAME Child /Smith/
+1 SEX M
+1 FAMC @F5@
+0 @I9@ INDI
+1 NAME Anthony /Smith/
+1 SEX M
+1 BIRT
+2 DATE 1860
+1 DEAT
+1 FAMC @F8@
+1 FAMS @F4@
+0 @I10@ INDI
+1 NAME Hannah /Smithson/
+1 SEX F
+1 DEAT
+1 FAMS @F4@
+0 @I11@ INDI
+1 NAME Albert /Smith/
+1 SEX M
+1 DEAT
+1 FAMS @F8@
+0 @I12@ INDI
+1 NAME Barbara /Smithson/
+1 SEX F
+1 DEAT
+1 FAMS @F8@
+0 @I13@ INDI
+1 NAME Louis /Smith/
+1 SEX M
+1 DEAT
+1 FAMC @F8@
+0 @F1@ FAM
+1 HUSB @I2@
+1 WIFE @I3@
+1 CHIL @I1@
+1 MARR
+2 DATE 1994
+2 PLAC Springfield, 12 Main Street
+0 @F2@ FAM
+1 HUSB @I4@
+1 WIFE @I5@
+1 CHIL @I2@
+0 @F3@ FAM
+1 CHIL @I3@
+0 @F4@ FAM
+1 HUSB @I9@
+1 WIFE @I10@
+1 CHIL @I4@
+1 CHIL @I6@
+0 @F5@ FAM
+1 HUSB @I1@
+1 WIFE @I7@
+1 CHIL @I8@
+0 @F8@ FAM
+1 HUSB @I11@
+1 WIFE @I12@
+1 CHIL @I9@
+1 CHIL @I13@
+0 TRLR

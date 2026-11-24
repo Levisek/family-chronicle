@@ -1,0 +1,409 @@
+{
+ "places": {
+  "Northfield": {
+   "coords": [
+    50.45,
+    16.07
+   ],
+   "country": {
+    "cs": "Rovinsko",
+    "en": "Flatland"
+   }
+  },
+  "Eastbrook": {
+   "coords": [
+    50.416,
+    16.163
+   ],
+   "country": {
+    "cs": "Rovinsko",
+    "en": "Flatland"
+   }
+  },
+  "Southport": {
+   "coords": [
+    49.548,
+    18.21
+   ],
+   "country": {
+    "cs": "Rovinsko",
+    "en": "Flatland"
+   }
+  },
+  "Westvale": {
+   "coords": [
+    49.8209,
+    18.2625
+   ],
+   "country": {
+    "cs": "Rovinsko",
+    "en": "Flatland"
+   }
+  },
+  "Westvale Hill": {
+   "coords": [
+    49.8062,
+    18.2636
+   ],
+   "country": {
+    "cs": "Rovinsko",
+    "en": "Flatland"
+   }
+  }
+ },
+ "people": {
+  "I1": {
+   "name": "Rowan Hale",
+   "relationship": "the author",
+   "branch": "common",
+   "living": true,
+   "ahnentafel": 1,
+   "parents": [
+    "I7",
+    "I10"
+   ],
+   "sex": "",
+   "partners": {},
+   "town": "Westvale"
+  },
+  "I2": {
+   "name": "Sage Hale",
+   "relationship": "sister",
+   "branch": "common",
+   "living": true,
+   "ahnentafel": null,
+   "parents": [
+    "I7",
+    "I10"
+   ],
+   "sex": "",
+   "partners": {}
+  },
+  "I7": {
+   "name": "Otto Hale",
+   "relationship": "father",
+   "branch": "common",
+   "living": true,
+   "ahnentafel": 2,
+   "parents": [],
+   "sex": "",
+   "partners": {}
+  },
+  "I8": {
+   "name": "Cyril Ford",
+   "relationship": "cousin",
+   "branch": "birch",
+   "living": true,
+   "ahnentafel": null,
+   "parents": [],
+   "sex": "",
+   "partners": {}
+  },
+  "I10": {
+   "name": "Mina Hale",
+   "relationship": "mother",
+   "branch": "common",
+   "living": true,
+   "ahnentafel": 3,
+   "parents": [],
+   "sex": "",
+   "partners": {}
+  },
+  "I11": {
+   "name": "Wren Hale",
+   "relationship": "half-sibling",
+   "branch": "common",
+   "living": true,
+   "ahnentafel": null,
+   "parents": [
+    "I7"
+   ],
+   "sex": "",
+   "partners": {}
+  },
+  "I3": {
+   "name": "Alder Ford",
+   "relationship": "great-grandfather",
+   "branch": "alder",
+   "living": false,
+   "ahnentafel": 5,
+   "parents": [],
+   "sex": "",
+   "partners": {}
+  },
+  "I4": {
+   "name": "Bea Marsh",
+   "relationship": "great-grandmother",
+   "branch": "alder",
+   "living": false,
+   "ahnentafel": 5,
+   "parents": [],
+   "sex": "",
+   "partners": {}
+  },
+  "I5": {
+   "name": "Birch Lane",
+   "relationship": "great-grandfather",
+   "branch": "birch",
+   "living": false,
+   "ahnentafel": 9,
+   "parents": [],
+   "sex": "",
+   "partners": {}
+  },
+  "I6": {
+   "name": "Clara Dunn",
+   "relationship": "great-grandmother",
+   "branch": "birch",
+   "living": false,
+   "ahnentafel": 9,
+   "parents": [],
+   "sex": "",
+   "partners": {}
+  },
+  "I9": {
+   "name": "Brother of Alder",
+   "relationship": "brother of great-grandfather",
+   "branch": "alder",
+   "living": false,
+   "ahnentafel": null,
+   "parents": [],
+   "sex": "",
+   "partners": {},
+   "sibling_of": "I3"
+  }
+ },
+ "events": [
+  {
+   "id": "f1",
+   "type": "birth",
+   "year": 1880,
+   "date": "3. 5. 1880",
+   "place": "Southport",
+   "branch": "birch",
+   "people": [
+    "I5"
+   ],
+   "documents": [],
+   "certainty": "document",
+   "description": {
+    "en": "birth — Birch Lane",
+    "cs": "narození — Birch Lane"
+   }
+  },
+  {
+   "id": "f2",
+   "type": "birth",
+   "year": 1882,
+   "date": "1882",
+   "place": "Southport",
+   "branch": "birch",
+   "people": [
+    "I6"
+   ],
+   "documents": [],
+   "certainty": "chronicle",
+   "description": {
+    "en": "birth — Clara Dunn",
+    "cs": "narození — Clara Dunn"
+   }
+  },
+  {
+   "id": "f3",
+   "type": "marriage",
+   "year": 1907,
+   "date": "12. 2. 1907",
+   "place": "Westvale Hill",
+   "branch": "birch",
+   "people": [
+    "I5",
+    "I6"
+   ],
+   "documents": [
+    "d1"
+   ],
+   "certainty": "document",
+   "description": {
+    "en": "marriage — Birch and Clara",
+    "cs": "sňatek — Birch and Clara"
+   }
+  },
+  {
+   "id": "f4",
+   "type": "move",
+   "year": 1925,
+   "date": "1925",
+   "place": "Westvale",
+   "branch": "birch",
+   "people": [
+    "I5"
+   ],
+   "documents": [],
+   "certainty": "chronicle",
+   "description": {
+    "en": "The family moves to the hill",
+    "cs": "Rodina se stěhuje na kopec"
+   }
+  },
+  {
+   "id": "f5",
+   "type": "birth",
+   "year": 1925,
+   "date": "1925",
+   "place": "Westvale",
+   "branch": "birch",
+   "people": [
+    "I8"
+   ],
+   "documents": [],
+   "certainty": "document",
+   "description": {
+    "en": "birth — Cyril Ford",
+    "cs": "narození — Cyril Ford"
+   }
+  },
+  {
+   "id": "z1",
+   "type": "birth",
+   "year": 1950,
+   "date": "1950",
+   "place": "Westvale",
+   "branch": "birch",
+   "people": [
+    "I7"
+   ],
+   "documents": [],
+   "certainty": "document",
+   "description": {
+    "en": "birth — Otto Hale",
+    "cs": "narození — Otto Hale"
+   }
+  },
+  {
+   "id": "b1",
+   "type": "birth",
+   "year": 1877,
+   "date": "7. 3. 1877",
+   "place": "Northfield",
+   "branch": "alder",
+   "people": [
+    "I3"
+   ],
+   "documents": [],
+   "certainty": "document",
+   "description": {
+    "en": "birth — Alder Ford",
+    "cs": "narození — Alder Ford"
+   }
+  },
+  {
+   "id": "b2",
+   "type": "birth",
+   "year": 1890,
+   "date": "1890",
+   "place": "Eastbrook",
+   "branch": "alder",
+   "people": [
+    "I4"
+   ],
+   "documents": [],
+   "certainty": "tree",
+   "description": {
+    "en": "birth — Bea Marsh",
+    "cs": "narození — Bea Marsh"
+   }
+  },
+  {
+   "id": "b3",
+   "type": "marriage",
+   "year": 1902,
+   "date": "20. 5. 1902",
+   "place": "Eastbrook",
+   "branch": "alder",
+   "people": [
+    "I3",
+    "I4"
+   ],
+   "documents": [],
+   "certainty": "document",
+   "description": {
+    "en": "marriage — Alder and Bea",
+    "cs": "sňatek — Alder and Bea"
+   }
+  },
+  {
+   "id": "b4",
+   "type": "death",
+   "year": 1931,
+   "date": "1931",
+   "place": "Eastbrook",
+   "branch": "alder",
+   "people": [
+    "I3"
+   ],
+   "documents": [],
+   "certainty": "document",
+   "description": {
+    "en": "death — Alder Ford",
+    "cs": "úmrtí — Alder Ford"
+   }
+  },
+  {
+   "id": "b5",
+   "type": "birth",
+   "year": 1879,
+   "date": "1879",
+   "place": "Northfield",
+   "branch": "alder",
+   "people": [
+    "I9"
+   ],
+   "documents": [],
+   "certainty": "document",
+   "description": {
+    "en": "birth — Brother of Alder",
+    "cs": "narození — Brother of Alder"
+   }
+  }
+ ],
+ "lines": [
+  {
+   "branch": "alder",
+   "from": "I3",
+   "to": "I7",
+   "points": [
+    [
+     50.45,
+     16.07,
+     1877,
+     "document"
+    ],
+    [
+     50.416,
+     16.163,
+     1902,
+     "document"
+    ]
+   ]
+  },
+  {
+   "branch": "birch",
+   "from": "I5",
+   "to": "I7",
+   "points": [
+    [
+     49.548,
+     18.21,
+     1880,
+     "document"
+    ],
+    [
+     49.8062,
+     18.2636,
+     1907,
+     "document"
+    ]
+   ]
+  }
+ ]
+}

@@ -1,0 +1,165 @@
+{
+  "root": "I1",
+  "gedcom": "family.ged",
+  "base_url": "https://example.org/family/",
+  "languages": [
+    "en",
+    "cs"
+  ],
+  "default_language": "en",
+  "site_dir": "family",
+  "branches": [
+    {
+      "key": "huber",
+      "name": {
+        "en": "Huber",
+        "cs": "Huberovi"
+      },
+      "color": "#8a3b12",
+      "roots": [
+        "I5"
+      ],
+      "chronicle": "chronicles/huber.md"
+    },
+    {
+      "key": "cerny",
+      "name": {
+        "en": "Černý",
+        "cs": "Černí"
+      },
+      "color": "#2c6e49",
+      "roots": [
+        "I6"
+      ],
+      "chronicle": "chronicles/cerny.md"
+    },
+    {
+      "key": "kowalski",
+      "name": {
+        "en": "Kowalski and Szabó",
+        "cs": "Kowalští a Szabóovi"
+      },
+      "color": "#35558a",
+      "roots": [
+        "I10",
+        "I11"
+      ]
+    }
+  ],
+  "places": "places.json",
+  "basemap": "basemap.geojson",
+  "events": "events.json",
+  "documents": "documents.json",
+  "ignore_places": [
+    "Austria",
+    "Czechia"
+  ],
+  "exclude": [],
+  "living_extra": [],
+  "deceased_extra": [
+    "I34"
+  ],
+  "living_town": {
+    "I1": "Linz"
+  },
+  "check_exceptions": [],
+  "open_questions_headings": {
+    "en": [
+      "What we don't know",
+      "Where to look next"
+    ],
+    "cs": [
+      "Co nevíme",
+      "Kde hledat dál"
+    ]
+  },
+  "documents_cutoff_year": 1950,
+  "documents_skip_dirs": [],
+  "living_years": 100,
+  "strings": {
+    "en": {
+      "intro": [
+        "The Hubers are an invented family used as the example of this tool. Their story starts in Vienna and moves to Linz; two more branches come from Prague and Brno (the Černýs) and from Kraków and Budapest (the Kowalskis and Szabós, who settle in Vienna after the war).",
+        "For living people we publish only the name, the family relation and the town. Details drawn from documents and parish records are marked, and unverified guesses are shown separately. Every person, place record and scan here is made up."
+      ],
+      "branch_descriptions": {
+        "huber": "Vienna and Linz — tailors, clerks and the move to Linz.",
+        "cerny": "Prague printers and a marriage across Moravia.",
+        "kowalski": "From Kraków and Budapest to Vienna after the war."
+      },
+      "chapters": {
+        "huber": {
+          "title": "The Hubers",
+          "short": "Hubers",
+          "subtitle": "From Vienna to Linz"
+        },
+        "cerny": {
+          "title": "The Černýs",
+          "short": "Černýs",
+          "subtitle": "From Prague to Brno"
+        }
+      }
+    },
+    "cs": {
+      "intro": [
+        "Huberovi jsou vymyšlená rodina, na které se nástroj ukazuje. Jejich příběh začíná ve Vídni a pokračuje v Linci; další dvě větve vedou z Prahy a Brna (Černí) a z Krakova a Budapešti (Kowalští a Szabóovi, kteří se po válce usadili ve Vídni).",
+        "U žijících osob zveřejňujeme jen jméno, příbuzenský vztah a obec. Údaje z dokladů a matrik jsou označeny a neověřené domněnky jsou vyznačeny zvlášť. Každá osoba, záznam o místě i sken je tu vymyšlený."
+      ],
+      "branch_descriptions": {
+        "huber": "Z Vídně do Lince — krejčovské řemeslo, úředníci a přesun na jih.",
+        "cerny": "Pražští tiskaři a sňatek napříč Moravou.",
+        "kowalski": "Z Krakova a Budapešti do Vídně po válce."
+      },
+      "chapters": {
+        "huber": {
+          "title": "Huberovi",
+          "short": "Huberovi",
+          "subtitle": "Z Vídně do Lince"
+        },
+        "cerny": {
+          "title": "Černí",
+          "short": "Černí",
+          "subtitle": "Z Prahy do Brna"
+        }
+      }
+    }
+  },
+  "map_labels": [
+    {
+      "text": {
+        "en": "Bohemia",
+        "cs": "Čechy"
+      },
+      "lat": 49.8,
+      "lon": 14.0,
+      "kind": "region"
+    },
+    {
+      "text": {
+        "en": "Austria",
+        "cs": "Rakousko"
+      },
+      "lat": 47.6,
+      "lon": 14.6,
+      "kind": "region"
+    },
+    {
+      "text": {
+        "en": "Alps",
+        "cs": "Alpy"
+      },
+      "lat": 47.0,
+      "lon": 13.4,
+      "kind": "ridge"
+    },
+    {
+      "text": {
+        "en": "Salzburg",
+        "cs": "Salzburg"
+      },
+      "lat": 47.8095,
+      "lon": 13.055,
+      "kind": "town"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "site": "site.json",
+  "title": "The Hubers",
+  "subtitle": "An invented family chronicle",
+  "tagline": "Vienna · Linz · Prague · Brno",
+  "colophon": "Compiled from records and the family tree",
+  "output": "book.pdf",
+  "language": "en",
+  "images": [
+    {
+      "chronicle": "chronicles/huber.md",
+      "after_text": "Theresia outlived him by",
+      "source": "documents/death-1971.png",
+      "caption": "Death record of Franz Huber, Vienna, 1971"
+    },
+    {
+      "chronicle": "chronicles/huber.md",
+      "after_text": "daughter of a neighbouring baker.[^1]",
+      "source": "documents/baptism-1934.png",
+      "crop": [0, 0, 1000, 400],
+      "caption": "Baptism entry, upper part of the page (an invented scan)"
+    },
+    {
+      "chronicle": "chronicles/cerny.md",
+      "after_text": "He died in Prague in 1968.",
+      "source": "documents/marriage-1957.png",
+      "caption": "Marriage record, Linz, 1957"
+    }
+  ]
+}

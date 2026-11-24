@@ -1,0 +1,7 @@
+{
+  "Springfield": {"coords": [39.7817, -89.6501], "country": {"en": "United States", "cs": "Spojené státy"}, "aliases": ["Springfield-North"]},
+  "Oldtown": {"coords": [45.12, 20.73], "country": {"en": "Serbia (Banat)", "cs": "Srbsko (Banát)"}, "aliases": ["Oldtown, Banat", "Oldtown, Serbia"]},
+  "Millbrook": {"coords": [48.6, 20.4], "country": {"en": "Slovakia", "cs": "Slovensko"}, "aliases": ["Millbrook, Slovakia"]},
+  "York": {"coords": [53.96, -1.08], "country": {"en": "United Kingdom", "cs": "Spojené království"}, "aliases": []},
+  "Brno": {"coords": [49.1951, 16.6068], "country": {"en": "Czechia", "cs": "Česká republika"}, "aliases": []}
+}
