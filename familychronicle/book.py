@@ -314,8 +314,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         chrome = find_chrome(a.chrome)
         with tempfile.TemporaryDirectory() as d:
-            page = build_html(cfg, book, Path(d), today=a.today)
-            if not book.get("include_hidden", False):
+            page = build_html(cfg, book, Path(d), today=a.today)   # validates include_hidden
+            if book.get("include_hidden", False) is not True:
                 problems = check_html(cfg, page, a.today)
                 if problems:
                     print("Book check FAILED (nothing was printed):", file=sys.stderr)

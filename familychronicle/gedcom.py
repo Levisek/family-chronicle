@@ -160,19 +160,25 @@ class GedcomEncodingError(ValueError):
 
 def read_text(path: Path) -> str:
     """Decode a GEDCOM file: a BOM wins (UTF-8, UTF-16), else the `1 CHAR` header
-    (UTF-8/UNICODE, ASCII/ANSI as Windows-1252); ANSEL is refused with a clear message."""
+    (UTF-8/UNICODE, ASCII/ANSI as UTF-8 when valid, else Windows-1252), UTF-16 without a BOM
+    is recognised by its NUL bytes; ANSEL is refused with a clear message."""
     raw = Path(path).read_bytes()
     if raw.startswith(b"\xef\xbb\xbf"):
         return _decode(raw, "utf-8-sig", path)
     if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
         return _decode(raw, "utf-16", path)
+    if b"\0" in raw[:64]:   # UTF-16 without a BOM: "0 HEAD" with a NUL after or before each byte
+        return _decode(raw, "utf-16-le" if raw[1:2] == b"\0" else "utf-16-be", path)
     m = re.search(rb"^[ \t]*1[ \t]+CHAR[ \t]+([^\r\n]*)", raw[:4096], re.M | re.I)
     charset = m.group(1).strip().upper().decode("ascii", "replace") if m else "UTF-8"
     if charset == "ANSEL":
         raise GedcomEncodingError(
             f"{path}: the character set ANSEL is not supported; convert the file to UTF-8 first")
     if charset in ("ASCII", "ANSI", "WINDOWS-1252", "CP1252"):
-        return _decode(raw, "cp1252", path)
+        try:   # many programs label UTF-8 files as ANSI; valid UTF-8 is almost never real cp1252
+            return raw.decode("utf-8")
+        except UnicodeError:
+            return _decode(raw, "cp1252", path)
     return _decode(raw, "utf-8", path)
 
 

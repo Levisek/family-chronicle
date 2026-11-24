@@ -19,6 +19,10 @@ tracking, so you can host it anywhere that serves files.
 
 All screenshots come from `example/`, an invented family (the Hubers) that ships with the repo.
 
+**Status: work in progress.** It runs my own family site, but it is young as a public project.
+The weakest part right now is touch control on phones: the tree and the map work, but panning,
+zooming and tapping are clumsy on a small screen. Issues, ideas and pull requests are welcome.
+
 ## Where this comes from
 
 I built this for my own family history, about 650 people in 10 branches, together with Claude Code.

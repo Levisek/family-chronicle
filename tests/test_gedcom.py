@@ -141,6 +141,15 @@ class TestEncodings(unittest.TestCase):
         p = self.write(self.BODY.format(head="1 CHAR ANSI\n").encode("cp1252"))
         self.assertEqual(load(p).people["I1"].surname, "Müller")
 
+    def test_utf8_labelled_ansi_is_read_as_utf8(self):
+        p = self.write(self.BODY.format(head="1 CHAR ANSI\n").encode("utf-8"))
+        self.assertEqual(load(p).people["I1"].surname, "Müller")
+
+    def test_utf16_without_bom(self):
+        for codec in ("utf-16-le", "utf-16-be"):
+            p = self.write(self.BODY.format(head="1 CHAR UNICODE\n").encode(codec))
+            self.assertEqual(load(p).people["I1"].given, "Zoë", codec)
+
     def test_header_unicode_is_utf8(self):
         p = self.write(self.BODY.format(head="1 CHAR UNICODE\n").encode("utf-8"))
         self.assertEqual(load(p).people["I1"].surname, "Müller")
