@@ -44,7 +44,8 @@ python3 -m venv .venv
 # build the example site (the output folder must be outside the config's folder)
 .venv/bin/python -I build.py --config example/site.json --out /tmp/family-site --today 2026-11-23
 
-# look at it
+# look at it: open /tmp/family-site/family/index.html straight from disk,
+# or serve it, as it will be served on the web
 cd /tmp/family-site && python3 -m http.server 8000
 # open http://127.0.0.1:8000/family/
 ```

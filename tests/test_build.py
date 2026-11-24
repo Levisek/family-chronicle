@@ -223,6 +223,19 @@ class TestBuild(Base):
             self.assertRegex(h, r'href="[^"]*map\.html#full-map"', rel)
             self.assertNotRegex(h, r'<[a-z]+[^>]*\sstyle=', rel)
 
+    def test_data_files_have_script_twins_for_file_urls(self):
+        # opened from disk (file://) the browser refuses fetch(), so every data file also ships as a script
+        self.build()
+        data = json.loads(re.search(r'id="data">(.*?)</script>', self.read("map.html"), re.S).group(1))
+        self.assertTrue(data["data"])
+        for rel in data["data"].values():
+            twin = self.site / (rel[:-len(".json")] + ".js")
+            text = twin.read_text(encoding="utf-8")
+            prefix = f'(self.FC_DATA=self.FC_DATA||{{}})["{rel}"]='
+            self.assertTrue(text.startswith(prefix), twin)
+            self.assertEqual(json.loads(text[len(prefix):].rstrip().removesuffix(";")),
+                             json.loads((self.site / rel).read_text(encoding="utf-8")), twin)
+
     def test_hashed_names(self):
         self.build()
         for p in list((self.site / "data").iterdir()) + list((self.site / "static").glob("*.*")):

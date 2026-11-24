@@ -110,6 +110,14 @@ class Writer:
         self.bytes(rel, data)
         return rel
 
+    def data(self, name: str, data: bytes) -> str:
+        """A hashed JSON file in data/ plus a script twin with the same content: opened from disk
+        (file://) the browser refuses fetch(), but a <script src> still loads."""
+        rel = self.hashed("data", name, "json", data)
+        self.bytes(rel[:-len(".json")] + ".js",
+                   f'(self.FC_DATA=self.FC_DATA||{{}})["{rel}"]='.encode("utf-8") + data + b";\n")
+        return rel
+
 
 # --- configuration and strings -------------------------------------------------
 
@@ -658,23 +666,23 @@ def _build(cfg: config_module.Config, out: Path, today: date) -> int:
         _per_chronicle(events, manual_ids)
         people_by_lang[lang] = people
         data_paths[lang] = {
-            "people": writer.hashed("data", f"people-{lang}", "json", _json(people)),
-            "events": writer.hashed("data", f"events-{lang}", "json", _json(events)),
+            "people": writer.data(f"people-{lang}", _json(people)),
+            "events": writer.data(f"events-{lang}", _json(events)),
         }
     default_events = events_by_lang[default]
     lines = migration_lines(tree, scope, default_events, places, living_town)
     shared = {
-        "lines": writer.hashed("data", "lines", "json", _json(lines)),
-        "places": writer.hashed("data", "places", "json", _json(
+        "lines": writer.data("lines", _json(lines)),
+        "places": writer.data("places", _json(
             {n: {"coords": m["coords"], "country": m.get("country", {})} for n, m in places.data.items()})),
-        "documents": writer.hashed("data", "documents", "json", _json({
+        "documents": writer.data("documents", _json({
             did: {"description": d.get("description") or {}, "crop": exports[did]["crop"],
                   "sheet": exports[did]["sheet"], "verified": documents.is_verified(d, base_dir)}
             for did, d in docs.items()})),
     }
-    shared["map"] = writer.hashed("data", "map", "json", _json(map_json))
+    shared["map"] = writer.data("map", _json(map_json))
     if cfg.get("basemap") and cfg.path("basemap").is_file():
-        shared["basemap"] = writer.hashed("data", "basemap", "json", cfg.path("basemap").read_bytes())
+        shared["basemap"] = writer.data("basemap", cfg.path("basemap").read_bytes())
     for lang in languages:
         data_paths[lang].update(shared)
 

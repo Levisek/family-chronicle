@@ -16,11 +16,27 @@
   // People (the people file) are remembered once loaded, for personLink().
   let people = null;
 
+  // A data file opened from disk (file://): the browser refuses fetch(), so the build ships each JSON
+  // also as a script that stores it in self.FC_DATA[path].
+  function loadScript(k, path) {
+    const store = (g.FC_DATA = g.FC_DATA || {});
+    if (path in store) return Promise.resolve(store[path]);
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = D.root_path + path.replace(/\.json$/, '.js');
+      s.onload = () => (path in store ? resolve(store[path]) : reject(new Error(k + ' missing')));
+      s.onerror = () => reject(new Error(k + ' not loaded'));
+      document.head.appendChild(s);
+    });
+  }
+
   // Loads data files (keys of D.data); all of them without an argument. -> Promise<{key: data}>
   function loadData(keys) {
     keys = keys || Object.keys(D.data);
+    const fromDisk = location.protocol === 'file:';
     return Promise.all(keys.map((k) => {
       if (!D.data[k]) return Promise.reject(new Error('data: ' + k));
+      if (fromDisk) return loadScript(k, D.data[k]);
       return fetch(D.root_path + D.data[k]).then((r) => {
         if (!r.ok) throw new Error(k + ' ' + r.status);
         return r.json();
