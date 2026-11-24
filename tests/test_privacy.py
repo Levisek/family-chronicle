@@ -133,6 +133,14 @@ class Check(CheckHelper):
             with self.subTest(name):
                 self.assertGreaterEqual(len(self.run_check({name: content})), 1)
 
+    def test_data_script_twin_checked_as_json(self):
+        # data/*.js is the JSON wrapped for opening from disk; it is checked like the JSON itself
+        pre = '(self.FC_DATA=self.FC_DATA||{})["data/people-en.0123abcd.json"]='
+        self.assertGreaterEqual(len(self.run_check({"data/people-en.0123abcd.js": pre + '{"a":["Johnovi", 1995]};\n'})), 1)
+        body = '{"a":"John Smith","b":"' + "x" * 200 + '","c":1995}'
+        self.assertEqual(self.run_check({"data/people-en.0123abcd.js": pre + body + ";\n"}),
+                         self.run_check({"data/people-en.0123abcd.json": body}))
+
     def test_check_clean(self):
         self.assertEqual(self.run_check({"a.html": "<p>Chronicle 1945–1995</p>"}), [])
         self.assertEqual(self.run_check({"a.html": "<p>John Smith</p><p>" + "x" * 200 + " 1995</p>"}), [])

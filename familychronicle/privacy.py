@@ -201,6 +201,7 @@ def _delete(md: str, pattern: str, only_with_prefix: bool = False, ext: dict | N
 
 # --- output check ------------------------------------------------------------------
 
+DATA_TWIN = re.compile(r'\(self\.FC_DATA=self\.FC_DATA\|\|\{\}\)\["[^"\\]*"\]=')
 EXTENSIONS = {".html", ".json", ".xml", ".txt", ".js", ".css"}
 _EMAIL = re.compile(r"(?<![\w.%+-])[\w.%+-]+@[\w-]+(?:\.[\w-]+)*\.([A-Za-z]{2,})(?![\w-])")
 _EMAIL_FILE_SUFFIXES = {"png", "jpg", "jpeg", "webp", "svg", "gif", "css", "js",
@@ -293,6 +294,9 @@ def _file_texts(path: Path) -> tuple[list[str], list[str]]:
     """(texts for rules a-d, texts for the year-near-name rule: "lines" with context)."""
     raw = path.read_text(encoding="utf-8", errors="replace")
     suffix = path.suffix.lower()
+    twin = DATA_TWIN.match(raw) if suffix == ".js" else None
+    if twin:        # data/*.js = a JSON wrapped for opening from disk -> checked as JSON
+        raw, suffix = raw[twin.end():].rstrip().removesuffix(";"), ".json"
     if suffix == ".json":
         try:
             lines: list[str] = []
