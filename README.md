@@ -9,6 +9,12 @@ when something leaks.
 The site is plain HTML, JSON and a little JavaScript. There is no server, no database and no
 tracking, so you can host it anywhere that serves files.
 
+Three looks (Chronicle, Night and Atlas) and the colours of the tree are chosen in a settings panel (the
+gear in the header). The tree and the fan chart can colour people by branch, by the country they were
+born in (with small flags of the historical states), by birth period or by whether a document backs
+them; the tree also marks the path from a selected person to the start, labels the generations with
+their birth years and shows a minimap when it does not fit.
+
 | Tree | Fan chart |
 |---|---|
 | ![Family tree](docs/screenshots/tree.png) | ![Ancestor fan chart](docs/screenshots/fan.png) |
@@ -16,6 +22,10 @@ tracking, so you can host it anywhere that serves files.
 | ![Animated migration map](docs/screenshots/map.png) | ![Chronicle page](docs/screenshots/chronicle.png) |
 | **Person page** | **A page of the PDF book** |
 | ![Person page](docs/screenshots/person.png) | ![Book page](docs/screenshots/book-page.png) |
+| **Night theme, tree coloured by birth period** | **Atlas theme, the whole map** |
+| ![Tree in the Night theme](docs/screenshots/tree-night.png) | ![Map in the Atlas theme](docs/screenshots/map-atlas.png) |
+| **Settings panel** | **Fan chart coloured by country of birth, with flags** |
+| ![Settings panel](docs/screenshots/settings.png) | ![Fan chart coloured by country of birth](docs/screenshots/fan-states.png) |
 
 All screenshots come from `example/`, an invented family (the Hubers) that ships with the repo.
 
@@ -74,7 +84,8 @@ Copy `example/` and replace its files:
 |---|---|
 | `family.ged` | your GEDCOM export (UTF-8, UTF-8 or UTF-16 with BOM, or a `1 CHAR ANSI`/`ASCII` file as Windows-1252; CRLF, `CONC`/`CONT`, any ID style, unknown tags are fine). ANSEL files are refused with a message to convert them to UTF-8 first. |
 | `site.json` | the configuration, see below |
-| `places.json` | `{town: {coords: [lat, lon], country: {lang: name}, aliases: [...]}}`; a GEDCOM place not listed here is just left off the map |
+| `places.json` | `{town: {coords: [lat, lon], country: {lang: name}, aliases: [...], region: "..."}}` (`region` is optional, see "Historical states"); a GEDCOM place not listed here is just left off the map |
+| `states.json` | optional historical states and their flags, see "Historical states" |
 | `events.json` | optional hand-written events (moves, war, transports) that the GEDCOM does not hold; each `description` needs a text for every language in `languages` |
 | `documents.json` | optional list of scans and what they prove; may live in a subfolder, its paths are still relative to `site.json` |
 | `basemap.geojson` | optional map background, see "Basemap" |
@@ -87,11 +98,11 @@ All paths resolve against the folder of `site.json`, so you can run the build fr
 | key | meaning |
 |---|---|
 | `root` | GEDCOM id (`I1` or `@I1@`; the same goes for `roots`, `living_extra`, `deceased_extra`, `exclude` and the keys of `living_town`) of the person the site is centred on. The site covers their ancestors, those ancestors' siblings and the siblings' descendants, plus spouses. The root's own descendants stay out. |
-| `gedcom`, `places`, `events`, `documents`, `basemap` | file names (the last three are optional) |
+| `gedcom`, `places`, `events`, `documents`, `basemap`, `states` | file names (the last four are optional) |
 | `base_url` | public URL, used for `sitemap.xml` |
 | `languages`, `default_language` | for example `["en", "cs"]` and `"en"`. The default language lives at the site root, others under `<lang>/`. Texts come from `locales/<lang>.json`; to add a language, add that file with the same keys as `en.json`. |
 | `site_dir` | name of the folder inside the output that holds the site |
-| `branches[]` | `key`, `name{lang: text}`, `color`, `roots[]` (GEDCOM ids where the branch starts; it includes their ancestors) and optional `chronicle` (path to the default-language `.md`). A branch without a chronicle gets no story page, but still appears in the tree and on the map. |
+| `branches[]` | `key`, `name{lang: text}`, `color`, `roots[]` (GEDCOM ids where the branch starts; it includes their ancestors) and optional `chronicle` (path to the default-language `.md`) and `map_chapter`. A branch without a chronicle gets no story page, but still appears in the tree and on the map; with `map_chapter` (the key of another branch) it has no chapter of its own in the film on the map, its stops join that branch's chapter. |
 | `strings{lang: {key: value}}` | overrides any key of `locales/<lang>.json`; nested objects merge key by key. This is where the texts of *your* family go: `intro`, `branch_descriptions{branch key: text}`, `chapters{chronicle slug: {title, short, subtitle}}`. The shipped locales are generic and know no branch. `{root}` and `{root_full}` become the root person's given and full name. |
 | `map_labels` | optional `[{text{lang: text}, lat, lon, kind}]` with `kind` `region` (spaced capitals), `ridge` (small italic capitals) or `town` (a dot and a name). The map has no built-in place names; the camera limits come from your places (bounding box plus a margin), so it fits any part of the world. |
 | `ignore_places` | place names that are too coarse to draw (countries, regions) |
@@ -135,6 +146,45 @@ A passage that appears in the family's private print but never on the web.
 
 Every other comment is dropped from the output. A translation of `chronicles/huber.md` is
 `chronicles/huber.cs.md`; when it is missing the default-language file is used.
+
+## Looks, colours and settings
+
+The gear in the corner of the header opens the settings panel on every page. The choices are kept in the
+browser (`localStorage`), nothing is sent anywhere.
+
+- **Look**: *Chronicle* (the default paper look), *Night* (dark, amber links, a night print of the map) and *Atlas*
+  (a slate bar, rusty accents and a graticule). Print is always Chronicle. The look is set in `<head>` before the
+  page is painted, so there is no flash of the default colours.
+- **Colours of the family tree**, for the tree and the fan chart: *branches* (the colour from `site.json`), *country
+  of birth* (the colour of the flag of the first historical state), *birth period* (older is darker and warmer) and
+  *evidence* (a document backs the person or not). The legend in the tree and the fan chart only says which colours are
+  on; the living always get one neutral colour except in the branch mode. `#colors=era` in the address picks a mode
+  for a shared link.
+- **Tree**: a click on a person marks the path to the start (ancestors in the line, for a sibling through the shared
+  parents, for a partner through the spouse); the rows are tinted by generation and labelled with the span of birth
+  years; a minimap appears on wide screens when the tree does not fit.
+
+### Historical states
+
+An optional `states.json` (name it in `site.json` as `states`) describes which state a place belonged to in which
+years, so that cards, the fan chart and person pages can show small flags and the colour mode "country of birth"
+works. Everything in it is your data; nothing is built in.
+
+```json
+{
+  "flags":   {"empire": {"stripes": ["#1a1a1a", "#f2c200"], "color": "#c69a2e"}},
+  "states":  {"austrian-empire": {"name": {"en": "Austrian Empire", "cs": "Rakouské císařství"}, "flag": "empire"}},
+  "regions": {"Austria": [[0, "austrian-empire"], [1867.45, "austria-hungary"], [1918.87, "austria"]]}
+}
+```
+
+A flag is 1 to 6 stripes (`direction` `horizontal` or `vertical`) with an optional `hoist_triangle`; it is drawn
+as a small SVG. A region is a timeline `[from_year, state]`, each entry valid until the next (a year may carry a
+fraction: `1918.82` is late October 1918). A place belongs to the region named in its `region` entry in
+`places.json`, otherwise to the region named like its country in the default language. For a deceased person
+the build follows the dated events with a place (birth, marriage, death, burial) and works out the states they lived in; a
+marriage with a living partner is left out. For the living there are no states and no flags, because a state at a
+given year would give away their age. `docs/data-format.md` has the details and the checks.
 
 ## Living people
 
@@ -244,12 +294,13 @@ a PDF as private.
 
 ```bash
 .venv/bin/python -I -m unittest discover -s tests -t .     # Python
-node --test tests/*.test.mjs                               # film logic, map engine, string keys, data contract
+node --test tests/*.test.mjs                               # film logic, map engine, colouring, string keys, data contract
 ```
 
 An optional browser smoke test walks every page of a served build in headless Chromium at
 desktop and mobile size and fails on console errors, CSP violations, requests outside the
-origin, HTTP errors >= 400, horizontal overflow on mobile and serious axe-core violations:
+origin, HTTP errors >= 400, horizontal overflow on mobile and serious axe-core violations; it also switches the theme and the colour mode in the settings
+panel and checks that the choice is applied, remembered and shared between the tree and the fan chart:
 
 ```bash
 PLAYWRIGHT_MODULES=/path/to/node_modules node tests/browser.mjs http://127.0.0.1:8000/family/
@@ -282,8 +333,8 @@ The point of this repository is not the charts but the way they stay maintainabl
   agree on it, then implement, then screenshot again at desktop and mobile size. Chart code can be
   perfectly "correct" and still look wrong.
 - **Small focused modules.** One file per concern (`gedcom.py`, `scope.py`, `privacy.py`,
-  `places.py`, `events.py`, `chronicles.py`, ...; `tree.js`, `fan.js`, `film.js`, `map-draw.js`
-  in the browser). Small files fit in a context window and keep a change local.
+  `places.py`, `events.py`, `chronicles.py`, `states.py`, ...; `tree.js`, `fan.js`, `film.js`, `coloring.js`,
+  `map-draw.js` in the browser). Small files fit in a context window and keep a change local.
 - **A written contract between Python and JS.** `docs/data-format.md` lists every key the build
   writes and the scripts read. When the format changes, the doc, the build and the scripts change
   together, and `tests/js-strings.test.mjs` checks that every string key the scripts use exists
