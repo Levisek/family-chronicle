@@ -4,6 +4,23 @@ GEDCOM + Markdown chronicles -> static family website (tree, fan chart, migratio
 chronicles, documents) and a PDF book. Living people are protected. Read `README.md` first and
 `docs/data-format.md` before touching the build or the browser scripts.
 
+## Setting up someone's family (not changing the code)
+
+Most people who open this folder want their own site, not a code change. Then:
+
+- Work in a project folder **outside this repository** (a copy of `example/`). Never put the user's
+  GEDCOM, places, chronicles or output into the repo, and do not edit the code to fit their family;
+  everything family-specific goes into their `site.json`, `places.json` and chronicles.
+- Explain each step in plain words; assume the user is not a programmer. Ask before writing
+  `site.json` (root person, branches, names, colours) and show what you chose.
+- `places.json`: give coordinates only when you are confident, list the uncertain ones for the user
+  to check. A place left out is just missing from the map, which is better than a wrong one.
+- Chronicles: use only facts from the GEDCOM and the user's notes and documents. Never invent dates,
+  places, occupations or stories; mark guesses as guesses and say what source would confirm them.
+- Living people: keep the default rules, never lower `living_years`, never bypass the check. If the
+  build reports a leak, fix the input, and tell the user what it found.
+- At the end tell the user which `index.html` to open and point them to `approval.md`.
+
 ## Run and test
 
 ```bash

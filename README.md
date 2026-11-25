@@ -76,6 +76,49 @@ The output folder gets the site in `<site_dir>/`, plus `manifest.json` (a SHA-25
 file) and `approval.md` (a list of what to read before publishing). Nothing is uploaded by the
 build; publishing is your decision.
 
+## Let an AI assistant set it up for you
+
+You do not have to write the configuration by hand. An AI assistant that can work with files on
+your computer (Claude Code, Claude desktop, Codex, GitHub Copilot in VS Code and similar) can
+install it, read your GEDCOM, propose the branches, find coordinates for your places and build the
+site. The rules it should follow are in `CLAUDE.md` (and `AGENTS.md` for tools that read that).
+
+1. Download this repository (green **Code** button → **Download ZIP**) and unpack it.
+2. Export your tree from your genealogy program as a GEDCOM file (`.ged`).
+3. Open the unpacked folder in your assistant and paste:
+
+```text
+I want a family website made with family-chronicle (this folder). My GEDCOM file is
+<path to your .ged file>. Read README.md and CLAUDE.md first, then:
+1. set up Python and build the example, so we know it works;
+2. create my project in a new folder <for example ~/my-family>, outside this repository,
+   starting from a copy of example/, and put my GEDCOM there as family.ged;
+3. look at the GEDCOM and suggest the root person and the branches; ask me before you
+   write site.json;
+4. fill places.json with coordinates for the places in my GEDCOM and show me the list,
+   marking every place you are not sure about;
+5. build the site and tell me which file to open.
+Do not change the code of this repository and never weaken the protection of living people.
+```
+
+Later you can ask for one thing at a time: "write a chronicle of the Smith branch from the
+GEDCOM", "add these photos as documents", "translate the chronicles to German".
+
+**Read before you rely on it:**
+
+- **AI makes things up.** A chronicle it writes can contain dates, places or stories that are
+  not in your sources. Ask it to use only what is in the GEDCOM and your notes and to mark
+  anything uncertain, then check every fact. The same goes for coordinates: look at the map.
+- **Your GEDCOM goes to the AI service.** A cloud assistant reads the whole file, living
+  relatives included. If that bothers you, export the GEDCOM without living people (most
+  genealogy programs have this option) or use an assistant that runs locally.
+- **Check before you publish.** The build checks the output for living people, but you decide
+  what goes online. Read `approval.md` in the output folder first.
+
+An assistant in a plain chat window (without access to your files) can still help: give it your
+GEDCOM and the `site.json` / `places.json` description below, and save what it writes into the
+files yourself.
+
 ## Your own family
 
 Copy `example/` and replace its files:
