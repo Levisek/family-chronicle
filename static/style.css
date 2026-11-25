@@ -199,6 +199,8 @@ article.person .relationship { text-align: center; font-style: italic; color: va
 article.person dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.2rem 1.2rem; margin: 0 0 1.2rem; }
 article.person dt { color: var(--text-muted); font-style: italic; }
 article.person dd { margin: 0; }
+article.person .state { white-space: nowrap; }
+article.person .flag { vertical-align: -2px; border-radius: 1px; }
 article.person h2 { font-size: 1.3rem; border-bottom: 1px solid var(--line); padding-bottom: 0.2em; }
 .tree-only { font-style: italic; color: var(--text-muted); text-align: left !important; border-top: 1px dashed var(--line); padding-top: 0.8rem; }
 .links { text-align: center !important; margin-top: 1.8rem !important; }

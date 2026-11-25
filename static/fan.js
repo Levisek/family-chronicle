@@ -3,13 +3,13 @@
 // The idea follows the fan chart of the rodokmen-skill project (J. Šaršon, MIT); the code is original.
 (function () {
   'use strict';
-  const { D, T, loadData, yearOf, localized, personLink } = window.Chronicle;
+  const { D, T, loadData, yearOf, localized, personLink, flagsOf, flagsEl, colors: C } = window.Chronicle;
   const NS = 'http://www.w3.org/2000/svg';
   const LANGUAGE = D.language;
   const NEUTRAL = '#8a7350';
 
   // ring widths (0 = centre, the root); outer radii are computed from the oldest known generation
-  const WIDTH = [92, 104, 104, 104, 118, 128, 128, 122, 116, 110, 104];
+  const WIDTH = [92, 112, 112, 112, 140, 148, 146, 136, 126, 116, 108];
   const FONT_SIZE = [21, 20, 19, 18, 17, 15.5, 13.5, 12, 11, 10, 9];
   const RADIAL_FROM = 4;                       // from the 4th generation the text runs along the ray
   let R = [], MAX_GEN = 0;
@@ -56,6 +56,14 @@
     return c.length > 1 ? [c.slice(0, -1).join(' '), c[c.length - 1]] : [c[0], ''];
   };
 
+  // "Mary Ann Smith" -> "Mary A." (only when the whole name does not fit)
+  const abbreviate = (t) => { const c = t.split(/\s+/); return c.length > 1 ? c[0] + ' ' + c.slice(1).map((x) => x[0] + '.').join(' ') : t; };
+  const FLAG_RATIO = 2 / 3;
+  function flagImages(group, flags, x0, y0, w) {
+    flags.forEach((fl, i) => group.append(s('image', { href: fl.src, x: f(x0 + i * (w + 2)), y: f(y0), width: f(w), height: f(w * FLAG_RATIO),
+      preserveAspectRatio: 'none', class: 'flag' })));
+  }
+
   let arcId = 0, SMALL_LABELS = [];
   function textArc(group, r0, r1, a0, a1, rows, g) {
     // text along an arc; in the lower half reversed so that it reads left to right
@@ -63,6 +71,19 @@
     const height = FONT_SIZE[g] * 1.18;
     const center = (r0 + r1) / 2;
     rows.forEach((r, i) => {
+      if (r.flags) {   // a row of flags across the ring, as many as fit
+        if (!r.flags.length) return;
+        const shift = (i - (rows.length - 1) / 2) * height;
+        const rc = down ? center + shift : center - shift, am = (a0 + a1) / 2;
+        const w = FONT_SIZE[g] * 0.95, room = Math.PI * rc * (a1 - a0 - 4) / 180;
+        const fit = r.flags.slice(0, Math.max(0, Math.floor((room + 2) / (w + 2))));
+        if (!fit.length) return;
+        const [cx, cy] = point(rc, am);
+        const row = s('g', { transform: `translate(${f(cx)},${f(cy)}) rotate(${f(down ? am : am - 180)})` });
+        flagImages(row, fit, -(fit.length * (w + 2) - 2) / 2, -w * FLAG_RATIO / 2, w);
+        group.append(row);
+        return;
+      }
       if (!r.text) return;
       const shift = (i - (rows.length - 1) / 2) * height;
       const rr = down ? center + shift + height * 0.32 : center - shift - height * 0.32;
@@ -72,11 +93,13 @@
       const v = a1 - a0 > 180 ? 1 : 0;
       group.append(s('path', { id, d: `M${f(xa)},${f(ya)}A${rr},${rr} 0 ${v},${down ? 0 : 1} ${f(xb)},${f(yb)}`, class: 'guide' }));
       const tp = s('textPath', { href: '#' + id, startOffset: '50%' });
-      tp.textContent = r.text;
-      // shrink so that it fits into the arc (estimated character width 0.5 em)
+      // shrink so that it fits into the arc (estimated character width 0.5 em); a given name is abbreviated rather than shrunk below 80 %
       const arcLen = Math.PI * rr * (a1 - a0 - 2 * margin) / 180;
       const basic = FONT_SIZE[g] * (r.smaller ? 0.82 : 1);
-      const resize = Math.min(basic, arcLen / (r.text.length * 0.5));
+      let text = r.text;
+      if (r.abbreviate && arcLen / (text.length * 0.5) < basic * 0.8) text = abbreviate(text);
+      tp.textContent = text;
+      const resize = Math.min(basic, arcLen / (text.length * 0.5));
       group.append(s('text', { class: 'label ' + (r.cls || ''), 'font-size': f(resize), 'text-anchor': 'middle' }, tp));
     });
   }
@@ -88,18 +111,29 @@
     const arcId = Math.PI * (r0 + r1) / 2 * (a1 - a0) / 180;   // room across the ray
     const [cx, cy] = point((r0 + r1) / 2, am);
     const rot = onLeft ? am - 90 : am + 90;   // the ray direction on screen is am+90 degrees
-    const everything = rows.filter((r) => r.text);
+    const everything = rows.filter((r) => r.text || (r.flags && r.flags.length));
     const label = (font, visibleRows) => {
       const height = font * 1.12;
-      const t = s('text', { class: 'label', transform: `translate(${f(cx)},${f(cy)}) rotate(${f(rot)})`, 'text-anchor': 'middle' });
+      const wrap = s('g', { transform: `translate(${f(cx)},${f(cy)}) rotate(${f(rot)})` });
+      const t = s('text', { class: 'label', 'text-anchor': 'middle' });
+      wrap.append(t);
       visibleRows.forEach((r, i) => {
+        const y = (i - (visibleRows.length - 1) / 2) * height;
+        if (r.flags) {
+          const w = Math.min(font * 1.05, (height - 1) / FLAG_RATIO);
+          if (w < 1.5) return;
+          const fit = r.flags.slice(0, Math.max(1, Math.floor((width + 2) / (w + 2))));
+          flagImages(wrap, fit, -(fit.length * (w + 2) - 2) / 2, y - w * FLAG_RATIO / 2, w);
+          return;
+        }
         const velocity = font * (r.smaller ? 0.82 : 1);
         let txt = r.text;
         const max = Math.floor(width / (velocity * 0.5));
+        if (txt.length > max && r.abbreviate) txt = abbreviate(txt);
         if (txt.length > max) txt = txt.slice(0, Math.max(1, max - 1)) + '…';
-        t.append(s('tspan', { x: 0, y: f((i - (visibleRows.length - 1) / 2) * height + font * 0.35), 'font-size': f(velocity), class: r.cls || null }, txt));
+        t.append(s('tspan', { x: 0, y: f(y + font * 0.35), 'font-size': f(velocity), class: r.cls || null }, txt));
       });
-      return t;
+      return wrap;
     };
     // basic: full font, as many rows as fit (narrow sector: font reduced to one row)
     const font = Math.max(0.6, Math.min(FONT_SIZE[g], (arcId - 1) / 1.12));
@@ -117,6 +151,7 @@
 
   // descendants of the chosen person: lower half circle, each child gets an angle by the number of their leaf descendants
   let MAX_DOWN = 0, UP = 0;
+  let SECTORS = [], MODE = 'branch', ERA = [1700, 2000];   // sectors with their branch colour; colouring shared with the tree
   function descendants(people, root) {
     const children = {};
     for (const [id, o] of Object.entries(people)) {
@@ -144,13 +179,14 @@
   }
 
   function drawAll(people, root) {
-    SMALL_LABELS = [];
+    SMALL_LABELS = []; SECTORS = [];
     const byAhnentafel = {};
     for (const [id, o] of Object.entries(people)) if (o.ahnentafel != null && !(o.ahnentafel in byAhnentafel)) byAhnentafel[o.ahnentafel] = id;
     const down = descendants(people, root);
     rings(Math.max(0, MAX_DOWN, ...Object.keys(byAhnentafel).map((n) => gen(+n))));
     MAX_DOWN = Math.min(MAX_DOWN, MAX_GEN);
     const maxUp = UP = Math.min(MAX_GEN, Math.max(0, ...Object.keys(byAhnentafel).map((n) => gen(+n))));
+    ERA = C.range(people);
 
     const world = s('g', { id: 'world' });
     svg.append(world);
@@ -197,7 +233,9 @@
       // descendants without a branch of their own (common) get the colour of the chosen person
       const color = branchColor(g > 0 && o.ahnentafel == null && !(D.branchMap || {})[o.branch] ? people[root].branch : o.branch);
       const [pname, prt] = split(o.name);
-      const rows = [{ text: pname }, { text: prt, cls: 'surname' }, { text: years(o), cls: 'years', smaller: true }];
+      const flags = flagsOf(o);
+      const rows = [{ text: pname, abbreviate: true }, { text: prt, cls: 'surname' }, { text: years(o), cls: 'years', smaller: true },
+        ...(flags.length ? [{ flags }] : [])];
       const relationship = o.relationship || '';
       const chapterTitle = [o.name, years(o), relationship].filter(Boolean).join(' · ');
       const link = personLink(id);
@@ -217,6 +255,7 @@
       }
       const fill = s('path', { d: sector(R[g - 1], R[g], a0, a1), class: 'sector', fill: color,
         'fill-opacity': f(Math.max(0.2, 0.46 - g * 0.025)) });
+      SECTORS.push({ el: fill, o, branch: color });
       wrap.append(fill);
       if (g < RADIAL_FROM) textArc(wrap, R[g - 1], R[g], a0, a1, rows, g);
       else textRadial(wrap, R[g - 1], R[g], a0, a1, rows, g);
@@ -247,25 +286,20 @@
     return world;
   }
 
-  function legend(people) {
+  // the legend says what the colours mean (the mode is chosen in the settings panel)
+  function drawLegend() {
     const el = document.getElementById('legend');
-    const used = new Set(Object.values(people).filter((o) => !o.spouse_of && !o.sibling_of).map((o) => o.branch));
-    const h = document.createElement('h2'); h.textContent = T.fan_legend; el.append(h);
-    const ul = document.createElement('ul');
-    for (const v of D.branches || []) {
-      const key = v.key;
-      if (!used.has(key)) continue;
-      const li = document.createElement('li');
-      li.className = 'branch-' + key;
-      const sw = document.createElement('span'); sw.className = 'swatch';
-      li.append(sw, document.createTextNode(localized(v.name) || key));
-      ul.append(li);
-    }
+    const used = new Set(Object.values(PEOPLE).filter((o) => !o.spouse_of && !o.sibling_of).map((o) => o.branch));
+    const ul = C.legend(el, { mode: MODE, visible: SECTORS.map((x) => x.o), range: ERA, visibleBranches: used });
     const li = document.createElement('li'); li.className = 'unknown';
     const sw = document.createElement('span'); sw.className = 'swatch';
     li.append(sw, document.createTextNode(T.fan_unknown));
     ul.append(li);
-    el.append(ul);
+  }
+  function applyColors(mode) {
+    MODE = C.modes.includes(mode) ? mode : 'branch';
+    for (const x of SECTORS) x.el.setAttribute('fill', C.forPerson(x.o, MODE, ERA) || x.branch);
+    drawLegend();
   }
 
   // ---------- pan and zoom ----------
@@ -317,6 +351,12 @@
     const sub = document.createElement('span');
     sub.textContent = [years(o), o.relationship || ''].filter(Boolean).join(' · ');
     bubble.append(closeBtn, h, sub);
+    const flags = flagsEl(o);
+    if (flags) {
+      const row = document.createElement('small'); row.className = 'states';
+      row.append(flags, document.createTextNode(' ' + flagsOf(o).map((x) => x.names.join(', ')).join(' · ')));
+      bubble.append(row);
+    }
     const link = personLink(id);
     if (link) {
       const a = document.createElement('a'); a.href = link; a.textContent = T.person_page; bubble.append(a);
@@ -388,7 +428,8 @@
     svg.setAttribute('width', '100%'); svg.setAttribute('height', '100%');
     PEOPLE = people;
     world = drawAll(people, view.from);
-    legend(people);
+    applyColors(C.saved());
+    window.addEventListener('chronicle:colors', (e) => { applyColors(e.detail); C.save(MODE); });
     fit();
     controls();
   }).catch((e) => { vp.textContent = (T.tree_load_error || 'Error') + ' (' + e.message + ')'; });

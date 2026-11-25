@@ -57,6 +57,30 @@ body.tree.full::after { content: ""; position: fixed; inset: 0; pointer-events: 
 .connectors.select .wedding.glow { stroke: var(--branch); stroke-width: 1.8; }
 @media (prefers-reduced-motion: reduce) { .connectors path, .connectors .wedding { transition: none; } }
 .cards { position: absolute; left: 0; top: 0; }
+/* bands of the generations behind the cards */
+.bands { position: absolute; left: 0; top: 0; pointer-events: none; }
+.band { position: absolute; left: -60000px; top: 0; width: 120000px; border-top: 1px solid rgba(160, 136, 102, .12); }
+.band.odd { background: rgba(139, 110, 64, .045); }
+/* path from the selected person to the root: the other cards step back */
+.cards .pcard { transition: box-shadow .2s, border-color .2s, filter .3s; }
+.cards.path .pcard:not(.on-path):not(.selected) { filter: opacity(.42) saturate(.6); }
+.cards.path .pcard.on-path { border-color: var(--branch); }
+/* legend of the colours (shared with the fan chart; the mode is chosen in the settings panel) */
+.tree-legend {
+  position: fixed; z-index: 9; right: 16px; top: calc(var(--strip) + 72px); padding: 8px 14px 10px; max-width: 17rem;
+  background: rgba(250, 245, 230, .92); border: 1px solid var(--line); box-shadow: var(--shadow);
+}
+.tree-legend ul { margin: 0; padding: 0; list-style: none; font-size: 14.5px; line-height: 1.45; }
+.tree-legend li { display: flex; align-items: center; gap: 8px; }
+.tree-legend .swatch { flex: none; width: 13px; height: 13px; border-radius: 3px; background: var(--branch); opacity: .8; }
+.tree-legend .mode { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+.tree-legend img.flag { width: 18px; height: 12px; border-radius: 1px; flex: none; }
+.tree-legend .scale { gap: 6px; font-size: 13.5px; }
+.tree-legend .gradient { display: inline-block; width: 100px; height: 11px; border-radius: 3px; opacity: .85; }
+/* minimap */
+.minimap { --frame: #7a2e0e; position: fixed; z-index: 9; left: 12px; bottom: 96px; background: rgba(250, 245, 230, .94); border: 1px solid var(--line); box-shadow: var(--shadow); cursor: crosshair; touch-action: none; }
+.minimap[hidden] { display: none; }
+.generations .gen-label small { font-size: 12.5px; letter-spacing: 0; font-feature-settings: "lnum" 1; color: rgba(106, 86, 64, .7); }
 
 .pcard {
   --branch: #6a5640;
@@ -89,7 +113,12 @@ body.tree.full::after { content: ""; position: fixed; inset: 0; pointer-events: 
 }
 .pcard .txt { min-width: 0; flex: 1; }
 .pcard .pname { display: block; font-size: 16px; font-weight: 600; line-height: 1.12; color: #2f251a; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.pcard .years { display: block; font-size: 14px; color: #4b3c2b; margin-top: 1px; font-feature-settings: "lnum" 1; }
+.pcard .years { display: block; font-size: 14px; color: #4b3c2b; margin-top: 1px; font-feature-settings: "lnum" 1; white-space: nowrap; overflow: hidden; }
+/* historical states: small flags after the years (the title has the names and years) */
+.flags { display: inline-flex; gap: 2px; margin-left: 6px; vertical-align: -1px; }
+.flags img { display: block; width: 15px; height: 10px; border-radius: 1px; }
+.p-states { display: flex; flex-direction: column; gap: 3px; }
+.p-states img { vertical-align: -1px; border-radius: 1px; }
 .pcard .rel { display: block; font-size: 13.5px; font-style: italic; color: var(--text-muted); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pcard .seal { position: absolute; right: 8px; bottom: 5px; font-size: 11px; color: #2c5a2e; opacity: .8; }
 .pcard .strip { position: absolute; left: -1px; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: var(--branch); }
@@ -208,6 +237,8 @@ body.tree.full::after { content: ""; position: fixed; inset: 0; pointer-events: 
   .panel[hidden] { transform: translateY(40px); }
   .tools { right: 10px; bottom: 10px; }
   .tools #b-all { display: none; }
+  .tools button.text span { display: none; }   /* only the house sign: the text took half of the bar; the description is in the title */
+  .tools button.text { font-size: 20px; font-style: normal; }
   /* compact cards (width and height are set by JS: 132 px) */
   .pcard { padding: 6px 8px 6px 8px; gap: 7px; border-radius: 5px; }
   .pcard .badge { width: 30px; height: 30px; font-size: 12px; box-shadow: inset 0 0 0 1.5px var(--branch), inset 0 0 0 3px #fffaf0, inset 0 0 0 4px color-mix(in srgb, var(--branch) 45%, transparent); }
@@ -217,6 +248,8 @@ body.tree.full::after { content: ""; position: fixed; inset: 0; pointer-events: 
   .pcard .ribbon::before { top: 5px; right: -10px; width: 36px; height: 5px; }
   .pcard .pname { font-size: 13px; }
   .pcard .years { font-size: 12px; }
+  .pcard .years .flags { display: flex; margin: 2px 0 0; }
+  .flags img { width: 13px; height: 9px; }
   .pcard .rel { font-size: 11.5px; }
   .pcard .seal { right: 5px; bottom: 3px; font-size: 10px; }
   .pcard.root::after { font-size: 8.5px; letter-spacing: .04em; left: 6px; top: -8px; padding: 0 4px 1px; }
@@ -230,6 +263,9 @@ body.tree.full::after { content: ""; position: fixed; inset: 0; pointer-events: 
   .generations .gen-label { display: none; }   /* overlapped the cards on a narrow display; the relationship is on the card */
   body.tree .page-sources { display: none; }   /* did not fit on mobile; the note about living people is in the person panel too */
   .people-list { bottom: 14px; }
+  .tree-legend { top: auto; bottom: 62px; right: 10px; padding: 4px 8px 5px; }
+  .tree-legend .mode { margin: 0; }
+  .tree-legend ul { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .panel, .pcard { transition: none !important; animation: none !important; } }
 

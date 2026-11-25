@@ -15,7 +15,8 @@
     await Promise.all(['400', 'italic 400', 'italic 600'].map((f) => document.fonts.load(f + ' 16px "EB Garamond"'))).catch(() => {});
     const sc = Sc.build(data, { branches: D.branches, strings: T, language: D.language });
     const map = M.create(canvas, { basemap: data.basemap, map: data.map, places: sc.clusters, language: D.language, strings: T });
-    const ownBranch = (D.branches.find((b) => b.chronicle === D.slug) || {}).key || null;
+    const own = (D.branches.find((b) => b.chronicle === D.slug) || {}).key || null;
+    const ownBranch = own && Sc.chapterBranch(D.branches, own);   // the legs carry the branch of their chapter
 
     const progress = new Map(), dim = new Set();
     for (const t of sc.legs) {

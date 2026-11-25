@@ -19,7 +19,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from string import Template
 
-from familychronicle import chronicles, config as config_module, documents, mapview
+from familychronicle import chronicles, config as config_module, documents, mapview, states as states_module
 from familychronicle.events import format_date, from_gedcom, manual, migration_lines
 from familychronicle.gedcom import age_at_death, load as load_tree
 from familychronicle.places import Places, _to_town
@@ -144,6 +144,17 @@ def _check_config(cfg: config_module.Config) -> None:
         keys.append(b["key"])
     if len(set(keys)) != len(keys):
         raise BuildError("duplicate branch keys")
+    for b in cfg["branches"]:
+        target = b.get("map_chapter")
+        if target is None:
+            continue
+        other = next((x for x in cfg["branches"] if x.get("key") == target), None)
+        if target == b["key"] or other is None:
+            raise BuildError(f"branch {b['key']}: map_chapter must be the key of another branch, not {target!r}")
+        if other.get("map_chapter") is not None:
+            raise BuildError(f"branch {b['key']}: map_chapter {target!r} itself joins another chapter (no chains)")
+    if "states" in cfg and not (isinstance(cfg["states"], str) and cfg["states"]):
+        raise BuildError("states must be the name of the states file")
 
 
 def _fill(value, replacements: dict):
@@ -247,7 +258,8 @@ def _marriages(tree, scope, places: Places, pid: str, lang: str) -> list[dict]:
     return out
 
 
-def _people_json(tree, scope, places: Places, living_town: dict, t: dict, lang: str) -> dict:
+def _people_json(tree, scope, places: Places, living_town: dict, t: dict, lang: str,
+                 states: states_module.States | None = None, default_language: str = "en") -> dict:
     out = {}
     for pid in sorted(scope.people):
         p = tree.people[pid]
@@ -297,6 +309,9 @@ def _people_json(tree, scope, places: Places, living_town: dict, t: dict, lang: 
         marriages = _marriages(tree, scope, places, pid, lang)
         if marriages:
             out[pid]["marriages"] = marriages
+        lived = states.person_states(tree, places, pid, default_language, scope.living) if states else []
+        if lived:
+            out[pid]["states"] = lived
     return out
 
 
@@ -363,12 +378,18 @@ class Pages:
         return "" if lang == self.default else f"{lang}/"
 
     def _scripts(self, names: list[str], root: str) -> str:
+        # the settings panel (theme, colours) is on every page
         return "\n".join(f'<script src="{root}{self.static[n]}" defer></script>'
-                         for n in names if n in self.static)
+                         for n in [*names, "settings.js"] if n in self.static)
 
     def _css(self, root: str, css: list[str]) -> str:
+        # themes.css comes last: it overrides the styles of the page
         return "\n".join(f'<link rel="stylesheet" href="{root}{self.static[n]}">'
-                         for n in ["branches.css", "style.css", *css] if n in self.static)
+                         for n in ["branches.css", "style.css", *css, "themes.css"] if n in self.static)
+
+    def _theme(self, root: str) -> str:
+        """The theme is set in <head> without defer, so the page does not flash in the default colours."""
+        return f'<script src="{root}{self.static["theme.js"]}"></script>' if "theme.js" in self.static else ""
 
     def _modes(self, lang_root: str, active: str | None, t: dict) -> str:
         items = []
@@ -403,7 +424,7 @@ class Pages:
                    "branches": self.branch_info, "strings": t}
         text = self.base.substitute(
             lang=lang, title=_e(title), alternate=alternate, css=self._css(root, list(css)),
-            body_class=body_class + (" full" if full else ""), nav_label=_e(t["nav_label"]), root=lang_root,
+            theme=self._theme(root), body_class=body_class + (" full" if full else ""), nav_label=_e(t["nav_label"]), root=lang_root,
             nav_home_url="index.html", nav_tree_url="tree.html", nav_map_url="map.html",
             nav_home=_e(t["nav_home"]), nav_tree=_e(t["nav_tree"]), nav_map=_e(t["nav_map"]),
             nav_home_cur=current if nav == "home" else "", nav_tree_cur=current if nav == "tree" else "",
@@ -487,8 +508,22 @@ def _person_documents(ids: list[str], docs: dict, exports: dict, lang: str, t: d
     return "\n".join(figures)
 
 
+def _states_html(lived: list[list], states: states_module.States, lang: str) -> str:
+    """"[flag] Name -> [flag] Name" for the person page. No years: the boundaries of states next to the
+    names of the parents would look like years of living namesakes to the privacy check."""
+    parts = []
+    for key, _start, _end in lived:
+        if parts and parts[-1][0] == key:
+            continue
+        state = states.states[key]
+        parts.append((key, f'<span class="state"><img class="flag" src="{_e(states.flag_uri(state["flag"]))}" '
+                           f'alt="" width="21" height="14"> {_e(state["name"][lang])}</span>'))
+    return " → ".join(h for _, h in parts)
+
+
 def _person_page(pid: str, p: dict, people: dict, chapters: dict, docs: dict, exports: dict,
-                 lang: str, t: dict, root: str, base_dir: Path) -> str:
+                 lang: str, t: dict, root: str, base_dir: Path,
+                 states: states_module.States | None = None) -> str:
     details = []
     for key, label in (("birth", t["person_born"]), ("death", t["person_died"])):
         u = p[key]
@@ -507,6 +542,8 @@ def _person_page(pid: str, p: dict, people: dict, chapters: dict, docs: dict, ex
         details.append(f"<dt>{_e(t['person_marriage'])}</dt><dd>{', '.join(x for x in parts if x)}</dd>")
     if p.get("occupations"):
         details.append(f"<dt>{_e(t['person_occupation'])}</dt><dd>{_e('; '.join(p['occupations']))}</dd>")
+    if p.get("states") and states:
+        details.append(f"<dt>{_e(t['person_states'])}</dt><dd>{_states_html(p['states'], states, lang)}</dd>")
     parents = [r for r in p["parents"] if people[r].get("page")]
     parents_html = ""
     if parents:
@@ -592,6 +629,10 @@ def _build(cfg: config_module.Config, out: Path, today: date) -> int:
     scope = determine_scope(tree, cfg, today)
     places = Places(cfg.path("places"), cfg.get("ignore_places", []))
     try:
+        states = states_module.load(cfg.path("states"), languages) if cfg.get("states") else None
+    except states_module.StatesError as error:
+        raise BuildError(str(error))
+    try:
         map_json = mapview.map_data(places.data, cfg)
     except ValueError as error:
         raise BuildError(str(error))
@@ -660,7 +701,7 @@ def _build(cfg: config_module.Config, out: Path, today: date) -> int:
 
     people_by_lang, data_paths = {}, {}
     for lang in languages:
-        people = _people_json(tree, scope, places, living_town, strings[lang], lang)
+        people = _people_json(tree, scope, places, living_town, strings[lang], lang, states, default)
         events = events_by_lang[lang]
         _link_documents(people, events, published)
         _per_chronicle(events, manual_ids)
@@ -707,10 +748,12 @@ def _build(cfg: config_module.Config, out: Path, today: date) -> int:
             writer.bytes(f"static/fonts/{f.name}", f.read_bytes())
 
     branch_info = [{"key": b["key"], "name": b["name"], "color": b.get("color"),
-                    "chronicle": slugs.get(b["key"])} for b in cfg["branches"]]
+                    "chronicle": slugs.get(b["key"]), "map_chapter": b.get("map_chapter")} for b in cfg["branches"]]
     first_chapter = next(iter(chronicle_files), None)
     pages = Pages(writer, strings, static, data_paths, branch_info, languages, default, first_chapter,
-                  {"root": cfg["root"], "root_name": root_full, "final_town": living_town.get(cfg["root"])})
+                  {"root": cfg["root"], "root_name": root_full, "final_town": living_town.get(cfg["root"]),
+                   "color_modes": ["branch", *(["state"] if states else []), "era", "documented"],
+                   **(states.page_data() if states else {})})
 
     sensitive = [d for ds in sensitive_dates(tree, scope).values() for d in ds]
     images = [tuple(x) for x in cfg.get("chronicle_images", [])]
@@ -743,12 +786,12 @@ def _build(cfg: config_module.Config, out: Path, today: date) -> int:
         pages.page(lang, "tree.html", t["tree_title"], _template("tree.html").substitute(
             **{**_template_strings(t), "counts_short": _e(t["counts_short"].format(**counts)),
                "branches": _people_table(people, cfg, lang, t, "")}),
-            body_class="tree", scripts=["common.js", "view.js", "tree.js"], data={}, nav="tree",
+            body_class="tree", scripts=["coloring.js", "common.js", "view.js", "tree.js"], data={}, nav="tree",
             css=["tree.css"], full=True)
         # ancestor fan
         pages.page(lang, "fan.html", t["fan_title"], _template("fan.html").substitute(
             **_template_strings(t)),
-            body_class="fan", scripts=["common.js", "view.js", "fan.js"], data={}, nav="tree",
+            body_class="fan", scripts=["coloring.js", "common.js", "view.js", "fan.js"], data={}, nav="tree",
             css=["tree.css", "fan.css"], full=True)
         # map
         pages.page(lang, "map.html", t["map_title"], _template("map.html").substitute(
@@ -798,7 +841,7 @@ def _build(cfg: config_module.Config, out: Path, today: date) -> int:
             if p["living"]:
                 continue
             body = _person_page(pid, p, people, chapters[lang], docs, exports, lang, t,
-                                "../" * (1 if lang == default else 2), base_dir)
+                                "../" * (1 if lang == default else 2), base_dir, states)
             pages.page(lang, f"person/{pid}.html", p["name"], body, body_class="person",
                        scripts=[], data={"person": pid})
 

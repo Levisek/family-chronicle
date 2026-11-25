@@ -59,6 +59,8 @@
     // branches: the list from the page data ({key, name, color, chronicle}); its order is the order of the chapters
     const branches = (options.branches || []).map((b) => (typeof b === 'string' ? { key: b } : b));
     const branchOf = (key) => branches.find((b) => b.key === key) || { key };
+    // a branch with `map_chapter` has no chapter of its own: its stops and legs join the chapter of that branch
+    const chapterOf = (key) => branchOf(key).map_chapter || key;
     const branchColor = (v) => branchOf(v).color || NEUTRAL_COLOR;
     const entry = (k) => (strings.chapters && strings.chapters[k]) || {};
     // chapter texts are keyed by the chronicle slug; a branch without them falls back to its name
@@ -110,7 +112,7 @@
         const a = points[i - 1], b = points[i];
         const sa = clusterAt(a.lat, a.lon), sb = clusterAt(b.lat, b.lon);
         if (!sa || !sb || sa === sb) continue;
-        legs.push({ id: 't' + legs.length, lineIndex: li, from: sa, to: sb, branch: l.branch,
+        legs.push({ id: 't' + legs.length, lineIndex: li, from: sa, to: sb, branch: chapterOf(l.branch),
           yearFrom: a.year, year: b.year, certainty: b.certainty, uncertain: b.certainty === 'uncertain' || a.certainty === 'uncertain',
           noYear: b.year == null, traveller: name(l.from) });
       }
@@ -125,7 +127,8 @@
     const chapters = [];
     let steps = [];
     for (const { key: v } of branches) {
-      let ev = select.filter((u) => u.branch === v);
+      if (chapterOf(v) !== v) continue;
+      let ev = select.filter((u) => chapterOf(u.branch) === v);
       if (options.person) ev = ev.filter((u) => u.people.includes(options.person));
       ev = ev.map((u, i) => ({ u, i, m: month(u.date) }))
         .sort((a, b) => a.u.year - b.u.year || a.m - b.m || a.i - b.i).map((x) => x.u);
@@ -250,6 +253,9 @@
     return { chapters, steps, clusters, legs };
   }
 
-  const api = { build, km };
+  // the branch whose chapter holds the stops of `key` (itself unless the branch has `map_chapter`)
+  const chapterBranch = (branches, key) => { const b = (branches || []).find((x) => x.key === key); return (b && b.map_chapter) || key; };
+
+  const api = { build, km, chapterBranch };
   if (typeof module !== 'undefined') module.exports = api; else g.Film = api;
 })(typeof window !== 'undefined' ? window : globalThis);

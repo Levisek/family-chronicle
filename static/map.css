@@ -150,6 +150,9 @@ body.map.full { overflow: hidden; background: #e8dcbf; touch-action: none; }
 .controls button.play svg { width: 22px; height: 22px; }
 .play .icon-pause, .playing .play .icon-play { display: none; }
 .playing .play .icon-pause { display: block; }
+.controls #b-card { display: none; }
+#b-card .icon-text, body.card-hidden #b-card .icon-fold { display: none; }
+body.card-hidden #b-card .icon-text { display: inline; }
 .controls button.text { line-height: 1.2; border-radius: 2px; padding: 4px 8px; font-size: 16px; font-style: italic; color: var(--text-muted); white-space: nowrap; }
 .timeline { position: relative; flex: 1; height: 40px; cursor: pointer; outline: none; }
 .timeline-track { position: absolute; left: 0; right: 0; top: 13px; height: 6px; display: flex; gap: 3px; }
@@ -222,7 +225,14 @@ body.map .page-sources { display: none; }
   .controls button.text { padding: 4px 4px; font-size: 14px; }
   .timeline-segment b { display: none; }
   #b-end { display: none; }
-  .film-intro { padding: 40px 30px; }
+  .controls #b-card { display: inline-block; }
+  .controls #b-card[aria-pressed="true"] { background: var(--paper-dark); }
+  body.card-hidden .card { visibility: hidden; opacity: 0; pointer-events: none; }
+  .film-intro { padding: 40px 22px; }
+  .btn-main { white-space: nowrap; padding: 10px 22px 11px 18px; font-size: 18px; }
+  body.map[data-phase="intro"] .cartouche { display: none; }   /* overlapped the heading of the intro */
+  /* the full map: the legend must not take half of the display */
+  body.map[data-phase="end"] .card:not(.expanded) { max-height: 32vh; overflow: auto; }
   .chapter-title { top: calc(var(--strip) + (100vh - var(--strip)) * .36); padding: 24px 20px; }
   .film-intro-sub, .ct-sub { font-size: 17px; }
 }

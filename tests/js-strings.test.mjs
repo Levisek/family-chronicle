@@ -33,6 +33,28 @@ test('keys built at run time: certainty_<certainty>, roles, roles_of, event type
   }
 });
 
+test('keys of the settings panel and the colour legend, built at run time from the lists in the scripts', () => {
+  const settings = code(read('settings.js'));
+  const themes = /var THEMES = \[([^\]]*)\]/.exec(settings)[1].match(/'([a-z]+)'/g).map((x) => x.slice(1, -1));
+  const modes = /var ALL_MODES = \[([^\]]*)\]/.exec(settings)[1].match(/'([a-z]+)'/g).map((x) => x.slice(1, -1));
+  assert.deepEqual(themes, ['chronicle', 'night', 'atlas']);
+  assert.deepEqual(modes, ['branch', 'state', 'era', 'documented']);
+  for (const [lang, strings] of Object.entries(LOCALES)) {
+    for (const t of themes) assert.ok(strings['theme_' + t], `${lang}: theme_${t}`);
+    for (const m of modes) assert.ok(strings['color_mode_' + m], `${lang}: color_mode_${m}`);
+  }
+});
+
+test('the theme names in theme.js and settings.js agree, and the CSS has a block for each', () => {
+  const themeJs = code(read('theme.js'));
+  const css = readFileSync(new URL('static/themes.css', root), 'utf8');
+  for (const t of ['night', 'atlas']) {
+    assert.ok(themeJs.includes(`'${t}'`), `theme.js knows ${t}`);
+    assert.ok(css.includes(`html[data-theme="${t}"]`), `themes.css styles ${t}`);
+    assert.ok(css.includes(`.theme-${t} .sample`), `themes.css has a sample for ${t}`);
+  }
+});
+
 test('the roles the scripts ask for exist', () => {
   const asked = new Set();
   for (const f of scripts) {

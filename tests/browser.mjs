@@ -152,6 +152,56 @@ async function tree(page, name, where) {
   });
 }
 
+// settings panel: theme and colour mode are applied, remembered and shared between the tree and the fan chart
+async function appearance(page, where) {
+  const forget = () => page.evaluate(() => { for (const k of ['chronicle.theme', 'chronicle.colors']) localStorage.removeItem(k); });
+  await step(where, 'settings: theme and colours', async () => {
+    await forget();
+    await page.goto(base + 'tree.html', { waitUntil: 'load' });
+    await page.waitForSelector('button.pcard'); await wait(page, 600);
+    const T = await strings(page);
+    await page.locator('.settings-toggle').click();
+    if (!(await page.locator('#settings-panel').isVisible())) report(where, 'the settings panel did not open');
+    await page.locator('.settings-theme[data-theme="night"]').click();
+    if (await page.evaluate(() => document.documentElement.getAttribute('data-theme')) !== 'night') report(where, 'the Night theme was not applied');
+    if (isMobile(where) === false) await shot(page, 'settings-@', where);
+    const before = await page.locator('button.pcard[data-id="I1"]').evaluate((e) => e.style.getPropertyValue('--branch'));
+    await page.selectOption('#settings-colors', 'state');
+    await wait(page, 400);
+    const legend = await page.locator('#legend .mode').innerText();
+    if (!legend.toLowerCase().includes(T.color_mode_state.toLowerCase())) report(where, `the tree legend does not name the mode: ${legend}`);
+    if (await page.locator('#legend select').count()) report(where, 'the legend has its own select (the mode is chosen in the settings panel)');
+    const after = await page.locator('button.pcard[data-id="I1"]').evaluate((e) => e.style.getPropertyValue('--branch'));
+    if (before === after) report(where, 'the card colour did not change with the colour mode');
+    if (!(await page.locator('button.pcard .flags img').count())) report(where, 'no flags on the cards (states are configured)');
+    await page.keyboard.press('Escape');
+    if (await page.locator('#settings-panel').isVisible()) report(where, 'Escape did not close the settings panel');
+    // the path from a selected person to the root
+    await page.evaluate(() => window.__tree.select('I19'));
+    await page.waitForSelector('#panel:not([hidden])', { timeout: 3000 });
+    if ((await page.locator('.pcard.on-path').count()) < 2 || !(await page.locator('#cards.path').count())) report(where, 'no path is marked for the selected person');
+    await page.keyboard.press('Escape'); await wait(page, 300);
+    if (await page.locator('.pcard.on-path').count()) report(where, 'the path stays after the panel is closed');
+    // remembered: the fan chart opens in the same theme and mode, and the panel shows the same choice
+    await page.goto(base + 'fan.html', { waitUntil: 'load' });
+    await page.waitForSelector('#fan .sector'); await wait(page, 400);
+    if (await page.evaluate(() => document.documentElement.getAttribute('data-theme')) !== 'night') report(where, 'the theme is not remembered on the fan page');
+    const fanLegend = await page.locator('#legend .mode').innerText();
+    if (!fanLegend.toLowerCase().includes(T.color_mode_state.toLowerCase())) report(where, `the fan legend does not follow the mode: ${fanLegend}`);
+    await page.locator('.settings-toggle').click();
+    if (await page.locator('#settings-colors').inputValue() !== 'state') report(where, 'the settings panel does not show the remembered mode');
+    await page.selectOption('#settings-colors', 'era');
+    await wait(page, 300);
+    if (!(await page.locator('#legend .gradient').count())) report(where, 'the era legend has no scale');
+    if (isMobile(where) === false) await shot(page, 'fan-night-@', where);
+    // the mode from the address wins over the remembered one
+    await page.goto(base + 'fan.html?from-address#colors=documented', { waitUntil: 'load' });   // another query: a real load, not a hash change
+    await page.waitForSelector('#fan .sector'); await wait(page, 300);
+    if (!(await page.locator('#legend li').allInnerTexts()).some((x) => x.includes(T.color_documented_yes))) report(where, '#colors=documented was not applied');
+    await forget();
+  });
+}
+
 async function fan(page, name, where) {
   await page.waitForSelector('#fan .sector', { timeout: 8000 });
   await wait(page, 500);
@@ -379,6 +429,7 @@ for (const [vp, viewport] of VIEWPORTS) {
       }
       await page.goto(base + rel, { waitUntil: 'load' }); await page.waitForSelector('button.pcard');
       await tree(page, 'tree.html', where);
+      await appearance(page, where);
     } else if (rel === 'cs/tree.html') await tree(page, 'cs', where);
     else if (rel === 'fan.html' || rel === 'cs/fan.html') await fan(page, rel, where);
   }

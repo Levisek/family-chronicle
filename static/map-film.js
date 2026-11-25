@@ -84,13 +84,16 @@
     for (const s of sc.steps) if (s.chapter !== cur.chapter) for (const t of s.legs) dim.add(t.id);
   }
 
+  // on a phone the card can be hidden to see the map (the choice holds for all stops)
+  const cardVisible = () => !els.card.hidden && !document.body.classList.contains('card-hidden');
+
   // ---------- free area and views ----------
   function recomputeSurface() {
     const { w: W } = map.dimensions(), mob = W <= 760;
     const ct = canvas.getBoundingClientRect().top;                    // the canvas starts below the navigation strip
     const controlsTop = els.controls.getBoundingClientRect().top - ct;
     const r = { x0: 0, y0: mob ? 56 : 0, x1: W, y1: controlsTop - 6 };
-    if (mob) { if (!els.card.hidden) r.y1 = Math.min(r.y1, els.card.offsetTop - ct - 4); }
+    if (mob) { if (cardVisible()) r.y1 = Math.min(r.y1, els.card.offsetTop - ct - 4); }
     else if (S.phase !== 'intro' && S.step >= 0) r.x1 = W - 410;       // room for the card, even when it is not shown right now
     if (!mob) r.y0 = S.end || S.phase === 'intro' || S.phase === 'chapterTitle' ? 110 : 20;
     map.setFreeArea([r.x0, r.y0, r.x1, r.y1], { controlsTop: controlsTop });
@@ -442,7 +445,7 @@
     const place = cur ? stepPlace(cur) : null;
     map.render(time, dt, {
       progress, dim, activePlace: place, activeT: (time - S.arrivalTime) / 1000, activeColor: cur ? stepColor(cur) : undefined,
-      spotlight: !!place, filmYear: sc.steps.length ? filmYear() : null, scale: !(mobile() && !els.card.hidden),
+      spotlight: !!place, filmYear: sc.steps.length ? filmYear() : null, scale: !(mobile() && cardVisible()),
     });
     requestAnimationFrame(loop);
   }
@@ -497,6 +500,13 @@
     id('b-next').addEventListener('click', next);
     id('b-prev').addEventListener('click', prev);
     id('b-end').addEventListener('click', showEnd);
+    const bCard = id('b-card');
+    bCard.addEventListener('click', () => {
+      const hide = document.body.classList.toggle('card-hidden');
+      bCard.setAttribute('aria-pressed', String(hide));
+      bCard.title = hide ? T.map_card_show : T.map_card_hide;
+      bCard.setAttribute('aria-label', bCard.title);
+    });
     const bSpeed = id('b-speed');
     bSpeed.addEventListener('click', () => {
       const r = [0.5, 1, 2]; S.speed = r[(r.indexOf(S.speed) + 1) % r.length];

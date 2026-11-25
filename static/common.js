@@ -148,5 +148,57 @@
     return reset;
   }
 
-  g.Chronicle = { D, T, el, monogram, yearOf, localized, color, loadData, personLink, magnifier };
+  // ---------- flags and colouring (tree and fan chart) ----------
+  const COLORS_KEY = 'chronicle.colors';   // the colour mode, shared by the tree, the fan chart and the settings panel
+  const Col = g.Coloring;   // only the tree and the fan chart load coloring.js (before this file)
+  const flagsOf = (p) => (Col ? Col.flagsOf(p, D, D.language) : []);
+  // the flags of a person as a row of small images (title: names and years of the states), or null
+  function flagsEl(p, cls) {
+    const flags = flagsOf(p);
+    if (!flags.length) return null;
+    const row = el('span', { class: cls || 'flags', title: flags.map((f) => f.names.join(', ')).join(' · ') });
+    for (const f of flags) row.append(el('img', { src: f.src, alt: '', width: 15, height: 10 }));
+    return row;
+  }
+  const colorModes = () => (D.color_modes && D.color_modes.length ? D.color_modes : Col.MODES);
+  // mode from the address (#colors=), else the last used one
+  function savedMode() {
+    let m = new URLSearchParams(location.hash.slice(1)).get('colors');
+    if (!m) { try { m = localStorage.getItem(COLORS_KEY); } catch (e) { m = null; } }
+    return Col.parseMode(m, colorModes());
+  }
+  function saveMode(mode) {
+    try { localStorage.setItem(COLORS_KEY, mode); } catch (e) { /* private window */ }
+    const q = new URLSearchParams(location.hash.slice(1));
+    if (mode === 'branch') q.delete('colors'); else q.set('colors', mode);
+    const h = q.toString();
+    try { history.replaceState(null, '', h ? '#' + h : location.pathname + location.search); } catch (e) { /* file:// */ }
+    g.dispatchEvent(new CustomEvent('chronicle:colors-changed', { detail: mode }));   // the settings panel follows
+  }
+  // legend: says what the colours mean (the mode is chosen in the settings panel); `visible` = people in view
+  function colorLegend(target, { mode, visible, range, visibleBranches }) {
+    target.replaceChildren();
+    target.append(el('p', { class: 'mode' }, T.colors_label + ': ' + T['color_mode_' + mode]));
+    const ul = el('ul');
+    const labels = { state_unknown: T.color_state_unknown, era_unknown: T.color_era_unknown, documented_yes: T.color_documented_yes,
+      documented_no: T.color_documented_no, living: T.color_living };
+    const ctx = { ...D, range, language: D.language, visibleBranches };
+    for (const it of Col.legendItems(mode, ctx, visible, labels)) {
+      if (it.kind === 'branch') ul.append(el('li', { class: 'branch-' + it.branch }, el('span', { class: 'swatch' }), it.label));
+      else if (it.kind === 'gradient') {
+        const bar = el('span', { class: 'gradient' });
+        bar.style.background = 'linear-gradient(to right, ' + it.stops.join(', ') + ')';
+        ul.append(el('li', { class: 'scale' }, it.from + ' ', bar, ' ' + it.to));
+      } else {
+        const sw = el('span', { class: 'swatch' });
+        sw.style.setProperty('--branch', it.color);
+        ul.append(el('li', null, sw, it.kind === 'flag' ? el('img', { src: it.flag, alt: '', class: 'flag' }) : null, it.label));
+      }
+    }
+    target.append(ul);
+    return ul;
+  }
+
+  g.Chronicle = { D, T, el, monogram, yearOf, localized, color, loadData, personLink, magnifier, flagsOf, flagsEl,
+    colors: !Col ? null : { modes: Col.MODES, saved: savedMode, save: saveMode, legend: colorLegend, forPerson: (p, mode, range) => Col.colorFor(p, mode, { ...D, range, language: D.language }), range: Col.eraRange } };
 })(window);

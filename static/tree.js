@@ -2,7 +2,7 @@
 // Layout: root at the bottom, ancestors up, siblings beside. Data only through Chronicle (common.js).
 (function () {
   'use strict';
-  const { D, T, el, loadData, monogram, yearOf, localized, color, personLink, magnifier } = window.Chronicle;
+  const { D, T, el, loadData, monogram, yearOf, localized, color, personLink, magnifier, flagsOf, flagsEl, colors: C } = window.Chronicle;
   let resetMagnifier = () => {};
   const LANGUAGE = D.language;
   const NEUTRAL = '#6a5640';
@@ -13,8 +13,8 @@
   let CW, CH, ROW, GAP, GAP_S, PAR, BUS, compact;
   function dimensions() {
     compact = MOBILE.matches;
-    if (compact) { CW = 132; CH = 72; ROW = 126; GAP = 14; GAP_S = 8; PAR = 10; BUS = 24; }
-    else { CW = 214; CH = 76; ROW = 158; GAP = 26; GAP_S = 16; PAR = 34; BUS = 30; }
+    if (compact) { CW = 132; CH = 82; ROW = 136; GAP = 14; GAP_S = 8; PAR = 10; BUS = 24; }
+    else { CW = 226; CH = 76; ROW = 158; GAP = 26; GAP_S = 16; PAR = 34; BUS = 30; }
   }
   dimensions();
 
@@ -22,6 +22,8 @@
   const expandedSet = new Set(), siblingsOpen = new Set(), childrenOpen = new Set();
   let selected = null;
   let els;
+  let MODE = 'branch', ERA = [1700, 2000];   // colouring of the cards (shared with the fan chart)
+  let pathSet = null;                        // people on the way from the selected person to the root
 
   const template = (s, values) => s.replace(/\{(\w+)\}/g, (_, k) => values[k]);
   const relationshipFormal = (o) => o.relationship || '';
@@ -134,13 +136,15 @@
     return '';
   }
   function personColor(o) {
+    const byMode = C.forPerson(o, MODE, ERA);
+    if (byMode) return byMode;
     const v = personBranches(o.id);
     return v.length === 1 ? color(v[0]) : NEUTRAL;
   }
   // several branches: ring and stripe made of their colours
   function mixed(o, dir) {
     const v = personBranches(o.id);
-    if (v.length < 2) return null;
+    if (v.length < 2 || MODE !== 'branch') return null;
     const step = 100 / v.length;
     const parts = v.map((x, i) => `${color(x)} ${(i * step).toFixed(2)}% ${((i + 1) * step).toFixed(2)}%`).join(', ');
     return dir === 'circle' ? `conic-gradient(${parts})` : `linear-gradient(to bottom, ${parts})`;
@@ -252,7 +256,7 @@
     b.style.setProperty('--branch', personColor(o));
     if (o.sex === 'M') b.classList.add('male'); else if (o.sex === 'F') b.classList.add('female');
     if (isAncestor(id)) b.classList.add('ancestor');
-    if (personBranches(id).length) {
+    if (personBranches(id).length || MODE !== 'branch') {
       const prt = el('span', { class: 'strip' });
       const g = mixed(o, 'strip');
       if (g) prt.style.background = g;
@@ -264,7 +268,7 @@
     b.append(makeBadge(o, 'badge'),
       el('span', { class: 'txt' },
         el('span', { class: 'pname', text: o.name }),
-        years(o) ? el('span', { class: 'years', text: years(o) }) : null,
+        (years(o) || flagsOf(o).length) ? el('span', { class: 'years' }, years(o), flagsEl(o)) : null,
         el('span', { class: 'rel', text: relationshipText(o) })));
     if ((o.documents || []).length) b.append(el('span', { class: 'seal', title: T.has_documents, text: '✓' }));
     b.addEventListener('click', (e) => { if (dragged) return; e.stopPropagation(); select(id); });
@@ -327,6 +331,7 @@
         const origin_src = origin && cur.get(origin) ? cur.get(origin) : t;
         start.set(id, { ...t, x: origin_src.x + (origin_src.w - t.w) / 2, y: origin_src.y, o: 0 });
         const e = createCard(id);
+        if (pathSet && pathSet.has(id)) e.classList.add('on-path');
         cardEls.set(id, e); els.cards.append(e);
       }
       const e = cardEls.get(id);
@@ -370,6 +375,7 @@
     }
     animation = null;
     drawPositions();
+    if (MODE === 'state') drawLegend();   // the countries in the legend follow who is in view
   }
 
   function drawPositions() {
@@ -395,7 +401,7 @@
     const parts = [];
     const R = 9;
     // the line knows whom it connects; for a selected person only the lines to their parents, partners and children stay prominent
-    const glow = (ids) => (selected && ids.includes(selected) ? ' glow' : '');
+    const glow = (ids) => ((selected && ids.includes(selected)) || (pathSet && ids.filter((x) => pathSet.has(x)).length >= 2) ? ' glow' : '');
     const piece = (cls, ids, attrs) => parts.push(`<path class="${(cls + glow(ids)).trim()}" ${attrs}/>`);
     const ring = (ids, attrs) => parts.push(`<circle class="wedding${glow(ids)}" ${attrs}/>`);
     const route = (x0, y0, xb, x1, y1) => {
@@ -492,6 +498,15 @@
   }
   function drawGenerations() {
     const gens = new Set([...cur.values()].filter((p) => !p.leaving).map((p) => p.gen));
+    // span of birth years in a row (deceased only; the living have no dates in the data)
+    const span = new Map();
+    for (const [id, p] of cur) {
+      if (p.leaving || people[id].living) continue;
+      const y = yearOf((people[id].birth || {}).date);
+      if (!y) continue;
+      const m = span.get(p.gen) || [y, y];
+      span.set(p.gen, [Math.min(m[0], y), Math.max(m[1], y)]);
+    }
     const v = topEdge();
     const spany = [];
     for (const g of [...gens].sort((a, b) => a - b)) {
@@ -499,11 +514,103 @@
       if (y < v + 10 || y > window.innerHeight - 10) continue;
       const names = [people[ROOT_ID].name.split(' ')[0], ...T.generations_up.slice(1)];
       const n = g < 0 ? (T.generations_down || [])[-g - 1] || T.younger_generation : names[g] || template(T.generation_far, { n: g - 2 });
-      const s = el('span', { class: 'gen-label', text: n });
+      const r = span.get(g);
+      const s = el('span', { class: 'gen-label' }, n,
+        r && !compact ? el('small', { text: r[0] === r[1] ? ' · ' + r[0] : ` · ${r[0]}–${r[1]}` }) : null);
       s.style.top = y + 'px';
       spany.push(s);
     }
     els.generations.replaceChildren(...spany);
+    // bands of the generations in the surface (behind the cards), alternately tinted
+    const bands = [];
+    for (const g of gens) {
+      const d = el('div', { class: 'band' + (g % 2 ? ' odd' : '') });
+      d.style.transform = `translateY(${-g * ROW + CH / 2 - ROW / 2}px)`;
+      d.style.height = ROW + 'px';
+      bands.push(d);
+    }
+    if (bands.length !== els.bands.childElementCount || els.bands.dataset.g !== [...gens].join()) {
+      els.bands.replaceChildren(...bands); els.bands.dataset.g = [...gens].join();
+    }
+    drawMinimap();
+  }
+
+  // ---------- minimap (wide screens, only when the tree does not fit) ----------
+  let minimapPending = false, minimapScale = null;
+  function drawMinimap() {
+    if (minimapPending) return;
+    minimapPending = true;
+    requestAnimationFrame(() => {
+      minimapPending = false;
+      const c = els.minimap;
+      if (!c) return;
+      const seen = [...cur].filter(([, p]) => !p.leaving && p.o > .05);
+      if (compact || !seen.length) { c.hidden = true; return; }
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      for (const [, p] of seen) { x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y); x1 = Math.max(x1, p.x + p.w); y1 = Math.max(y1, p.y + p.h); }
+      const v = topEdge();
+      const win = { x0: -cam.x / cam.k, y0: (v - cam.y) / cam.k, x1: (freeWidth() - cam.x) / cam.k, y1: (window.innerHeight - cam.y) / cam.k };
+      if (win.x0 <= x0 && win.x1 >= x1 && win.y0 <= y0 && win.y1 >= y1) { c.hidden = true; return; }
+      c.hidden = false;
+      const W = 200, H = 120, dpr = window.devicePixelRatio || 1, pad = 8;
+      if (c.width !== W * dpr) { c.width = W * dpr; c.height = H * dpr; c.style.width = W + 'px'; c.style.height = H + 'px'; }
+      const k = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0));
+      const ox = (W - (x1 - x0) * k) / 2 - x0 * k, oy = (H - (y1 - y0) * k) / 2 - y0 * k;
+      minimapScale = { k, ox, oy };
+      const g = c.getContext('2d');
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, W, H);
+      for (const [id, p] of seen) {
+        g.globalAlpha = pathSet && !pathSet.has(id) ? .3 : .85;
+        g.fillStyle = personColor(people[id]);
+        g.fillRect(ox + p.x * k, oy + p.y * k, Math.max(1.5, p.w * k), Math.max(1.5, p.h * k));
+      }
+      g.globalAlpha = 1;
+      g.strokeStyle = getComputedStyle(c).getPropertyValue('--frame').trim() || '#7a2e0e'; g.lineWidth = 1.5;
+      const rx0 = Math.max(0, ox + win.x0 * k), ry0 = Math.max(0, oy + win.y0 * k);
+      const rx1 = Math.min(W, ox + win.x1 * k), ry1 = Math.min(H, oy + win.y1 * k);
+      g.strokeRect(rx0 + .75, ry0 + .75, Math.max(4, rx1 - rx0 - 1.5), Math.max(4, ry1 - ry0 - 1.5));
+    });
+  }
+  function minimapControls() {
+    const c = els.minimap;
+    if (!c) return;
+    let dragging = false;
+    const jumpTo = (e) => {
+      if (!minimapScale) return;
+      const r = c.getBoundingClientRect();
+      const wx = (e.clientX - r.left - minimapScale.ox) / minimapScale.k, wy = (e.clientY - r.top - minimapScale.oy) / minimapScale.k;
+      const v = topEdge();
+      camAnimation = null; zoomTarget = null; momentum = null;
+      cam.x = freeWidth() / 2 - wx * cam.k; cam.y = v + (window.innerHeight - v) / 2 - wy * cam.k;
+      applyCamera();
+    };
+    c.addEventListener('pointerdown', (e) => { e.stopPropagation(); dragging = true; c.setPointerCapture(e.pointerId); jumpTo(e); });
+    c.addEventListener('pointermove', (e) => { if (dragging) jumpTo(e); });
+    const release = () => { dragging = false; };
+    c.addEventListener('pointerup', release); c.addEventListener('pointercancel', release);
+  }
+
+  // ---------- colours (branch / country of birth / birth period / evidence) ----------
+  function drawLegend() {
+    const seen = [...cur.keys()].map((id) => people[id]);
+    C.legend(els.legend, { mode: MODE, visible: seen, range: ERA, visibleBranches: new Set(seen.flatMap((o) => personBranches(o.id))) });
+  }
+  function recolor(mode) {
+    MODE = C.modes.includes(mode) ? mode : 'branch';
+    C.save(MODE);
+    // the cards are created again (the colour is in the strip, badge and frame); positions and state stay
+    for (const [id, old] of cardEls) {
+      const fresh = createCard(id);
+      fresh.className = old.className;
+      fresh.style.cssText = old.style.cssText;
+      fresh.style.setProperty('--branch', personColor(people[id]));
+      old.replaceWith(fresh);
+      cardEls.set(id, fresh);
+    }
+    if (selected) { els.panel.style.setProperty('--branch', personColor(people[selected])); drawConnectors(); }
+    drawLegend();
+    drawMinimap();
   }
   function freeWidth() {
     return !els.panel.hidden && window.innerWidth > 760 ? window.innerWidth - 410 : window.innerWidth;
@@ -539,7 +646,7 @@
     // mobile: the default view frames the root, their parents and sister so that it is readable
     const ids = compact && duration === 0 ? [ROOT_ID, ...ancestorParents(ROOT_ID), ...(siblingsOpen.has(ROOT_ID) ? siblings_of(ROOT_ID) : [])] : null;
     const { x0, y0, x1, y1 } = boundsOf(target, ids);
-    const leftPad = compact ? 44 : 100, margin = compact ? 20 : 40;   // room on the left for generation labels
+    const leftPad = compact ? 44 : 200, margin = compact ? 20 : 40;   // room on the left for generation labels
     const k = Math.max(.1, Math.min(compact && ids ? 1.1 : 1.05, (W - leftPad - margin) / (x1 - x0), (H - 40) / (y1 - y0)));
     const c = { k, x: leftPad + (W - leftPad) / 2 - (x0 + x1) / 2 * k, y: v + 20 + (H - 40) / 2 - (y0 + y1) / 2 * k + 14 };
     if (duration === 0) { Object.assign(cam, c); applyCamera(); } else animateCamera(c, duration);
@@ -721,6 +828,7 @@
     const e = cardEls.get(id);
     if (e) { e.classList.add('selected'); e.classList.remove('highlight'); void e.offsetWidth; if (center_it) e.classList.add('highlight'); }
     els.panel.hidden = false;
+    setPath(id);
     drawConnectors();
     renderPanel(id);
     if (center_it) centerOn(id, Math.max(cam.k, .9));
@@ -730,7 +838,34 @@
     els.panel.hidden = true;
     if (selected && cardEls.get(selected)) cardEls.get(selected).classList.remove('selected');
     selected = null;
+    setPath(null);
     drawConnectors();
+  }
+  // the way from a person to the root (ancestors in the line; for a sibling through the shared parents, for a partner through the spouse)
+  function pathTo(id) {
+    const out = new Set();
+    const byNumber = (n) => Object.keys(people).find((k) => people[k].ahnentafel === n);
+    let x = id;
+    while (x && people[x] && !out.has(x)) {
+      out.add(x);
+      if (people[x].spouse_of) { x = people[x].spouse_of; continue; }
+      if (parentOfChild[x]) { x = parentOfChild[x]; continue; }
+      if (!isAncestor(x)) {
+        const anchor = siblingAnchor(x);
+        if (!anchor) break;
+        ancestorParents(anchor).forEach((r) => out.add(r));
+        x = anchor; continue;
+      }
+      for (let n = Math.floor(people[x].ahnentafel / 2); n >= 1; n = Math.floor(n / 2)) { const a = byNumber(n); if (a) out.add(a); }
+      break;
+    }
+    return out;
+  }
+  function setPath(id) {
+    pathSet = id && id !== ROOT_ID ? pathTo(id) : null;
+    if (pathSet && pathSet.size < 2) pathSet = null;
+    for (const [k, e] of cardEls) e.classList.toggle('on-path', !!pathSet && pathSet.has(k));
+    els.cards.classList.toggle('path', !!pathSet);
   }
 
   function renderPanel(id) {
@@ -756,6 +891,12 @@
       for (const sn of o.marriages || []) row(T.marriage_lc, [sn.spouse && people[sn.spouse] ? people[sn.spouse].name : '', sn.date, sn.place].filter(Boolean).join(', '));
       row(T.occupation_lc, (o.occupations || []).join('; '));
       row(T.town_lc, o.town);
+      const flags = flagsOf(o);
+      if (flags.length) {
+        const dd = el('dd', { class: 'p-states' });
+        for (const f of flags) dd.append(el('span', null, el('img', { src: f.src, alt: '', width: 18, height: 12 }), ' ' + f.names.join(', ')));
+        dl.append(el('dt', { text: T.person_states }), dd);
+      }
       if (dl.children.length) p.append(dl);
     }
     const actions = el('div', { class: 'p-actions' });
@@ -880,7 +1021,8 @@
       connectors: document.getElementById('connectors'), cards: document.getElementById('cards'),
       generations: document.getElementById('generations'), panel: document.getElementById('panel'),
       panelContent: document.getElementById('panel-content'), lightbox: document.getElementById('lightbox'),
-      bar: document.querySelector('.bar'),
+      bar: document.querySelector('.bar'), bands: document.getElementById('bands'),
+      legend: document.getElementById('legend'), minimap: document.getElementById('minimap'),
     };
     const d = await loadData(['people', 'documents', 'events', 'lines']);
     if (!Object.values(d.people).some((o) => o.ahnentafel === 1)) throw new Error('people: no root (ahnentafel 1)');
@@ -895,13 +1037,18 @@
     for (const [id, o] of Object.entries(d.people)) if (o.living) onMap.delete(id);
     for (const [i, x] of Object.entries(people)) x.id = i;
     prepareLinks();
+    ERA = C.range(people);
+    MODE = C.saved();
     defaultExpansion();
     siblingsOpen.add(ROOT_ID);        // the sister (siblings of the root) is next to the root from the start
     await document.fonts.ready;
     redraw(null);
     finishAnimation();
     overview(0);
+    drawLegend();
     surfaceControls();
+    minimapControls();
+    window.addEventListener('chronicle:colors', (e) => recolor(e.detail));
     search();
     document.getElementById('panel-close').addEventListener('click', closePanel);
     resetMagnifier = magnifier(els.lightbox);

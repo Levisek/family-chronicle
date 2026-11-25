@@ -1,8 +1,8 @@
 # Data format of the generated site
 
 The contract between the Python build (`familychronicle/build.py`) and the scripts in `static/`
-(`common.js`, `film.js`, `map-draw.js`, `map-film.js`, `story.js`, `tree.js`, `fan.js`, `view.js`) and
-style sheets (`style.css`, `tree.css`, `fan.css`, `map.css`). The scripts read only the keys, ids and
+(`coloring.js`, `common.js`, `film.js`, `map-draw.js`, `map-film.js`, `story.js`, `tree.js`, `fan.js`, `view.js`,
+`theme.js`, `settings.js`) and style sheets (`style.css`, `tree.css`, `fan.css`, `map.css`, `themes.css`). The scripts read only the keys, ids and
 classes described here. `tests/js-strings.test.mjs` checks that every string key the scripts use exists in
 every `locales/<lang>.json`; `tests/contract.test.mjs` checks the document keys.
 
@@ -37,8 +37,8 @@ language under `<lang>/`.
 | key | meaning |
 |---|---|
 | `root`, `gedcom`, `places`, `base_url`, `languages`, `default_language`, `site_dir`, `branches` | required |
-| `events`, `documents`, `basemap` | optional files (relative to the config) |
-| `branches[]` | `key` `[a-z0-9_-]+`, `name{lang: text}`, `color`, `roots[]`, optional `chronicle` (path to the default-language `.md`) |
+| `events`, `documents`, `basemap`, `states` | optional files (relative to the config); `states` is the file of historical states, see below |
+| `branches[]` | `key` `[a-z0-9_-]+`, `name{lang: text}`, `color`, `roots[]`, optional `chronicle` (path to the default-language `.md`), optional `map_chapter` (key of another branch, see below) |
 | `ignore_places`, `living_town{id: town}`, `living_extra`, `deceased_extra`, `exclude`, `living_years`, `check_exceptions`, `documents_cutoff_year`, `documents_skip_dirs`, `open_questions_headings{lang: [headings]}` | see the README |
 | `strings{lang: {key: value}}` | merged over `locales/<lang>.json`; nested objects (`chapters`, `branch_descriptions`) merge key by key |
 | `map_labels` | optional `[{text{lang: text}, lat, lon, kind}]`, `kind` is `region`, `town` or `ridge` |
@@ -48,6 +48,40 @@ GEDCOM ids may be written `I1` or `@I1@` (`root`, `roots`, `living_extra`, `dece
 `living_town` keys). `{root}` and `{root_full}` inside any string are replaced at build time by the root
 person's given name and full name. Chapter names for a chronicle that has no entry in `chapters` are filled
 in (`title` = chronicle title or slug, `short` = branch name, `subtitle` = "").
+
+`branches[].map_chapter`: the key of another branch. The film on the map gives every branch its own chapter;
+a branch with `map_chapter` has none, its stops and legs join the chapter of that branch (and take its colour).
+The target must be another branch that has no `map_chapter` itself (no chains), otherwise the build stops. The
+chapter of the target exists even when only the joining branch has events. Branch cards, the tree and the fan
+chart are not affected.
+
+## States file (`states` in `site.json`)
+
+Optional. Describes the historical states a person lived in, so that the tree and the fan chart can show flags and
+colour people by the state of their birth. All of it is data of the family; the scripts know no state.
+
+```json
+{"flags":   {"<flag key>": {"stripes": ["#rrggbb", ...], "direction": "horizontal" | "vertical",
+                             "hoist_triangle": "#rrggbb", "color": "#rrggbb"}},
+ "states":  {"<state key>": {"name": {"<lang>": "..."}, "flag": "<flag key>"}},
+ "regions": {"<region>": [[from_year, "<state key>"], ...]}}
+```
+
+- `flags`: 1 to 6 `stripes` (`direction` defaults to `horizontal`), an optional triangle at the hoist and an optional
+  `color` (the colour of the flag in the colour mode "state"; without it the build spreads hues evenly). Flags are
+  simplified and drawn by the build as small SVG data URIs.
+- `states`: `name` needs a text for every configured language; a name should not contain years (the page adds them).
+  States with the same flag share its colour and are listed together in the legend.
+- `regions`: each entry is a timeline, `[from_year, state]` valid until the next entry; the years are strictly
+  increasing and may carry a fraction (`1918.82` = late October 1918).
+- A place belongs to the region named by its `region` entry in `places.json`, otherwise to the region named like its
+  country in the default language. A place without a region adds nothing.
+
+Per person the build works out `states` (below) from the dated events (birth, death, burial, marriage, divorce) and
+the places of the person, only for deceased people; a marriage with a living partner is left out. Between two events
+the person is in the region of the earlier one; an event without a place carries on in the previous region. Equal
+neighbouring states are merged. A broken file (missing language, unknown flag or state, years out of order) stops
+the build with a message.
 
 ## Page data block
 
@@ -59,7 +93,7 @@ Every page has `<script type="application/json" id="data">`. Keys:
 | `root_path` | `""`, `"../"`, `"../../"` to the site root |
 | `lang_root` | path to the root of the page's language version |
 | `data` | paths of the JSON files below, relative to `root_path` |
-| `branches` | list of `{key, name{lang}, color, chronicle(slug or null)}`, in config order |
+| `branches` | list of `{key, name{lang}, color, chronicle(slug or null), map_chapter(key or null)}`, in config order |
 | `strings` | the strings of the page language |
 | `languages` | all configured language codes |
 | `root` | root person id |
@@ -67,6 +101,11 @@ Every page has `<script type="application/json" id="data">`. Keys:
 | `final_town` | `living_town[root]` or null |
 | `slug`, `sections` | story pages: `sections` = `[{id, title, places[], people[]}]` |
 | `person` | person pages: the person id |
+| `color_modes` | the colour modes the page offers, in the order of the settings panel: `branch`, `state` (only with a states file), `era`, `documented` |
+| `states` | only with a states file: `{state key: {name{lang}, flag}}` |
+| `flags` | only with a states file: `{flag key: {src (data URI), color}}` |
+
+`branches` also carry `map_chapter` (key or `null`).
 
 ## JSON files (`data` paths)
 
@@ -79,7 +118,9 @@ branch key, `common` or `other`), `living`, `ahnentafel`, `parents`, `sex` (`M`/
 (values `spouse`/`divorced`/`partner`). Optional: `sibling_of`, `half_sibling`, `spouse_of`, `divorced`,
 `partnership`. Living people additionally have only `town`. Deceased people also have: `town` (birth town),
 `birth` and `death` as `{date, place}`, `documents`, `mentions`, `page` (`person/<id>.html`); optional
-`occupations`, `death_cause`, `death_age` (string), `marriages` (items `{spouse, date, place}`).
+`occupations`, `death_cause`, `death_age` (string), `marriages` (items `{spouse, date, place}`), `states`
+(`[[state key, year_from, year_to], ...]`, only with a states file and only when a region is known; never for the
+living, because a state at a given time would give away their age).
 
 **events**: `id, type, year, date, place, branch, people, description{lang}, documents, certainty`. `description`
 has a text for every configured language. Types `birth marriage death burial move war transport other`,
@@ -115,11 +156,13 @@ map story person full`.
 | template | ids and classes |
 |---|---|
 | base | `main`, `modes`, `language` (links, one per other language) |
-| tree | `bar`, `bar-title`, `tabs`, `search`, `#search`, `#suggestions`/`.suggestions`, `tree-layer`, `#surface`, `#connectors`/`.connectors`, `#cards`/`.cards`, `#generations`/`.generations`, `.tools`, `#b-center`, `#b-all`, `#panel-close`/`.panel-close`, `#panel-content`, `.people-list`, `.page-sources` |
-| fan | `fan-surface`, `#fan`/`.fan`, `#legend`/`fan-legend` |
-| map | `canvas-wrap`, `#wrap`, `#canvas`, `paper-grain`, `vignette`, `cartouche`, `cartouche-text`, `cartouche-top`, `cartouche-sub` (also `#cartouche-sub`), `compass`, `compass-rings`, `compass-points`, `compass-points-minor`, `.light`, `.center`, `film-intro`, `film-intro-top`, `film-intro-sub`, `film-intro-buttons` (ids `#film-intro`, `#film-intro-sub` likewise), `btn-main`, `btn-text`, `#start`, `#full-map`, `chapter-title`/`#chapter-title`, `ct-number ct-heading ct-sub ct-years` (ids too), `#card`/`.card`, `controls`, `ctl-buttons`, `#b-prev`, `#b-play`/`.play`, `icon-play`/`icon-pause`, `#b-next`, `#timeline`/`.timeline`, `timeline-track timeline-thumb timeline-year timeline-bubble` (ids too), `#b-speed`, `#b-end` |
+| tree | `bar`, `bar-title`, `tabs`, `search`, `#search`, `#suggestions`/`.suggestions`, `tree-layer`, `#surface`, `#bands`/`.bands` (`.band`, `.odd`), `#connectors`/`.connectors`, `#cards`/`.cards` (`.path` while a path is marked; `.pcard.on-path`), `#generations`/`.generations` (`.gen-label`, with `<small>` for the birth years of the row), `#legend`/`.tree-legend`, `#minimap`/`.minimap`, `.flags` (flags on a card), `.p-states`, `.tools`, `#b-center`, `#b-all`, `#panel-close`/`.panel-close`, `#panel-content`, `.people-list`, `.page-sources` |
+| fan | `fan-surface`, `#fan`/`.fan`, `#legend`/`fan-legend`, `.flag` (flag images inside the chart), `.states` (flags in the bubble) |
+| legend (tree and fan) | `.mode` (the line "Colours: mode"), `ul > li`, `.swatch`, `.flag`, `.scale` with `.gradient`; in the branch mode `li.branch-<key>` |
+| settings (every page) | `.settings-toggle` (the gear in the header), `#settings-panel`/`.settings-panel`, `.settings-themes`, `.settings-theme` (`data-theme`, `aria-checked`) with `.sample`, `#settings-colors` (select), `.settings-heading`, `.settings-note` |
+| map | `#b-card` (hides the stop card on a phone; sets `body.card-hidden`), `canvas-wrap`, `#wrap`, `#canvas`, `paper-grain`, `vignette`, `cartouche`, `cartouche-text`, `cartouche-top`, `cartouche-sub` (also `#cartouche-sub`), `compass`, `compass-rings`, `compass-points`, `compass-points-minor`, `.light`, `.center`, `film-intro`, `film-intro-top`, `film-intro-sub`, `film-intro-buttons` (ids `#film-intro`, `#film-intro-sub` likewise), `btn-main`, `btn-text`, `#start`, `#full-map`, `chapter-title`/`#chapter-title`, `ct-number ct-heading ct-sub ct-years` (ids too), `#card`/`.card`, `controls`, `ctl-buttons`, `#b-prev`, `#b-play`/`.play`, `icon-play`/`icon-pause`, `#b-next`, `#timeline`/`.timeline`, `timeline-track timeline-thumb timeline-year timeline-bubble` (ids too), `#b-speed`, `#b-end` |
 | story | `story`, `chapters`, `chronicle`, `#map`, `map-panel`, `#canvas`, `open-questions` |
-| person | `person`, `relationship`, `parents`, `links`, `from-chronicle`, `documents`, `mentions`, `tree-only` |
+| person | `person`, `relationship`, `parents`, `links`, `from-chronicle`, `documents`, `mentions`, `tree-only`, `.state` and `.flag` (the "Historical states" row) |
 | home | `intro-text`, `branch-cards`, `.branch-list`, `.name`/`.description`, `#branches-h`, `.counts` |
 | chronicles | `anchor`, `uncertain`, `untranslated`, `document unverified`, `unverified-caption`, `note-documents` |
 | tables | `table-wrap`, `align-<x>` |
@@ -133,9 +176,13 @@ time). Strings are generic: texts that belong to one family (branch descriptions
 come from `strings` in `site.json`.
 
 Groups: navigation and view modes (`nav_*`, `mode_*`, `tab_*`), the fan chart (`fan_*`), the tree (`tree_*`
-and the button labels), person pages (`person_*`), the map and film (`map_*`, `film_*`, `player_*`,
-`legend_*`, `card_*`, `end_*`), the person view (`view_*`), certainty labels (`certainty_*`), counts and
-dates (`counts`, `counts_short`, `date_about`, `degrees_east`, `unit_km`, `compass_north`).
+and the button labels), person pages (`person_*`, with `person_states`), the map and film (`map_*`, `film_*`,
+`player_*`, `legend_*`, `card_*`, `end_*`), the person view (`view_*`), certainty labels (`certainty_*`), the settings
+panel (`settings_*`, `theme_chronicle`, `theme_night`, `theme_atlas`), the colour legend (`colors_label`,
+`color_mode_branch|state|era|documented`, `color_documented_yes|no`, `color_living`, `color_state_unknown`,
+`color_era_unknown`), counts and dates (`counts`, `counts_short`, `date_about`, `degrees_east`, `unit_km`,
+`compass_north`). `settings.js` and `coloring.js` build some keys at run time (`theme_<theme>`,
+`color_mode_<mode>`); `tests/js-strings.test.mjs` checks them.
 
 Nested keys:
 
@@ -152,15 +199,37 @@ Optional, used only by the build and never sent to the browser: `privacy` =
 `{"months": [12 lists of month spellings], "birth_prefixes": ["geb.", ...]}`. Redaction and `check_output`
 treat these like the built-in Czech and English month names and "born" words, for every configured language.
 
+## Themes, settings and colour modes
+
+- `theme.js` is loaded in `<head>` **without** `defer` and sets `<html data-theme="night|atlas">` from
+  `localStorage` before the page is painted; the default Chronicle look has no attribute. `themes.css` is the last
+  style sheet of every page and only overrides (panel, Night and Atlas); print is always Chronicle.
+- `settings.js` (last script of every page, no dependency on `common.js`) puts the gear button and the panel into the
+  `<header>`: the theme as a radio group and the colour mode as a select (only the modes of `color_modes`).
+- Storage: `chronicle.theme` (`chronicle`, `night` or `atlas`) and `chronicle.colors` (`branch`, `state`, `era`,
+  `documented`). The colour mode may also come from the address, `#colors=<mode>`, which wins over the stored one.
+- Events on `window`: `chronicle:theme` (detail: the theme) and `chronicle:colors` (detail: the mode, sent by the panel;
+  the tree and the fan chart listen), `chronicle:colors-changed` (sent by the tree or the fan chart after they
+  stored a mode, so that the panel follows).
+- `coloring.js` (pure; `window.Coloring`, `module.exports` for Node tests) holds the modes: `branch` (the branch
+  colour), `state` (the colour of the flag of the first state), `era` (birth year on a warm-to-cool scale over the
+  range of the deceased), `documented` (has documents or not). The living get one neutral colour in every mode but
+  `branch`. Only the tree and the fan chart load it (before `common.js`). The legend only says which mode is on.
+- Tree: bands per generation, the span of birth years in the generation label, a path from the selected person to
+  the root (ancestors in the line; for a sibling through the shared parents, for a partner through the spouse), and a
+  minimap that appears on wide screens when the tree does not fit.
+
 ## Scripts, hash modes and browser storage
 
 Browser globals: `window.Chronicle` (`common.js`: `D` page data, `T` strings, `el`, `loadData`, `localized`,
-`personLink`, `magnifier`, ...; `view.js` adds `Chronicle.view`), `window.Film` (`film.js`, a pure function
+`personLink`, `magnifier`, `flagsOf`, `flagsEl`, `colors` (tree and fan only), ...; `view.js` adds `Chronicle.view`),
+`window.Coloring` (`coloring.js`), `window.Film` (`film.js`, a pure function
 `Film.build(data, {branches, strings, language, person?})`; also `module.exports` for Node tests) and
 `window.ChronicleMap` (`map-draw.js`, the canvas engine, created with
 `create(canvas, {basemap, map, places, language, strings})`; also `module.exports`).
 
-- The order of the film's chapters is the order of the page data's `branches`. The texts of a chapter come from
+- The order of the film's chapters is the order of the page data's `branches` (a branch with `map_chapter` is
+  skipped: its stops join the chapter of the branch it names; `Film.chapterBranch(branches, key)` resolves it). The texts of a chapter come from
   `strings.chapters[<chronicle slug>]`; a branch without a chronicle (or without an entry) uses its name.
   The epilogue uses `strings.chapters.epilogue`. Chapter numbers are Roman numerals without an upper limit.
 - `map.html` hash modes: `#timeline` (intro), `#full-map`, `#person=<id>` (the film of one person),

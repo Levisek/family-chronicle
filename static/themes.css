@@ -1,0 +1,177 @@
+/* Settings panel (gear in the corner of the header) and the themes Night and Atlas.
+   The default Chronicle look is in style.css / tree.css / fan.css / map.css; this file only overrides it.
+   It is loaded last; a theme is switched on by the attribute <html data-theme="..."> (theme.js). */
+
+/* ---------- settings panel ---------- */
+header { position: relative; z-index: 600; }  /* the panel above the content (the sticky map of a story has 500) */
+.settings-toggle {
+  position: absolute; z-index: 31; top: .55rem; right: .8rem; width: 2.1rem; height: 2.1rem; padding: .3rem;
+  display: grid; place-items: center; cursor: pointer; border: 1px solid transparent; border-radius: 50%;
+  background: none; color: var(--text-muted); line-height: 0;
+}
+.settings-toggle svg { width: 100%; height: 100%; fill: currentColor; transition: transform .3s; }
+.settings-toggle:hover, .settings-toggle[aria-expanded="true"] { color: var(--text); background: var(--paper-dark); border-color: var(--line); }
+.settings-toggle[aria-expanded="true"] svg { transform: rotate(60deg); }
+body.full header .settings-toggle { top: 50%; translate: 0 -50%; width: 1.9rem; height: 1.9rem; }
+
+.settings-panel {
+  position: absolute; z-index: 40; top: 3rem; right: .8rem; width: 17.5rem; padding: .9rem 1rem 1rem; text-align: left;
+  background: var(--paper-light); color: var(--text); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow);
+  font-size: 1rem; line-height: 1.35;
+}
+body.full header .settings-panel { top: calc(var(--strip, 2.4rem) + 6px); }
+.settings-panel[hidden] { display: none; }
+.settings-panel h2 { margin: 0 0 .5rem; font-size: 1.15rem; font-weight: 600; }
+.settings-heading { display: block; margin: .7rem 0 .35rem; font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.settings-themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: .45rem; }
+.settings-theme {
+  cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .35rem .2rem .3rem;
+  background: none; border: 1px solid var(--line); border-radius: 5px; font-size: .9rem; color: var(--text);
+}
+.settings-theme:hover { border-color: var(--text-muted); }
+.settings-theme[aria-checked="true"] { border-color: var(--link); box-shadow: 0 0 0 1px var(--link); font-weight: 600; }
+.settings-theme .sample { display: block; width: 100%; height: 2.4rem; border-radius: 3px; border: 1px solid rgba(0, 0, 0, .15); }
+/* the samples have fixed colours (they show the theme, not the current state) */
+.theme-chronicle .sample { background: linear-gradient(#f4ecd8 0 62%, #7a2e0e 62% 70%, #e9dcbc 70%); }
+.theme-night .sample { background: linear-gradient(#1b1712 0 62%, #e0a060 62% 70%, #332a20 70%); }
+.theme-atlas .sample { background: linear-gradient(#3f5563 0 22%, #9a3b1e 22% 28%, #ece8da 28%); }
+.settings-panel select { width: 100%; font: inherit; font-size: 1rem; padding: .3rem .4rem; color: var(--text); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; }
+.settings-note { margin: .8rem 0 0; font-size: .85rem; font-style: italic; color: var(--text-muted); }
+@media (max-width: 40rem) {
+  header nav.main { padding-right: 2.2rem; padding-left: 2.2rem; }  /* room for the gear, the navigation stays centred */
+  body.full header nav.main { padding-left: 0; }
+}
+@media (max-width: 30rem) {
+  body.full header nav.main { gap: .2rem .6rem; padding-right: 2rem; }
+  body.full header .settings-toggle { width: 1.7rem; height: 1.7rem; padding: .25rem; }
+  .settings-toggle { right: .3rem; }
+  body.full header .settings-toggle { right: .3rem; }
+  .settings-panel { right: .4rem; width: min(17.5rem, calc(100vw - .8rem)); }
+}
+@media print { .settings-toggle, .settings-panel { display: none !important; } }
+
+/* =================================================================== */
+/* ---------- Night: dark background, cream text, amber links ---------- */
+html[data-theme="night"] {
+  --paper: #1b1712; --paper-light: #26201a; --paper-dark: #332a20;
+  --text: #eadfc8; --text-muted: #b3a385; --line: #4a3f30;
+  --link: #e0a060; --unverified: #8fb4e3; --branch: #c8a978;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 28px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+html[data-theme="night"] body { background-color: #15120e; background-image: radial-gradient(ellipse at 50% 0%, #2a231b 0%, rgba(0, 0, 0, 0) 60%); }
+html[data-theme="night"] a:hover { color: #f3c48a; }
+html[data-theme="night"] ul.cards a { box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 6px 14px -8px rgba(0, 0, 0, .7); }
+html[data-theme="night"] ul.start a { color: #1b1712; border-color: #b9773a; }
+html[data-theme="night"] ul.start a:hover { background: #f3c48a; color: #1b1712; }
+html[data-theme="night"] figure.unverified { background: #1d2430; }
+html[data-theme="night"] body.full header { background: rgba(27, 23, 18, .94); }
+/* full-page layouts: paper -> dark */
+html[data-theme="night"] body.tree.full, html[data-theme="night"] body.fan.full, html[data-theme="night"] body.map.full { background: #15120e; }
+html[data-theme="night"] body.tree.full::before, html[data-theme="night"] body.fan.full::before { background: radial-gradient(ellipse 80% 70% at 50% 50%, rgba(60, 48, 34, .55), rgba(0, 0, 0, 0) 70%); }
+html[data-theme="night"] body.tree.full::after, html[data-theme="night"] body.fan.full::after { background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 60%, rgba(0, 0, 0, .45) 100%); }
+html[data-theme="night"] .bar, html[data-theme="night"] .tools, html[data-theme="night"] .tree-legend, html[data-theme="night"] .minimap,
+html[data-theme="night"] .fan-legend, html[data-theme="night"] .cartouche, html[data-theme="night"] .controls { background: rgba(30, 25, 19, .93); }
+html[data-theme="night"] .minimap { --frame: #e0a060; }
+html[data-theme="night"] .tabs a:hover, html[data-theme="night"] .tabs a:focus-visible { background: #3a3026; }
+/* tree */
+html[data-theme="night"] .pcard { background: #26201a; border-color: #4a3f30; box-shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .35); }
+html[data-theme="night"] .pcard.root { background: #2e261e; }
+html[data-theme="night"] .pcard:hover { border-color: #7a6a52; }
+html[data-theme="night"] .pcard .pname { color: #f6ecd6; }
+html[data-theme="night"] .pcard .years { color: #d4c4a4; }
+html[data-theme="night"] .pcard .seal { color: #9ccf9e; }
+html[data-theme="night"] .pcard .glyph { background: #26201a; }
+html[data-theme="night"] .badge { color: #f1e6cf; background: radial-gradient(circle at 35% 30%, #3a3026, color-mix(in srgb, var(--branch) 22%, #26201a));
+  box-shadow: inset 0 0 0 2px var(--branch), inset 0 0 0 4px #26201a, inset 0 0 0 5px color-mix(in srgb, var(--branch) 45%, transparent); }
+html[data-theme="night"] .badge.mixed { background: radial-gradient(circle at 35% 30%, #3a3026, #26201a) padding-box, var(--circle) border-box; box-shadow: inset 0 0 0 1.5px #26201a; }
+html[data-theme="night"] .pcard .ribbon::before { background: #000; }
+html[data-theme="night"] .connectors path { stroke: #7a6a52; }
+html[data-theme="night"] .connectors path.pair, html[data-theme="night"] .connectors path.pair.bloodline { stroke: #9a8566; }
+html[data-theme="night"] .connectors .wedding { fill: #26201a; stroke: #9a8566; }
+html[data-theme="night"] .expand, html[data-theme="night"] .sibling-btn, html[data-theme="night"] .children-btn { background: #26201a; color: #d4c4a4; border-color: #6a5a44; box-shadow: 0 1px 4px rgba(0, 0, 0, .5); }
+html[data-theme="night"] .expand { color: color-mix(in srgb, var(--branch) 70%, #fff); }
+html[data-theme="night"] .expand:hover, html[data-theme="night"] .sibling-btn:hover, html[data-theme="night"] .children-btn:hover { background: #c8a978; color: #1b1712; border-color: #c8a978; }
+html[data-theme="night"] .generations .gen-label { background: #1b1712; color: #b3a385; border-color: #4a3f30; }
+html[data-theme="night"] .generations .gen-label small { color: #8f826b; }
+html[data-theme="night"] .band { border-top-color: rgba(255, 230, 190, .05); }
+html[data-theme="night"] .band.odd { background: rgba(255, 230, 190, .035); }
+html[data-theme="night"] .tools button { color: #d4c4a4; }
+html[data-theme="night"] .people-list summary { background: #26201a; border-color: #4a3f30; }
+html[data-theme="night"] .p-actions a, html[data-theme="night"] .p-actions button, html[data-theme="night"] .view-btn:hover,
+html[data-theme="night"] .view-dialog input, html[data-theme="night"] .view-actions button { background: #2e261e; }
+html[data-theme="night"] .p-actions a.main { background: #e0a060; border-color: #e0a060; color: #1b1712; }
+/* fan */
+html[data-theme="night"] .fan .circles { stroke: rgba(200, 180, 140, .25); }
+html[data-theme="night"] .fan .question, html[data-theme="night"] .fan .gen-number { fill: rgba(200, 180, 140, .6); }
+/* map: drawn on a canvas -> a night print by a filter (the colours of the routes stay distinguishable) */
+html[data-theme="night"] #canvas { filter: invert(.92) hue-rotate(180deg) sepia(.35) saturate(1.3) brightness(.95); }
+html[data-theme="night"] .film-intro { background: radial-gradient(ellipse at center, rgba(27, 23, 18, .95) 45%, rgba(27, 23, 18, 0) 72%); }
+html[data-theme="night"] .card { background: rgba(30, 25, 19, .94); }
+html[data-theme="night"] .card-year, html[data-theme="night"] .chapter-title h2 { color: #f1e6cf; }
+html[data-theme="night"] .card-label, html[data-theme="night"] .controls button { color: #c8b896; }
+html[data-theme="night"] .controls button.play, html[data-theme="night"] .btn-main { background: #b9773a; color: #1b1712; }
+html[data-theme="night"] .timeline-segment { background: color-mix(in srgb, var(--b) 30%, #332a20); }
+html[data-theme="night"] .timeline-thumb span { color: #e0a060; }
+html[data-theme="night"] .thumbnail { background: #2e261e; }
+
+/* =================================================================== */
+/* ---------- Atlas: colours of a map: slate bar, rusty accents, graticule ---------- */
+html[data-theme="atlas"] {
+  --paper: #ece8da; --paper-light: #f7f4e8; --paper-dark: #dedbc9;
+  --text: #2a2a26; --text-muted: #5c5f5a; --line: #b8b9a8;
+  --link: #9a3b1e; --unverified: #3d5f7a; --branch: #5f7480;
+  --shadow: 0 1px 2px rgba(40, 50, 55, .12), 0 8px 26px rgba(40, 50, 55, .16);
+  --grid: rgba(95, 116, 128, .08);
+}
+html[data-theme="atlas"] body {
+  background-color: #ece8da;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+html[data-theme="atlas"] header { background: #3f5563; border-bottom: 2px solid #9a3b1e; padding-bottom: .6rem; }
+html[data-theme="atlas"] body.full header { background: #3f5563; border-bottom: 2px solid #9a3b1e; padding-bottom: 0; }
+html[data-theme="atlas"] nav.main a, html[data-theme="atlas"] nav.modes a { color: #eef0e6; }
+html[data-theme="atlas"] nav.main a.language { color: #c9d2cf; }
+html[data-theme="atlas"] nav.main a[aria-current] { border-bottom-color: #e3a07e; }
+html[data-theme="atlas"] nav.main { border-bottom-color: rgba(238, 240, 230, .25); }
+html[data-theme="atlas"] header .settings-toggle { color: #dfe4dc; }
+html[data-theme="atlas"] header .settings-toggle:hover, html[data-theme="atlas"] header .settings-toggle[aria-expanded="true"] { color: #fff; background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .3); }
+html[data-theme="atlas"] main h1 { font-variant: small-caps; letter-spacing: .06em; color: #2f3d47; }
+html[data-theme="atlas"] a:hover { color: #6e260f; }
+html[data-theme="atlas"] ul.cards a { outline: 1px solid var(--line); outline-offset: 3px; }
+html[data-theme="atlas"] ul.start a { border-color: #6e260f; }
+html[data-theme="atlas"] ul.start a:hover { background: #6e260f; }
+html[data-theme="atlas"] figure.unverified { background: #eef1f3; }
+/* full-page layouts */
+html[data-theme="atlas"] body.tree.full, html[data-theme="atlas"] body.fan.full { background: #e3e2d6; }
+html[data-theme="atlas"] body.tree.full::before, html[data-theme="atlas"] body.fan.full::before {
+  background: radial-gradient(ellipse 80% 70% at 50% 50%, rgba(247, 244, 232, .92), rgba(247, 244, 232, 0) 70%),
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 64px 64px, linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 64px 64px;
+}
+html[data-theme="atlas"] body.tree.full::after, html[data-theme="atlas"] body.fan.full::after { background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 60%, rgba(50, 70, 85, .18) 100%); }
+html[data-theme="atlas"] .bar, html[data-theme="atlas"] .tools, html[data-theme="atlas"] .tree-legend, html[data-theme="atlas"] .minimap,
+html[data-theme="atlas"] .fan-legend, html[data-theme="atlas"] .cartouche, html[data-theme="atlas"] .controls { background: rgba(247, 244, 232, .94); }
+html[data-theme="atlas"] .pcard, html[data-theme="atlas"] .pcard.root { background: #f7f4e8; border-color: #b8b9a8; }
+html[data-theme="atlas"] .pcard .pname { color: #22262a; }
+html[data-theme="atlas"] .pcard .years { color: #454b4e; }
+html[data-theme="atlas"] .connectors path { stroke: #8a979b; }
+html[data-theme="atlas"] .connectors path.pair, html[data-theme="atlas"] .connectors path.pair.bloodline { stroke: #5f7480; }
+html[data-theme="atlas"] .connectors .wedding { fill: #f7f4e8; stroke: #5f7480; }
+html[data-theme="atlas"] .expand, html[data-theme="atlas"] .sibling-btn, html[data-theme="atlas"] .children-btn { background: #f7f4e8; border-color: #8a979b; color: #3f5563; }
+html[data-theme="atlas"] .expand:hover, html[data-theme="atlas"] .sibling-btn:hover, html[data-theme="atlas"] .children-btn:hover { background: #3f5563; color: #f7f4e8; border-color: #3f5563; }
+html[data-theme="atlas"] .generations .gen-label { background: #f7f4e8; color: #3f5563; border-color: #b8b9a8; }
+html[data-theme="atlas"] .band.odd { background: rgba(63, 85, 99, .05); }
+html[data-theme="atlas"] .p-actions a.main { background: #9a3b1e; border-color: #9a3b1e; }
+html[data-theme="atlas"] .controls button.play, html[data-theme="atlas"] .btn-main { background: #9a3b1e; }
+
+/* print is always Chronicle (no dark background and no grid on paper) */
+@media print {
+  html[data-theme] {
+    --paper: #f4ecd8; --paper-light: #faf5e6; --paper-dark: #e9dcbc; --text: #3b2f22; --text-muted: #6a5640;
+    --line: #c9b48a; --link: #7a2e0e; --unverified: #1d4e89; color-scheme: light;
+  }
+  html[data-theme] body { background: #fff; }
+  html[data-theme] header { background: none; border: 0; }
+  html[data-theme] nav.main a { color: var(--text); }
+}

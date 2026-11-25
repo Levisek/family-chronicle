@@ -1,0 +1,27 @@
+{
+  "flags": {
+    "empire": {"stripes": ["#1a1a1a", "#f2c200"], "color": "#c69a2e"},
+    "austria": {"stripes": ["#d7141a", "#ffffff", "#d7141a"], "color": "#c5524f"},
+    "czechoslovakia": {"stripes": ["#ffffff", "#d7141a"], "hoist_triangle": "#11457e", "color": "#4570ad"},
+    "protectorate": {"stripes": ["#ffffff", "#d7141a", "#11457e"], "color": "#8c64a8"},
+    "poland": {"stripes": ["#ffffff", "#dc143c"], "color": "#d0607a"},
+    "hungary": {"stripes": ["#ce2939", "#ffffff", "#477050"], "color": "#5f8f57"}
+  },
+  "states": {
+    "austrian-empire": {"name": {"en": "Austrian Empire", "cs": "Rakouské císařství"}, "flag": "empire"},
+    "austria-hungary": {"name": {"en": "Austria-Hungary", "cs": "Rakousko-Uhersko"}, "flag": "empire"},
+    "austria": {"name": {"en": "Austria", "cs": "Rakousko"}, "flag": "austria"},
+    "czechoslovakia": {"name": {"en": "Czechoslovakia", "cs": "Československo"}, "flag": "czechoslovakia"},
+    "protectorate": {"name": {"en": "Protectorate of Bohemia and Moravia", "cs": "Protektorát Čechy a Morava"}, "flag": "protectorate"},
+    "czechia": {"name": {"en": "Czechia", "cs": "Česko"}, "flag": "czechoslovakia"},
+    "poland": {"name": {"en": "Poland", "cs": "Polsko"}, "flag": "poland"},
+    "hungary": {"name": {"en": "Hungary", "cs": "Maďarsko"}, "flag": "hungary"}
+  },
+  "regions": {
+    "Austria": [[0, "austrian-empire"], [1867.45, "austria-hungary"], [1918.87, "austria"]],
+    "Czechia": [[0, "austrian-empire"], [1867.45, "austria-hungary"], [1918.82, "czechoslovakia"], [1939.2, "protectorate"],
+                [1945.35, "czechoslovakia"], [1993.0, "czechia"]],
+    "Poland": [[0, "austrian-empire"], [1867.45, "austria-hungary"], [1918.9, "poland"]],
+    "Hungary": [[0, "hungary"]]
+  }
+}

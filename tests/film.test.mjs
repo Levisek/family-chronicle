@@ -244,3 +244,44 @@ test('shape of steps and legs, and the chapter colour from the branch', () => {
   assert.equal(t.traveller, 'Alder Ford');
   assert.equal(s.steps[0].place, s.clusters.find((x) => x.names.includes('Northfield')));
 });
+
+test('map_chapter: a branch without a chapter of its own joins the chapter of another branch', () => {
+  const joined = BRANCHES.map((b) => (b.key === 'cedar' ? { ...b, map_chapter: 'alder' } : b));
+  const d = copy(BASE);
+  d.places = PLACES;
+  d.events = d.events.concat([ev('c1', 'Lakeside', 1893, 'cedar'), ev('c2', 'Marshford', 1899, 'cedar')]);
+  d.lines = d.lines.concat([{ branch: 'cedar', from: 'I3', to: 'I7', points: [[45.11, 20.63, 1893, 'document'], [48.78, 16.88, 1900, 'document']] }]);
+  const separate = Film.build(d, options());
+  assert.deepEqual(separate.chapters.map((k) => k.branch), ['alder', 'birch', 'cedar', 'common']);
+  const merged = Film.build(d, options({ branches: joined }));
+  assert.deepEqual(merged.chapters.map((k) => k.branch), ['alder', 'birch', 'common']);        // no chapter "cedar"
+  const alder = merged.chapters[0];
+  assert.ok(alder.steps.some((k) => k.place.names.includes('Lakeside')), 'the stops of cedar are in the chapter of alder');
+  assert.ok(alder.steps.length > separate.chapters[0].steps.length, 'the chapter grew by the stops of cedar');
+  assert.ok(alder.steps.every((k) => k.chapter === alder));
+  assert.ok(merged.legs.length && merged.legs.every((t) => t.branch !== 'cedar'), 'legs carry the branch of their chapter');
+  assert.ok(merged.legs.some((t) => t.branch === 'alder' && t.traveller === 'Alder Ford'));
+  assert.equal(alder.color, '#123456');                                  // the colour of the chapter, not of the sub-branch
+  const years = alder.steps.map((k) => k.yearFrom);
+  assert.deepEqual(years, [...years].sort((a, b) => a - b), 'the stops of a chapter stay in time order');
+});
+
+test('map_chapter: the target chapter exists even when only the sub-branch has events', () => {
+  const joined = BRANCHES.map((b) => (b.key === 'cedar' ? { ...b, map_chapter: 'birch' } : b));
+  const d = copy(BASE);
+  d.places = PLACES;
+  d.events = [ev('c1', 'Lakeside', 1893, 'cedar')];
+  d.lines = [];
+  const s = Film.build(d, options({ branches: joined }));
+  assert.deepEqual(s.chapters.map((k) => k.branch), ['birch', 'common']);
+  assert.equal(s.chapters[0].title, 'The Birches');
+});
+
+test('chapterBranch resolves map_chapter and leaves other keys alone', () => {
+  const list = [{ key: 'a' }, { key: 'b', map_chapter: 'a' }, { key: 'c', map_chapter: null }];
+  assert.equal(Film.chapterBranch(list, 'b'), 'a');
+  assert.equal(Film.chapterBranch(list, 'a'), 'a');
+  assert.equal(Film.chapterBranch(list, 'c'), 'c');
+  assert.equal(Film.chapterBranch(list, 'zzz'), 'zzz');
+  assert.equal(Film.chapterBranch(undefined, 'a'), 'a');
+});

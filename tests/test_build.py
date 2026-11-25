@@ -200,11 +200,12 @@ class TestBuild(Base):
     def test_scripts_and_css_per_page(self):
         self.build()
         for rel, js, css in (("map.html", ["common", "film", "map-draw", "map-film"], "map"),
-                             ("tree.html", ["common", "view", "tree"], "tree"),
-                             ("fan.html", ["common", "view", "fan"], "fan"),
+                             ("tree.html", ["coloring", "common", "view", "tree"], "tree"),
+                             ("fan.html", ["coloring", "common", "view", "fan"], "fan"),
                              ("story/overview.html", ["common", "film", "map-draw", "story"], "map")):
             h = self.read(rel)
-            self.assertEqual(re.findall(r'static/([a-z-]+)\.[0-9a-f]{8}\.js', h), js, rel)
+            # the theme is set in <head> without defer (no flash of the default colours), the settings panel comes last
+            self.assertEqual(re.findall(r'static/([a-z-]+)\.[0-9a-f]{8}\.js', h), ["theme", *js, "settings"], rel)
             self.assertRegex(h, rf'static/{css}\.[0-9a-f]{{8}}\.css', rel)
         for rel in ("map.html", "tree.html", "cs/map.html", "cs/tree.html"):
             h = self.read(rel)
