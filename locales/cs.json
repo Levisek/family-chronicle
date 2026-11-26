@@ -42,6 +42,7 @@
   "mode_map": "Celá mapa",
   "language_name": "Čeština",
   "language_label": "Jazyk",
+  "join_and": "{a} a {b}",
   "untranslated": "Tato kapitola zatím není přeložena, je v původním jazyce.",
   "crop": "výřez",
   "full_sheet": "celý list",

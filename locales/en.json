@@ -42,6 +42,7 @@
   "mode_map": "Full map",
   "language_name": "English",
   "language_label": "Language",
+  "join_and": "{a} and {b}",
   "untranslated": "This chapter is not translated yet; it is shown in its original language.",
   "crop": "excerpt",
   "full_sheet": "full page",
