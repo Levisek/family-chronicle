@@ -131,11 +131,14 @@
     });
   }
 
+  // Remembering the folder is a convenience; a failure must not stop the saving.
+  const remember = (handle) => idbPut('handles', 'last', handle).catch(() => {});
+
   // Chrome/Edge: the folder picker. Firefox/Safari: read the folder once into IndexedDB.
   async function openFolder() {
     if (canFolder()) {
       const handle = await g.showDirectoryPicker({ id: 'family', mode: 'readwrite' });
-      await idbPut('handles', 'last', handle);
+      await remember(handle);
       return folderProject(handle);
     }
     const list = await pickDirectoryFiles();
@@ -182,7 +185,7 @@
   async function persist(project, name) {
     if (canFolder()) {
       const handle = await g.showDirectoryPicker({ id: 'family', mode: 'readwrite' });
-      await idbPut('handles', 'last', handle);
+      await remember(handle);
       return folderProject(handle);
     }
     const p = memoryProject(name, new Map(), 'browser');

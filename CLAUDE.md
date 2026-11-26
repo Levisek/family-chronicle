@@ -29,6 +29,7 @@ node --test tests/*.test.mjs                                # JS tests
 node --test tests/engine/*.test.mjs                         # JS engine (port of the build), incl. parity with the Python build
 .venv/bin/python -I build.py --config example/site.json --out /tmp/family-site --today 2026-11-23
 PLAYWRIGHT_MODULES=<node_modules with playwright and axe-core> node tests/browser.mjs <url>   # optional
+PLAYWRIGHT_MODULES=<node_modules with playwright> node tests/app.mjs   # optional: the app from file://, Chromium and Firefox
 ```
 
 - Always run Python with `-I`; entry points add the repo to `sys.path` themselves.
