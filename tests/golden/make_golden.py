@@ -2,6 +2,7 @@
 
 Run: .venv/bin/python -I tests/golden/make_golden.py
 """
+import json
 import shutil
 import subprocess
 import sys
@@ -21,7 +22,23 @@ def render(text: str) -> str:
                              extension_configs={"footnotes": {"UNIQUE_IDS": True, "BACKLINK_TEXT": ""}})
 
 
+def basemap_golden() -> None:
+    """Feature count per layer of basemap.py over app/data/world.js and example/places.json."""
+    sys.path.insert(0, str(REPO))
+    from familychronicle import basemap
+    text = (REPO / "app" / "data" / "world.js").read_text(encoding="utf-8")
+    world = json.loads(text[text.index("=") + 1:].strip().rstrip(";"))
+    box = basemap.bbox_from_places(REPO / "example" / "places.json", 3)
+    counts: dict[str, int] = {}
+    for stem, (layer, polygon) in basemap.LAYERS.items():
+        fc = {"features": [{"geometry": g} for g in world[layer]]}
+        counts[layer] = len(basemap.process_layer(layer, polygon, fc, box))
+    (HERE / "basemap-example.json").write_text(json.dumps({"bbox": list(box), "features": counts}, indent=1) + "\n",
+                                               encoding="utf-8")
+
+
 def main() -> int:
+    basemap_golden()
     for md in sorted((HERE / "markdown").glob("*.md")):
         md.with_suffix(".html").write_text(render(md.read_text(encoding="utf-8")), encoding="utf-8")
     target = HERE / "example"
