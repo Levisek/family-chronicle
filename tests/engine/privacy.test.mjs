@@ -279,3 +279,14 @@ test('casefold_like_python', () => {
   assert.ok(runCheck({ 'a.txt': 'ﬁala 1995' }, [[['Fiala'], [gd(1995, null, null)]]]).length >= 1);
   assert.ok(runCheck({ 'a.txt': 'Šimon Waſſer 1995' }, [[['Wasser'], [gd(1995, null, null)]]]).length >= 1);
 });
+
+test('exception_for_name_finding_works', () => {
+  // the finding of a year next to a name quotes the text without accents; that quote as an
+  // exception must silence it (else a person can never get past a namesake)
+  const living = [[['Anna', 'Červeňáková'], [gd(1952, null, null, '1952')]]];
+  const files = { 'person/I9.html': '<p>Rudolf Červeňák, born 1951, died 1952, age at death about a year</p>' };
+  const found = runCheck(files, living);
+  assert.equal(found.length, 1, found.join('\n'));
+  const text = /"(.*)"$/s.exec(found[0])[1];
+  assert.deepEqual(runCheck(files, living, [{ text, reason: 'a namesake' }]), []);
+});

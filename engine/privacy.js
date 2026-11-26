@@ -403,6 +403,8 @@
   // name, (c) an e-mail, (d) a phone number, (e) a file in documents/ that is not allowed.
   function checkOutput(files, living, exceptions, allowedDocuments = new Set(), ext = null) {
     const excepted = exceptionTexts(exceptions || []);
+    // a finding of a year next to a name quotes the text without accents: its exception is that text
+    const strippedExcepted = excepted.map((v) => v && stripAccents(v));
     const problems = [];
     // each pattern needs its year (or the two-digit year of a full date) in the text: test that first
     const patterns = [];
@@ -494,7 +496,7 @@
       // words of the lines (without accents, case-folded) -> lines; sorted for prefix search
       let words = null, wordLines = null, strippedLines = null;
       const buildWords = () => {
-        strippedLines = lines.map(stripAccents);
+        strippedLines = lines.map((t) => removeExceptions(stripAccents(t), strippedExcepted));
         wordLines = new Map();
         strippedLines.forEach((t, li) => {
           for (const [w] of t.matchAll(WORD_RE)) { if (!wordLines.has(w)) wordLines.set(w, new Set()); wordLines.get(w).add(li); }

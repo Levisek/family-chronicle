@@ -283,3 +283,14 @@ class LocaleExtension(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CheckNameException(CheckHelper):
+    def test_exception_for_name_finding_works(self):
+        # the finding quotes the text without accents; that quote as an exception silences it
+        living = [(["Anna", "Červeňáková"], [GDate(1952, None, None, False, "1952")])]
+        files = {"person/I9.html": "<p>Rudolf Červeňák, born 1951, died 1952, age at death about a year</p>"}
+        found = self.run_check(files, living)
+        self.assertEqual(len(found), 1, found)
+        text = found[0].split('"', 1)[1].rsplit('"', 1)[0]
+        self.assertEqual(self.run_check(files, living, [text]), [])
