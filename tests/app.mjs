@@ -9,7 +9,7 @@
 // Scenarios: chromium_example, chromium_folder, xss_name, leak_refused, own_basemap,
 // online_only_places, firefox_backup_warning, firefox_saved_family, firefox_suggested_root,
 // new_gedcom_renumbered, new_gedcom_same_answer_twice, chronicle_editor, chronicle_xss_preview,
-// firefox_chronicle, ai_dialog.
+// firefox_chronicle, ai_dialog, living_step.
 // ONLY=<name>,<name> runs just those.
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
@@ -253,6 +253,44 @@ await scenario('leak_refused', chromium, async (page) => {
   await page.waitForSelector('#saved', { timeout: 60000 });
   const site2 = JSON.parse((await folderList(page, 'leak'))['site.json']);
   assert(site2.check_exceptions.some((x) => x.text === '12 March 1990' && /Daniel/.test(x.reason)), 'the exception has no reason in words');
+});
+
+await scenario('living_step', chromium, async (page) => {
+  // Ignaz (no dates, married 1880): marked deceased by the app, can be taken back; Tobias (no
+  // dates, Daniel's brother): asked about; the town of a household is picked once
+  const files = exampleFiles();
+  let ged = readFileSync(join(REPO, 'example/family.ged'), 'utf8');
+  ged = ged.replace('1 CHIL @I4@\n', '1 CHIL @I4@\n1 CHIL @X2@\n').replace('0 TRLR', '0 @X1@ INDI\n1 NAME Ignaz /Huber/\n1 SEX M\n1 FAMS @FX@\n'
+    + '0 @X2@ INDI\n1 NAME Tobias /Huber/\n1 SEX M\n1 FAMC @F1@\n0 @FX@ FAM\n1 HUSB @X1@\n1 MARR\n2 DATE 1880\n0 TRLR');
+  files['family.ged'] = Buffer.from(ged).toString('base64');
+  await seedFolder(page, 'living', files);
+  await page.click('text=Open a saved family');
+  await page.click('#home-settings');
+  await nextTo(page, 5);
+  assert((await page.textContent('#living-inferred')).includes('Ignaz Huber'), 'Ignaz is not marked by his relatives');
+  assert((await page.textContent('#living-unknown')).includes('Tobias Huber'), 'Tobias is not asked about');
+  assert(!(await page.textContent('#living-unknown')).includes('Ignaz'), 'Ignaz is asked about although the app knows');
+  // taken back: Ignaz lives, and stays so
+  await page.evaluate(() => { document.querySelector('#living-inferred').open = true; });
+  await page.click('[data-alive="X1"]');
+  assert(!(await page.locator('#living-inferred').count()) || !(await page.textContent('#living-inferred')).includes('Ignaz'), 'Ignaz is still marked');
+  assert((await page.textContent('#living-unknown')).includes('Ignaz Huber'), 'Ignaz taken back is not among the unknown');
+  // a household (Daniel's parents and children without their own family) shares one town
+  await page.evaluate(() => { document.querySelector('#living-towns').open = true; });
+  const rows = await page.locator('#living-towns tr').count();
+  const living = Number(await page.textContent('#living-count'));
+  assert(rows < living, `one row per person: ${rows} rows for ${living} living`);
+  const select = page.locator('#living-towns select').first();
+  const options = await select.locator('option').allTextContents();
+  assert(options.includes('Linz'), `the towns of the family are not offered: ${options.slice(0, 8)}`);
+  await select.selectOption('Linz');
+  await nextTo(page, 6);
+  await page.click('#build');
+  await page.waitForSelector('#saved, #findings, .error', { timeout: 60000 });
+  assert(await page.isVisible('#saved'), `not saved: ${await page.textContent('#screen')}`);
+  const site = JSON.parse((await folderList(page, 'living'))['site.json']);
+  assert(site.living_extra.includes('X1') && !site.deceased_extra?.includes('X1'), 'taking Ignaz back is not saved');
+  assert(Object.values(site.living_town).filter((v) => v === 'Linz').length >= 2, `the household town is not set for all: ${JSON.stringify(site.living_town)}`);
 });
 
 await scenario('own_basemap', chromium, async (page) => {

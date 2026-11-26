@@ -205,3 +205,34 @@ test('forget_missing_ids', () => {
   assert.equal(out.other, 1);
   assert.deepEqual(cfg.branches[0].roots, ['@I2@', '@I5@'], 'the input is not changed');
 });
+
+// --- deceased by their relatives ----------------------------------------------------------------
+const FAMILY = (rows) => ['0 HEAD', ...rows, '0 TRLR', ''].join('\n');
+
+test('infer_deceased_from_relatives', () => {
+  const tree = G.parse(FAMILY([
+    // Josef: no dates, a son born 1900 -> born by 1888 -> deceased
+    '0 @J@ INDI', '1 NAME Josef /Bauer/', '1 FAMS @F1@',
+    '0 @S@ INDI', '1 NAME Karel /Bauer/', '1 BIRT', '2 DATE 1900', '1 DEAT', '2 DATE 1970', '1 FAMC @F1@',
+    // Jan's father born 1850 -> Jan born by 1910 -> deceased; Jan's son Petr: no dates, his
+    // father is born by 1910 -> Petr by 1970: living (unknown)
+    '0 @O@ INDI', '1 NAME Otec /Novák/', '1 BIRT', '2 DATE 1850', '1 DEAT', '2 DATE 1920', '1 FAMS @F2@',
+    '0 @N@ INDI', '1 NAME Jan /Novák/', '1 FAMC @F2@', '1 FAMS @F3@',
+    '0 @P@ INDI', '1 NAME Petr /Novák/', '1 FAMC @F3@',
+    // Marie married 1905 -> born by 1893 -> deceased
+    '0 @M@ INDI', '1 NAME Marie /Malá/', '1 FAMS @F4@',
+    // Eva: a child born 1950: born by 1938, could be living
+    '0 @E@ INDI', '1 NAME Eva /Nová/', '1 FAMS @F5@',
+    '0 @K@ INDI', '1 NAME Kid /Nový/', '1 BIRT', '2 DATE 1950', '1 FAMC @F5@',
+    // Ida: deceased by her son, but the person said she lives (living_extra)
+    '0 @I@ INDI', '1 NAME Ida /Stará/', '1 FAMS @F6@',
+    '0 @IS@ INDI', '1 NAME Syn /Starý/', '1 BIRT', '2 DATE 1890', '1 DEAT', '2 DATE 1960', '1 FAMC @F6@',
+    '0 @F1@ FAM', '1 HUSB @J@', '1 CHIL @S@', '0 @F2@ FAM', '1 HUSB @O@', '1 CHIL @N@', '0 @F3@ FAM', '1 HUSB @N@', '1 CHIL @P@',
+    '0 @F4@ FAM', '1 WIFE @M@', '1 MARR', '2 DATE 1905', '0 @F5@ FAM', '1 WIFE @E@', '1 CHIL @K@', '0 @F6@ FAM', '1 WIFE @I@', '1 CHIL @IS@',
+  ]));
+  const out = P.inferDeceased(tree, { living_extra: ['I'] }, new Date(2026, 10, 26));
+  assert.deepEqual([...out.keys()].sort(), ['J', 'M', 'N']);
+  assert.deepEqual(out.get('J'), { via: 'child', of: 'S', year: 1888 });
+  assert.deepEqual(out.get('N'), { via: 'parent', of: 'O', year: 1910 });
+  assert.deepEqual(out.get('M'), { via: 'event', of: 'M', year: 1893 });
+});
