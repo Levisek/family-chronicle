@@ -9,7 +9,7 @@
 // Scenarios: chromium_example, chromium_folder, xss_name, leak_refused, own_basemap,
 // online_only_places, firefox_backup_warning, firefox_saved_family, firefox_suggested_root,
 // new_gedcom_renumbered, chronicle_editor, chronicle_xss_preview,
-// firefox_chronicle.
+// firefox_chronicle, ai_dialog.
 // ONLY=<name>,<name> runs just those.
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
@@ -502,6 +502,26 @@ await scenario('firefox_chronicle', firefox, async (page) => {
   await page.click('#chron-save');
   await page.waitForSelector('#chron-save:disabled');
   assert(await page.isVisible('.banner.warn'), 'no backup warning after saving the chronicle in this browser');
+});
+
+await scenario('ai_dialog', chromium, async (page) => {
+  await seedFolder(page, 'ai', exampleFiles());
+  await page.click('text=Open a saved family');
+  await page.click('[data-branch="huber"]');
+  await page.waitForSelector('#chron-text');
+  await page.click('#chron-ai');
+  await page.waitForSelector('#ai-prompt');
+  const prompt = await page.inputValue('#ai-prompt');
+  assert(prompt.includes('Johann Huber [I43]') && prompt.includes('born 1848, Vienna'), 'the facts are not in the request');
+  assert(prompt.includes('<!-- person: I43; I44 -->'), 'the current text is not in the request');
+  for (const line of prompt.split('\n').filter((l) => l.includes(': living,'))) assert(!/\d{4}/.test(line), `a living person with a year: ${line}`);
+  await page.click('#ai-copy');
+  await page.waitForFunction(() => document.querySelector('#ai-status').textContent.length > 0);
+  await page.fill('#ai-answer', '```markdown\n# Huber\n\nNew text from the AI.\n```');
+  await page.click('#ai-save');
+  await page.waitForFunction(() => document.querySelector('#chron-text') && document.querySelector('#chron-text').value === '# Huber\n\nNew text from the AI.\n');
+  const files = await folderList(page, 'ai');
+  assert(Object.keys(files).some((f) => /^chronicles\/\.versions\/huber-\d{4}-\d\d-\d\d-\d{6}\.md$/.test(f)), 'the previous chronicle is not kept as a version');
 });
 
 for (const [name, status, note] of results) console.log(`${status.padEnd(4)} ${name}  ${note}`);

@@ -182,3 +182,8 @@ mark.fill-in { background: #f5dc6b; color: inherit; padding: 0 .15em; }
 .chron-langs { display: flex; gap: .5rem; }
 .home-chronicles h2 { margin-top: 2rem; }
 @media (max-width: 52rem) { .chronicle-editor { grid-template-columns: 1fr; } }
+
+/* the AI dialog */
+.ai-panel { margin: 1rem 0; }
+.ai-panel textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: .9rem; padding: .5rem; background: var(--paper); border: 1px solid var(--line); }
+.ai-panel .warning { font-weight: 600; }
