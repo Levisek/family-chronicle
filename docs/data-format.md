@@ -243,3 +243,43 @@ Browser globals: `window.Chronicle` (`common.js`: `D` page data, `T` strings, `e
 - Test hook: `window.__tree` on the tree page (used by browser tests, never read by the scripts).
 - `<body data-phase>` on the map page is `intro`, `flight`, `drawing`, `stop` or `end`; `#card[data-stop]` is the
   open stop; `#map[data-center]` on a story page is the centre of the map panel.
+
+## Engine API (`engine/*.js`)
+
+The JS port of the build (offline app, phase 1). Classic scripts without imports: in the browser
+`window.FCEngine.<module>`, in Node `module.exports`. The core touches no disk, DOM or network.
+
+```js
+const result = await FCEngine.build.build({
+  files,       // Map<string, Uint8Array>: the project folder, keys relative to it with "/"
+  configPath,  // key of site.json in `files`; other paths in the config resolve against its folder
+  assets: { static, fonts, locales },  // Map of static/*, Map of fonts/*, {lang: locales/<lang>.json}
+  today,       // Date for the living-people rule
+  images,      // ImageAdapter, see below
+});
+// result = {ok, files, findings, warnings, approval, manifest}
+//   files: Map with "<site_dir>/...", "manifest.json", "approval.md"
+//   ok === false when the output check found something (manifest.check === "failed")
+```
+
+Errors in the input throw `FCEngine.config.BuildError` with the same messages as `build.py`.
+The output check always runs; no option turns it off, and `living_years` below 100 is refused.
+
+**ImageAdapter** turns a scan into a WebP without metadata:
+
+```js
+{ async toWebp(bytes, mime, crop /* [x0, y0, x1, y1] or null */, maxSize, quality)
+    -> { data: Uint8Array, width, height } }
+```
+
+`width`/`height` are the output size (`FCEngine.documents.fitSize` gives Pillow's thumbnail size).
+Crops use 1400 px and quality 80, whole sheets 2600 px and 75. PDF sources are refused with a hint
+to save the page as an image.
+
+**`check_exceptions`** entries may be a string or `{"text": "...", "reason": "..."}`; the reason is
+required (the Python build accepts strings only).
+
+`engine/templates.js` is generated from `templates/*.html` by `node tools/make-templates.mjs`,
+`engine/entities.js` from Python's HTML entity table by `tools/make_entities.py`. The golden
+outputs of the Python build are in `tests/golden/` (`tests/golden/make_golden.py`);
+`tests/engine/parity.test.mjs` compares the JS build of `example/` with them.

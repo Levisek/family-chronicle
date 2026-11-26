@@ -238,6 +238,9 @@
   const EMAIL_FILE_SUFFIXES = new Set(['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'css', 'js', 'json', 'woff', 'woff2', 'avif', 'ico', 'map', 'html']);
   const PHONE = new RegExp(`(?<![${WORD}.,/+\\-])(?:\\+?${DIGIT}{3}[ \\-]?)?${DIGIT}{3}[ \\-]?${DIGIT}{3}[ \\-]?${DIGIT}{3}(?!${W}|[.,]${DIGIT})`, 'gu');
   const DISTANCE = 80;
+  // a phone number has nine digits, at most one separator between any two of them
+  const NINE_DIGITS = /\p{Nd}(?:[ \-]?\p{Nd}){8}/u;
+  const WORD_RE = /[\p{L}\p{N}_]+/gu;
   const INVISIBLE = /[\u00ad\u200b\u200c\u200d\u2060\ufeff]/gu;
 
   const casefold = (s) => s.toLowerCase().replace(/ß/g, 'ss').replace(/ς/g, 'σ');
@@ -262,13 +265,28 @@
     return [...out].sort((a, b) => cmp(a[0], b[0]));
   }
 
+  const STEM_CACHE = new Map();
+  function stemPatterns(names) {
+    const key = names.join('\u0000');
+    if (!STEM_CACHE.has(key)) {
+      if (STEM_CACHE.size > 10000) STEM_CACHE.clear();
+      STEM_CACHE.set(key, stems(names).map(([stem, suffix]) => {
+        const tail = suffix === null ? `${W}*` : `${W}{0,${suffix}}(?!${W})`;
+        return [stem, new RegExp(`(?<!${W})${escapeRe(stem)}${tail}`, 'gu')];
+      }));
+    }
+    return STEM_CACHE.get(key);
+  }
+
   // A sample when a year from `years` is within 80 characters of a name, else null.
-  function yearNearName(text, names, years) {
-    const t = stripAccents(text);
+  function yearNearName(text, names, years, stripped) {
+    // cheap test first: without one of the years in the text there is nothing to find
+    if (!years.some((y) => text.includes(String(y)))) return null;
+    const t = stripped !== undefined ? stripped : stripAccents(text);
     const spans = [];
-    for (const [stem, suffix] of stems(names)) {
-      const tail = suffix === null ? `${W}*` : `${W}{0,${suffix}}(?!${W})`;
-      for (const m of t.matchAll(new RegExp(`(?<!${W})${escapeRe(stem)}${tail}`, 'gu'))) spans.push([m.index, m.index + m[0].length]);
+    for (const [stem, re] of stemPatterns(names)) {
+      if (!t.includes(stem)) continue;
+      for (const m of t.matchAll(re)) spans.push([m.index, m.index + m[0].length]);
     }
     if (!spans.length) return null;
     for (const year of years) {
@@ -361,8 +379,27 @@
   function checkOutput(files, living, exceptions, allowedDocuments = new Set(), ext = null) {
     const excepted = exceptionTexts(exceptions || []);
     const problems = [];
+    // each pattern needs its year (or the two-digit year of a full date) in the text: test that first
     const patterns = [];
-    for (const [, ds] of living) for (const d of ds) for (const src of patternSources(d, SP_CHECK, ext)) patterns.push(new RegExp(src, 'iu'));
+    for (const [, ds] of living) {
+      for (const d of ds) {
+        // only the first pattern of a full date accepts a two-digit year ("5.1.95")
+        patternSources(d, SP_CHECK, ext).forEach((src, k) => {
+          patterns.push([new RegExp(src, 'iu'), d.day && k === 0 ? [String(d.year), pad2(d.year % 100)] : [String(d.year)]]);
+        });
+      }
+    }
+    const byNeedle = new Map();
+    patterns.forEach(([, needles], i) => {
+      for (const x of new Set(needles)) { if (!byNeedle.has(x)) byNeedle.set(x, []); byNeedle.get(x).push(i); }
+    });
+    // [names, years] of every living person, and year -> indexes of the people with that year
+    const livingYears = living.map(([names, ds]) => [names, [...new Set(ds.filter((d) => d.year !== null && d.year !== undefined).map((d) => d.year))]]);
+    const livingByYear = new Map();
+    livingYears.forEach(([names, years], i) => {
+      if (!names.length) return;
+      for (const y of years) { const k = String(y); if (!livingByYear.has(k)) livingByYear.set(k, []); livingByYear.get(k).push(i); }
+    });
     const allowed = new Set([...allowedDocuments].map((p) => { const q = p.split('\\').join('/'); return q.startsWith('documents/') ? q.slice(10) : q; }));
     for (const rel of [...files.keys()].sort(byParts)) {
       if (rel.startsWith('documents/')) {
@@ -375,16 +412,56 @@
       lines = lines.map((t) => removeExceptions(t, excepted).replace(INVISIBLE, ''));
       const seen = new Set();
       const report = (message) => { if (!seen.has(message)) { seen.add(message); problems.push(`${rel}: ${message}`); } };
+      // which 2- and 4-digit strings each text contains: a pattern or a year is tried only where it can match
+      const digitsOf = (t) => {
+        const out = new Set();
+        for (const [run] of t.matchAll(/[0-9]{2,}/g)) {
+          for (let len = 2; len <= 4; len++) for (let k = 0; k + len <= run.length; k++) out.add(run.slice(k, k + len));
+        }
+        return out;
+      };
       for (const t of texts) {
-        for (const v of patterns) { const m = v.exec(t); if (m) report(`date of a living person "${m[0]}"`); }
-        for (const m of t.matchAll(EMAIL)) if (!EMAIL_FILE_SUFFIXES.has(m[1].toLowerCase())) report(`e-mail "${m[0]}"`);
-        for (const m of t.matchAll(PHONE)) report(`phone number "${m[0]}"`);
+        const tried = new Set();
+        for (const x of digitsOf(t)) for (const i of byNeedle.get(x) || []) tried.add(i);
+        for (const i of [...tried].sort((a, b) => a - b)) {
+          const m = patterns[i][0].exec(t);
+          if (m) report(`date of a living person "${m[0]}"`);
+        }
+        // cheap preconditions before the slow patterns: an "@", three digits in a row
+        if (t.includes('@')) for (const m of t.matchAll(EMAIL)) if (!EMAIL_FILE_SUFFIXES.has(m[1].toLowerCase())) report(`e-mail "${m[0]}"`);
+        if (NINE_DIGITS.test(t)) for (const m of t.matchAll(PHONE)) report(`phone number "${m[0]}"`);
       }
-      for (const [names, ds] of living) {
-        const years = [...new Set(ds.filter((d) => d.year !== null && d.year !== undefined).map((d) => d.year))];
-        if (!years.length || !names.length) continue;
-        for (const t of lines) {
-          const sample = yearNearName(t, names, years);
+      const byYear = new Map();
+      lines.forEach((t, li) => {
+        for (const x of digitsOf(t)) if (x.length >= 3) { if (!byYear.has(x)) byYear.set(x, []); byYear.get(x).push(li); }
+      });
+      // words of the lines (without accents, case-folded) -> lines; sorted for prefix search
+      let words = null, wordLines = null, strippedLines = null;
+      const buildWords = () => {
+        strippedLines = lines.map(stripAccents);
+        wordLines = new Map();
+        strippedLines.forEach((t, li) => {
+          for (const [w] of t.matchAll(WORD_RE)) { if (!wordLines.has(w)) wordLines.set(w, new Set()); wordLines.get(w).add(li); }
+        });
+        words = [...wordLines.keys()].sort(cmp);
+      };
+      const linesWithPrefix = (stem, into) => {
+        let lo = 0, hi = words.length;
+        while (lo < hi) { const mid = (lo + hi) >> 1; if (words[mid] < stem) lo = mid + 1; else hi = mid; }
+        for (let i = lo; i < words.length && words[i].startsWith(stem); i++) for (const li of wordLines.get(words[i])) into.add(li);
+      };
+      // only the living people one of whose years occurs in the file, in their original order
+      const who = new Set();
+      for (const y of byYear.keys()) for (const i of livingByYear.get(y) || []) who.add(i);
+      for (const pi of [...who].sort((a, b) => a - b)) {
+        const [names, years] = livingYears[pi];
+        if (words === null) buildWords();
+        const withName = new Set();
+        for (const [stem] of stemPatterns(names)) linesWithPrefix(stem, withName);
+        const yearTexts = years.map(String);
+        const candidates = [...withName].filter((li) => yearTexts.some((y) => lines[li].includes(y))).sort((x, y) => x - y);
+        for (const li of candidates) {
+          const sample = yearNearName(lines[li], names, years, strippedLines[li]);
           if (sample) { report(`year of a living person next to the name "${sample}"`); break; }
         }
       }

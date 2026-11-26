@@ -254,3 +254,10 @@ test('malformed_blocks_are_errors', () => {
     assert.throws(() => PV.extensions([bad]), Error, JSON.stringify(bad));
   }
 });
+
+test('old_and_short_years_are_still_checked', () => {
+  // the digit index must not hide three-digit years or two-digit years of a full date
+  assert.ok(runCheck({ 'a.txt': '5. 1. 995' }, [[['X'], [gd(995, 1, 5)]]]).length >= 1);
+  assert.ok(runCheck({ 'a.txt': 'John Smith 995' }, [[['John', 'Smith'], [gd(995, null, null)]]]).length >= 1);
+  assert.ok(runCheck({ 'a.txt': '5.1.95' }).length >= 1);
+});

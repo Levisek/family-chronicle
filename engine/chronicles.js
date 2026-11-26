@@ -125,7 +125,8 @@
   // `<key>.<lang>.md` translation is used when present. options: strings, rootUrl ('../'),
   // defaultLanguage ('en'), images ([chapter slug, snippet, source, crop, caption]), ext.
   function render(mdFile, lang, sensitive, published, exports, files, options = {}) {
-    const { strings = {}, rootUrl = '../', defaultLanguage = 'en', images = [], ext = null } = options;
+    // docFiles: the files that document paths (colors.json) resolve against, when not `files`
+    const { strings = {}, rootUrl = '../', defaultLanguage = 'en', images = [], ext = null, docFiles = files } = options;
     const slugName = chapterSlug(mdFile);
     let path = mdFile, contentLanguage = defaultLanguage;
     if (lang !== defaultLanguage) {
@@ -137,7 +138,7 @@
     src = src.replace(TEXT, (all, t) => text.escapeText(t.replace(/^\n+|\n+$/g, '')));
     src = privacy.redact(src, sensitive, ext);
     src = markers(src);
-    src = insertImages(src, slugName, lang, published, exports, strings, rootUrl, images, files);
+    src = insertImages(src, slugName, lang, published, exports, strings, rootUrl, images, docFiles);
     src = src.replace(COMMENT, '').replace(REST, '');
     let h = md.render(src);
     h = noteLinks(h, slugName, published, exports, strings, rootUrl);
