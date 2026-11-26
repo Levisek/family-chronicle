@@ -31,7 +31,14 @@
     return neg ? -v : v;
   }
 
-  const api = { pyRound, escapeHtml, escapeText, jsonInHtml, utf8, fromUtf8, stripAccents };
+  // Python's f"{x:.{nd}f}"
+  const pyFixed = (x, nd) => pyRound(x, nd).toFixed(nd);
+
+  // Python repr() of a JSON-like value, for error messages
+  const pyRepr = (v) => (v === null || v === undefined ? 'None' : typeof v === 'string' ? `'${v}'`
+    : v === true ? 'True' : v === false ? 'False' : JSON.stringify(v));
+
+  const api = { pyRound, pyFixed, pyRepr, escapeHtml, escapeText, jsonInHtml, utf8, fromUtf8, stripAccents };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).text = api;
 })(typeof window !== 'undefined' ? window : globalThis);
