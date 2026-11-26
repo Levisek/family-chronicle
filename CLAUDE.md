@@ -34,6 +34,8 @@ PLAYWRIGHT_MODULES=<node_modules with playwright and axe-core> node tests/browse
 - Always run Python with `-I`; entry points add the repo to `sys.path` themselves.
 - `--out` must be outside the config's folder. Never build into the repo. The build refuses an existing
   `<site_dir>` without a `manifest.json` next to it.
+- `app/data/assets.js` and `app/data/example.js` are generated from `static/`, `fonts/`, `locales/` and
+  `example/`: after changing any of those run `node tools/make-app-data.mjs` (the tests run it with `--check`).
 - Before saying "done", run the Python and JS test suites and a build of the example (it must end with `check ok`).
 
 ## Rules
