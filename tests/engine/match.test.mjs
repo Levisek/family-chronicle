@@ -122,3 +122,25 @@ test('remap_everywhere', () => {
   assert.equal(dropped.cfg.root, null);
   assert.deepEqual(dropped.cfg.branches, []);
 });
+
+test('changes_overview', () => {
+  const old = ged([['I1', 'Josef', 'Huber', 1878], ['I2', 'Rosa', 'Maier', 1880], ['I3', 'Anna', 'Huber', 1960], ['I4', 'Karl', 'Berger', 1900]]);
+  const text = ['0 HEAD',
+    '0 @I1@ INDI', '1 NAME Josef /Huber/', '1 BIRT', '2 DATE 12 MAR 1878', '2 PLAC Wels',
+    '0 @I2@ INDI', '1 NAME Rosa /Maier/', '1 BIRT', '2 DATE 1880',
+    '0 @I3@ INDI', '1 NAME Anna /Huber/', '1 BIRT', '2 DATE 1960', '1 DEAT', '2 DATE 2020',
+    '0 @I9@ INDI', '1 NAME Paul /Huber/', '1 BIRT', '2 DATE 1990',
+    '0 TRLR', ''].join('\n');
+  const now = G.parse(text);
+  const r = M.pair(old, now, new Set(['I1']));
+  const c = M.changes(old, now, r.pairs, { living_years: 100 }, new Date(2026, 10, 26));
+  assert.deepEqual(c.added, ['I9']);
+  assert.deepEqual(c.removed, ['I4']);
+  assert.deepEqual(c.dates, [
+    { id: 'I1', kind: 'birth', before: '1878', after: '12 Mar 1878' },
+    { id: 'I3', kind: 'death', before: '', after: '2020' },
+  ]);
+  assert.deepEqual(c.places, ['Wels']);
+  assert.deepEqual(c.nowDeceased, ['I3']);
+  assert.deepEqual(c.nowLiving, []);   // only paired people change status; I9 is new
+});

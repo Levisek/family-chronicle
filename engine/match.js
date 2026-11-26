@@ -100,7 +100,43 @@
     return { cfg: c, documents: docs, chronicles: chron };
   }
 
-  const api = { usedIds, pair, remap, MAX_CANDIDATES };
+  function placeStrings(tree) {
+    const out = new Set();
+    for (const p of tree.people.values()) for (const ev of p.events) if (ev.place) out.add(ev.place);
+    for (const f of tree.families.values()) for (const ev of f.events) if (ev.place) out.add(ev.place);
+    return out;
+  }
+
+  const deathOf = (p) => p.events.find((e) => e.type === 'DEAT') || p.events.find((e) => e.type === 'BURI') || null;
+  const dateText = (ev) => (ev ? events.formatDate(ev.date, 'en') : '');
+
+  // What the new file changes: people added and gone, birth and death dates, new places, and the
+  // paired people who now count as living or deceased (`cfg` with the new ids).
+  function changes(oldTree, newTree, pairs, cfg, today) {
+    const paired = new Set(pairs.values());
+    const added = [...newTree.people.keys()].filter((id) => !paired.has(id)).sort(idCmp);
+    const removed = [...oldTree.people.keys()].filter((id) => !pairs.has(id)).sort(idCmp);
+    const dates = [], nowLiving = [], nowDeceased = [];
+    const years = 'living_years' in cfg ? cfg.living_years : scope.LIVING_YEARS;
+    const extraLiving = new Set(cfg.living_extra || []), extraDead = new Set(cfg.deceased_extra || []);
+    const alive = (p, id) => (extraDead.has(id) ? false : extraLiving.has(id) ? true : scope.isLiving(p, today, years));
+    const order = [...pairs].sort((a, b) => idCmp(a[1], b[1]));
+    for (const [o, n] of order) {
+      const a = oldTree.people.get(o), b = newTree.people.get(n);
+      for (const [kind, get] of [['birth', (p) => p.birth], ['death', deathOf]]) {
+        const before = dateText(get(a)), after = dateText(get(b));
+        if (before !== after) dates.push({ id: n, kind, before, after });
+      }
+      const was = alive(a, n), is = alive(b, n);
+      if (was && !is) nowDeceased.push(n);
+      if (!was && is) nowLiving.push(n);
+    }
+    const oldPlaces = placeStrings(oldTree);
+    const places = [...placeStrings(newTree)].filter((x) => !oldPlaces.has(x)).sort();
+    return { added, removed, dates, places, nowLiving, nowDeceased };
+  }
+
+  const api = { usedIds, pair, remap, changes, MAX_CANDIDATES };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).match = api;
 })(typeof window !== 'undefined' ? window : globalThis);
