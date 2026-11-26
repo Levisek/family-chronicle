@@ -283,3 +283,49 @@ required (the Python build accepts strings only).
 `engine/entities.js` from Python's HTML entity table by `tools/make_entities.py`. The golden
 outputs of the Python build are in `tests/golden/` (`tests/golden/make_golden.py`);
 `tests/engine/parity.test.mjs` compares the JS build of `example/` with them.
+
+## Offline app (`Family Chronicle.html`, `app/`)
+
+The app opens from disk (`file://`): no server, no `fetch` of its own files, no Workers, no ES
+modules. Classic scripts register `window.FCApp.<module>`; the engine modules above are loaded in
+dependency order by `Family Chronicle.html`. CSP: `default-src 'self'; img-src 'self' data: blob:;
+connect-src https://nominatim.openstreetmap.org; style-src 'self'; script-src 'self'`. Data from a
+GEDCOM or a family folder goes into the DOM only as text (`FCApp.dom.h`), never as HTML.
+
+**Generated data** (committed; regenerate after changing the sources):
+
+| File | Global | Made by | From |
+|---|---|---|---|
+| `app/data/assets.js` | `FC_ASSETS = {static, fonts, locales}` (base64) | `node tools/make-app-data.mjs` | `static/`, `fonts/`, `locales/` |
+| `app/data/example.js` | `FC_EXAMPLE = {path: base64}` | `node tools/make-app-data.mjs` | `example/` |
+| `app/data/gazetteer.js` | `FC_GAZ = {names, index, admin1, countries, countryNames}` | `node tools/gazetteer.mjs <dir>` | GeoNames dump (CC BY 4.0) |
+| `app/data/world.js` | `FC_WORLD = {land, lakes, borders, rivers}` | `node tools/world.mjs <dir>` | Natural Earth 50m |
+
+`node tools/make-app-data.mjs --check` exits 1 when the first two are out of date (the tests run it).
+The gazetteer and the world map are loaded only in the Places step.
+
+**The family folder** (what the app reads and writes):
+
+```
+family.ged        the last GEDCOM loaded in the wizard
+site.json         as above; the wizard writes root, branches, languages, living rules, base_url
+places.json       {town: {coords, country, aliases, source}}
+basemap.geojson   the basemap cropped to the places (engine/basemap.js, margin 2 degrees)
+chronicles/, documents/, documents.json, events.json   as before (phase 3 and 4 edit them)
+history/<YYYY-MM-DD-HHMMSS>/   copies of site.json, places.json and family.ged before they are overwritten
+web/              the built website: web/<site_dir>/, web/manifest.json, web/approval.md,
+                  web/.family-chronicle-output (marker)
+```
+
+- `places.json` entries get `"source": "gedcom" | "gazetteer" | "online" | "manual"`; the build
+  ignores it. Order of lookup: places.json as it is, `PLAC`/`MAP`/`LATI`/`LONG` in the GEDCOM
+  (`tree.placeCoords`), the gazetteer, then Nominatim only after a click (only the place string,
+  at most one request a second), then a choice from candidates or a click into the map.
+  Several equal matches are never picked automatically.
+- The app writes only under `web/` for a build. A `web/<site_dir>/` without `web/manifest.json` and
+  without the marker is never replaced (`engine/output.js`). A failed check writes nothing.
+- `check_exceptions` added in the app are always `{"text", "reason"}`; the reason is required.
+- Chrome/Edge save into the folder (File System Access; the handle is remembered in IndexedDB
+  `fc-app`). Firefox/Safari keep the family in IndexedDB (`fc-app`, store `projects`) and download
+  the website and a backup as ZIP files (`engine/zip.js`, STORE); every change that is only in the
+  browser shows a warning with "Download a backup".

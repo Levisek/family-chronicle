@@ -21,6 +21,14 @@ Most people who open this folder want their own site, not a code change. Then:
   build reports a leak, fix the input, and tell the user what it found.
 - At the end tell the user which `index.html` to open and point them to `approval.md`.
 
+## Layout
+
+- `familychronicle/`, `build.py`, `book.py`: the Python build (reference until phase 4 of the offline app).
+- `engine/*.js`: the same build in JS (no disk, DOM or network); `app/` + `Family Chronicle.html`: the
+  offline app (wizard, storage, UI). See "Offline app" and "Engine API" in `docs/data-format.md`.
+- Generated, committed, never edited by hand: `engine/templates.js`, `engine/entities.js`, `app/data/*.js`
+  (`node tools/make-app-data.mjs --check` tells when assets/example are stale).
+
 ## Run and test
 
 ```bash
