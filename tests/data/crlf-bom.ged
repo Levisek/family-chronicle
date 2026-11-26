@@ -1,0 +1,31 @@
+﻿0 HEAD
+1 CHAR UTF-8
+0 @I1@ INDI
+1	NAME John /Smith/
+2 GIVN John
+2 SURN Smith
+1 SEX M
+1 BIRT
+2 DATE 5 JAN 1995
+2 PLAC Spring
+3 CONC field
+1 NOTE a note
+2 CONT second line
+1 FAMC @F1@
+0 @I2@ INDI
+1 NAME Peter /Smith/
+1 SEX M
+1 BIRT
+2 DATE 1972
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME Jane /Smithson/
+1 SEX F
+1 FAMS @F1@
+0 @F1@ FAM
+1 HUSB @I2@
+1 WIFE @I3@
+1 CHIL @I1@
+1 MARR
+2 PLAC Springfield, 12 Main Street
+0 TRLR
