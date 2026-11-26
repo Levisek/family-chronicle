@@ -185,3 +185,23 @@ test('person_info', () => {
   assert.deepEqual(P.personInfo(TREE, 'I1', LOCALES.en), P.searchPeople(TREE, 'Daniel Huber', 1, LOCALES.en)[0]);
   assert.equal(P.personInfo(TREE, 'nobody', LOCALES.en), null);
 });
+
+test('forget_missing_ids', () => {
+  // a new GEDCOM without @I5@: its ids go out of the settings, nothing else changes
+  const cfg = {
+    root: '@I1@', branches: [{ key: 'a', roots: ['@I2@', '@I5@'] }, { key: 'b', roots: ['@I5@'] }],
+    living_extra: ['@I5@', '@I3@'], deceased_extra: ['@I5@'], living_town: { '@I5@': 'Linz', '@I3@': 'Wels' },
+    exclude: ['@I5@'], other: 1,
+  };
+  const has = new Set(['@I1@', '@I2@', '@I3@']);
+  const tree = { people: { has: (id) => has.has(id) } };
+  const out = P.forgetMissing(cfg, tree);
+  assert.deepEqual(out.branches, [{ key: 'a', roots: ['@I2@'] }]);
+  assert.deepEqual(out.living_extra, ['@I3@']);
+  assert.deepEqual(out.deceased_extra, []);
+  assert.deepEqual(out.living_town, { '@I3@': 'Wels' });
+  assert.deepEqual(out.exclude, []);
+  assert.equal(out.root, '@I1@');
+  assert.equal(out.other, 1);
+  assert.deepEqual(cfg.branches[0].roots, ['@I2@', '@I5@'], 'the input is not changed');
+});

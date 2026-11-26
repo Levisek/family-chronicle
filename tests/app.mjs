@@ -6,8 +6,9 @@
 // its own profile in a temporary folder. Nominatim is answered by page.route: no network.
 // In Chromium the folder picker is replaced by an in-memory folder with the File System Access
 // interface (window.__folders); the origin private file system is not open to file:// pages.
-// Scenarios: chromium_example, chromium_folder, xss_name, leak_refused, online_only_places,
-// firefox_backup_warning.
+// Scenarios: chromium_example, chromium_folder, xss_name, leak_refused, own_basemap,
+// online_only_places, firefox_backup_warning, firefox_saved_family, firefox_suggested_root.
+// ONLY=<name>,<name> runs just those.
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
@@ -75,7 +76,7 @@ async function folderList(page, dir) {
     const out = {};
     const walk = (h, prefix) => {
       for (const [n, x] of h.dirs) walk(x, `${prefix}${n}/`);
-      for (const [n, b] of h.files) out[prefix + n] = n.endsWith('.json') || n.endsWith('-output') ? new TextDecoder().decode(b) : b.length;
+      for (const [n, b] of h.files) out[prefix + n] = n.endsWith('.json') || n.endsWith('.geojson') || n.endsWith('-output') ? new TextDecoder().decode(b) : b.length;
     };
     if (window.__folders[d]) walk(window.__folders[d], '');
     return out;
@@ -110,6 +111,7 @@ async function nextTo(page, step) {
 }
 
 async function scenario(name, type, fn) {
+  if (process.env.ONLY && !process.env.ONLY.split(',').includes(name)) return;   // ONLY=a,b runs just these
   const t0 = Date.now();
   const { ctx, page, problems } = await open(type, name);
   try {
@@ -126,6 +128,36 @@ async function scenario(name, type, fn) {
 }
 
 const assert = (cond, msg) => { if (!cond) throw new Error(msg); };
+
+// the example folder as {path: base64}
+function exampleFiles() {
+  const files = {};
+  const walk = (dir, prefix = '') => {
+    for (const e of require('node:fs').readdirSync(dir, { withFileTypes: true })) {
+      if (e.isDirectory()) walk(join(dir, e.name), `${prefix}${e.name}/`);
+      else files[prefix + e.name] = readFileSync(join(dir, e.name)).toString('base64');
+    }
+  };
+  walk(join(REPO, 'example'));
+  return files;
+}
+
+// the in-memory folder `name` (FAKE_PICKER) gets the files {path: base64}; opens the app
+async function seedFolder(page, name, files) {
+  await page.addInitScript(FAKE_PICKER, name);
+  await page.goto(APP);
+  await page.evaluate(async (all) => {
+    const root = await window.showDirectoryPicker();
+    for (const [path, b64] of Object.entries(all)) {
+      let d = root;
+      const parts = path.split('/');
+      for (const p of parts.slice(0, -1)) d = await d.getDirectoryHandle(p, { create: true });
+      const w = await (await d.getFileHandle(parts.at(-1), { create: true })).createWritable();
+      await w.write(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
+      await w.close();
+    }
+  }, files);
+}
 
 await scenario('chromium_example', chromium, async (page) => {
   await page.goto(APP);
@@ -168,9 +200,10 @@ await scenario('chromium_folder', chromium, async (page) => {
 
 await scenario('xss_name', chromium, async (page) => {
   const evil = '<img src=x onerror=window.__x=1> /Evil/';
+  await page.addInitScript(FAKE_PICKER, 'xss');
   await page.goto(APP);
   await page.click('text=Start with your own GEDCOM');
-  await page.setInputFiles('#ged-input', gedcom(evil));
+  await page.setInputFiles('#ged-input', gedcom(evil, '<img src=y onerror=window.__x=2>'));
   await page.waitForSelector('#gedcom-summary');
   await page.click('#next');
   await page.waitForSelector('#people');
@@ -179,36 +212,30 @@ await scenario('xss_name', chromium, async (page) => {
   await page.click('#next');
   await page.waitForSelector('#pedigree');
   assert((await page.textContent('#pedigree')).includes('<img'), 'the pedigree does not show the name as text');
+  await page.click('#next');
+  await page.waitForSelector('#places-panel');
+  assert((await page.textContent('#places-panel')).includes('<img src=y'), 'the place is not shown as text');
+  await page.click('#next');
+  assert((await page.textContent('#screen')).includes('<img src=x'), 'the living person is not shown by name');
+  await nextTo(page, 6);
+  await page.click('#build');
+  await page.waitForSelector('#choose-folder, #findings, .error', { timeout: 60000 });
+  await page.click('#choose-folder');
+  await page.waitForSelector('#saved', { timeout: 30000 });
+  await page.click('#home');
+  await page.waitForSelector('#home-counts');
+  assert(await page.locator('img[src="x"], img[src="y"]').count() === 0, 'an img element was made from the GEDCOM');
   assert(await page.evaluate(() => window.__x) === undefined, 'the onerror handler ran');
 });
 
 await scenario('leak_refused', chromium, async (page) => {
   // a saved family whose intro gives the birth date of a living person (Daniel, born 12 March 1990)
-  const files = {};
-  const walk = (dir, prefix = '') => {
-    for (const e of require('node:fs').readdirSync(dir, { withFileTypes: true })) {
-      if (e.isDirectory()) walk(join(dir, e.name), `${prefix}${e.name}/`);
-      else files[prefix + e.name] = readFileSync(join(dir, e.name)).toString('base64');
-    }
-  };
-  walk(join(REPO, 'example'));
+  const files = exampleFiles();
   // (chronicles are redacted by the build; the intro in site.json is published as written)
   const site = JSON.parse(readFileSync(join(REPO, 'example/site.json'), 'utf8'));
   site.strings = { ...(site.strings || {}), en: { ...((site.strings || {}).en || {}), intro: ['Daniel was born on 12 March 1990.'] } };
   files['site.json'] = Buffer.from(JSON.stringify(site)).toString('base64');
-  await page.addInitScript(FAKE_PICKER, 'leak');
-  await page.goto(APP);
-  await page.evaluate(async (all) => {
-    const root = await window.showDirectoryPicker();
-    for (const [path, b64] of Object.entries(all)) {
-      let d = root;
-      const parts = path.split('/');
-      for (const p of parts.slice(0, -1)) d = await d.getDirectoryHandle(p, { create: true });
-      const w = await (await d.getFileHandle(parts.at(-1), { create: true })).createWritable();
-      await w.write(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
-      await w.close();
-    }
-  }, files);
+  await seedFolder(page, 'leak', files);
   await page.click('text=Open a saved family');
   await page.click('#home-build');
   await page.click('#build');
@@ -221,6 +248,29 @@ await scenario('leak_refused', chromium, async (page) => {
   assert(await save.isDisabled(), 'the exception can be saved without a reason');
   await page.fill('#findings textarea >> nth=0', 'test');
   assert(!(await save.isDisabled()), 'a reason does not enable the button');
+});
+
+await scenario('own_basemap', chromium, async (page) => {
+  // a basemap made by hand under another name: step 4 makes a new one, the old one goes to history/
+  const files = exampleFiles();
+  const site = JSON.parse(readFileSync(join(REPO, 'example/site.json'), 'utf8'));
+  site.basemap = 'my-map.geojson';
+  files['site.json'] = Buffer.from(JSON.stringify(site)).toString('base64');
+  const mine = JSON.parse(readFileSync(join(REPO, 'example/basemap.geojson'), 'utf8'));
+  mine.name = 'made by hand';
+  files['my-map.geojson'] = Buffer.from(JSON.stringify(mine)).toString('base64');
+  delete files['basemap.geojson'];
+  await seedFolder(page, 'own-map', files);
+  await page.click('text=Open a saved family');
+  await page.click('#home-settings');
+  await nextTo(page, 6);
+  await page.click('#build');
+  await page.waitForSelector('#saved', { timeout: 60000 });
+  const after = await folderList(page, 'own-map');
+  const kept = Object.keys(after).find((f) => /^history\/\d{4}-\d\d-\d\d-\d{6}\/my-map\.geojson$/.test(f));
+  assert(kept, `the hand-made basemap was not backed up: ${Object.keys(after).filter((f) => f.startsWith('history/')).join(', ')}`);
+  assert(JSON.parse(after[kept]).name === 'made by hand', 'the backup is not the hand-made basemap');
+  assert(JSON.parse(after['site.json']).basemap === 'my-map.geojson', 'the basemap key changed');
 });
 
 await scenario('online_only_places', chromium, async (page) => {
@@ -315,12 +365,39 @@ await scenario('firefox_saved_family', firefox, async (page) => {
   await backup.saveAs(path);
   const names = execFileSync('unzip', ['-Z1', path], { encoding: 'utf8' });
   assert(/^history\/\d{4}-\d\d-\d\d-\d{6}\/site\.json$/m.test(names), `no history/ in the backup:\n${names}`);
+  // built and saved again after the backup: the warning is back at once, not on the next screen
+  assert(!(await page.isVisible('.banner.warn')), 'the warning stays after the backup');
+  await page.click('#build');
+  await page.waitForSelector('#download-web', { timeout: 60000 });
+  assert(await page.isVisible('.banner.warn'), 'no warning right after saving again');
   // a second family of the same name does not replace the first one
   await page.click('#home');
   await page.click('text=Start screen');
   await newFamily();
   const k = await keys();
   assert(k.includes('Smith') && k.length === 2, `families in the browser: ${JSON.stringify(k)}`);
+});
+
+await scenario('firefox_suggested_root', firefox, async (page) => {
+  // a saved family whose starting person is no longer in the GEDCOM: step 2 suggests one, and
+  // that change is only in this browser until a backup, so the warning shows
+  const dir = join(TMP, 'stale-root', 'Huber');
+  for (const [path, b64] of Object.entries(exampleFiles())) {
+    require('node:fs').mkdirSync(join(dir, path, '..'), { recursive: true });
+    writeFileSync(join(dir, path), Buffer.from(b64, 'base64'));
+  }
+  const site = JSON.parse(readFileSync(join(dir, 'site.json'), 'utf8'));
+  site.root = 'I999';
+  writeFileSync(join(dir, 'site.json'), JSON.stringify(site));
+  await page.goto(APP);
+  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('text=Open a saved family')]);
+  await chooser.setFiles(dir);
+  await page.waitForSelector('#home-settings');
+  assert(!(await page.isVisible('.banner.warn')), 'warning before any change');
+  await page.click('#home-settings');
+  await nextTo(page, 2);
+  await page.waitForSelector('#people');
+  assert(await page.isVisible('.banner.warn'), 'no warning after the suggested starting person');
 });
 
 for (const [name, status, note] of results) console.log(`${status.padEnd(4)} ${name}  ${note}`);

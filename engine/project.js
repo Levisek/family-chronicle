@@ -170,9 +170,23 @@
     };
   }
 
+  // After a new GEDCOM: the ids it does not have go out of the settings (a branch left without
+  // roots goes too). A person who kept the id is not checked: pairing old and new ids is later work.
+  function forgetMissing(cfg, tree) {
+    const keep = (id) => tree.people.has(id);
+    const out = JSON.parse(JSON.stringify(cfg));
+    if (out.root && !keep(out.root)) out.root = null;
+    if (Array.isArray(out.branches)) {
+      out.branches = out.branches.map((b) => ({ ...b, roots: (b.roots || []).filter(keep) })).filter((b) => b.roots.length);
+    }
+    for (const key of ['living_extra', 'deceased_extra', 'exclude']) if (Array.isArray(out[key])) out[key] = out[key].filter(keep);
+    if (out.living_town && typeof out.living_town === 'object') out.living_town = Object.fromEntries(Object.entries(out.living_town).filter(([id]) => keep(id)));
+    return out;
+  }
+
   const serialize = (obj) => new TextEncoder().encode(JSON.stringify(obj, null, 2) + '\n');
 
-  const api = { PALETTE, summary, suggestRoot, searchPeople, personInfo, suggestBranches, mergeBranches, renameBranch, recolorBranch, livingSummary, newConfig, serialize, parseConfig: config.parse };
+  const api = { PALETTE, summary, suggestRoot, searchPeople, personInfo, suggestBranches, mergeBranches, renameBranch, recolorBranch, livingSummary, newConfig, forgetMissing, serialize, parseConfig: config.parse };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).project = api;
 })(typeof window !== 'undefined' ? window : globalThis);

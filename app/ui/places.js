@@ -154,7 +154,7 @@
         s.cfg.basemap = s.cfg.basemap || 'basemap.geojson';
       } else {
         s.basemap = null;
-        delete s.cfg.basemap;
+        if (!(s.cfg.basemap && s.project.files.has(s.cfg.basemap))) delete s.cfg.basemap;   // keep a basemap of one's own
       }
     },
   };

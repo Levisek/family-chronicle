@@ -1,7 +1,7 @@
 // Step 6: build the website, check it, save it. A finding of the privacy check means nothing is
 // saved; every finding with a text can get an exception, which needs a reason. A new family is
 // put into a folder only here (Chrome/Edge: the folder picker; Firefox/Safari: this browser).
-// Files a person wrote (site.json, places.json, family.ged) are copied to history/<stamp>/ before
+// Files a person wrote (site.json, places.json, family.ged, the basemap) are copied to history/<stamp>/ before
 // they are overwritten.
 (function (g) {
   'use strict';
@@ -34,6 +34,7 @@
       s.build = { phase: 'error', message: e.message };
     }
     if (s.build.phase === 'ok' && (s.project.mode === 'folder' || s.project.mode === 'browser')) await save(w, s.project);
+    FCApp.refreshBanners();   // saving into this browser makes the backup warning due
     w.rerender();
   }
 
@@ -43,8 +44,8 @@
     const plan = E().output.plan(project.paths, result, s.cfg.site_dir);
     if (plan.refused) { s.build = { ...s.build, phase: 'refused', reason: plan.refused }; return; }
     const pend = w.pending();
-    const generated = new Set([s.cfg.basemap || 'basemap.geojson']);
-    const changed = [...pend.keys()].filter((k) => !generated.has(k) && project.files.has(k) && !same(project.files.get(k), pend.get(k)));
+    // also the basemap: it may have been made by hand
+    const changed = [...pend.keys()].filter((k) => project.files.has(k) && !same(project.files.get(k), pend.get(k)));
     const backups = E().output.backup(project.files, changed, E().output.stamp(new Date()));
     try {
       for (const [k, v] of backups) await project.write(k, v);

@@ -13,9 +13,11 @@
     const bytes = new Uint8Array(await file.arrayBuffer());
     try {
       const tree = E().gedcom.load(bytes);
-      Object.assign(s, { tree, ged: bytes, gedName: file.name, error: null });
-      if (s.cfg.root && !tree.people.has(s.cfg.root)) { s.cfg.root = null; s.branchesFor = null; }
-      s.placeState = null;
+      Object.assign(s, { tree, ged: bytes, gedName: file.name, error: null, build: null, placeState: null });
+      const cfg = E().project.forgetMissing(s.cfg, tree);
+      if (!cfg.root || !(cfg.branches || []).length) s.branchesFor = null;   // step 3 suggests them again
+      for (const k of Object.keys(s.cfg)) delete s.cfg[k];
+      Object.assign(s.cfg, cfg);
       s.cfg.gedcom = 'family.ged';
       w.changed();
     } catch (e) {

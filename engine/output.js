@@ -1,5 +1,6 @@
 // Where the app writes a build into the family folder. Everything goes under web/; a web/<site_dir>
-// that a previous build did not make (no marker, no manifest.json) is never replaced; a failed
+// that a previous build did not make (no marker; a manifest.json alone is not enough, it is a common
+// file name) is never replaced; a failed
 // privacy check writes and deletes nothing. Paths are relative to the family folder.
 //   plan(existing: Set<string>, result: BuildResult, siteDir) -> {writes: Map, deletes: string[]} | {refused}
 (function (g) {
@@ -11,7 +12,7 @@
   function plan(existing, result, siteDir) {
     if (!result || result.ok !== true) return { refused: 'check failed' };
     const site = `web/${siteDir}/`;
-    const ours = existing.has(`web/${MARKER}`) || existing.has('web/manifest.json');
+    const ours = existing.has(`web/${MARKER}`);
     const present = [...existing].filter((p) => p.startsWith(site));
     if (present.length && !ours) return { refused: `${site} exists and was not made by Family Chronicle; nothing was written or deleted` };
     const writes = new Map();

@@ -27,8 +27,9 @@ DIR/approval.md            what to read before publishing
 
 Exit code: 0 ok, 1 input problem or output check finding (the manifest then says `"check": "failed"`),
 2 refused output (filesystem root, home, the config folder, anything inside or above it, or an existing
-`<site_dir>` that has no `manifest.json` from a previous build next to it). The build replaces
-`<site_dir>` only when that manifest exists. All paths in the config resolve against the config's folder,
+`<site_dir>` that has no `.family-chronicle-output` marker from a previous build next to it; a
+`manifest.json` alone does not count, the name is common). The build replaces `<site_dir>` only when
+that marker exists. All paths in the config resolve against the config's folder,
 including the paths inside `documents.json`. The default language lives at the site root, every other
 language under `<lang>/`.
 

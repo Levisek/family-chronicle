@@ -33,11 +33,15 @@ test('foreign_web_refused', () => {
 });
 
 test('marker_allows_replace', () => {
-  for (const mark of ['web/.family-chronicle-output', 'web/manifest.json']) {
-    const p = O.plan(new Set([mark, 'web/family/index.html']), result(), 'family');
-    assert.equal(p.refused, undefined, mark);
-    assert.ok(p.writes.has('web/family/index.html'));
-  }
+  const p = O.plan(new Set(['web/.family-chronicle-output', 'web/family/index.html']), result(), 'family');
+  assert.equal(p.refused, undefined);
+  assert.ok(p.writes.has('web/family/index.html'));
+});
+
+test('foreign_manifest_is_not_a_marker', () => {
+  // web/manifest.json is a common file name (web app manifests); only our marker counts
+  const p = O.plan(new Set(['web/manifest.json', 'web/family/index.html']), result(), 'family');
+  assert.match(p.refused || '', /web\/family/);
 });
 
 test('failed_check_writes_nothing', () => {

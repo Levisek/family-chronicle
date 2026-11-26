@@ -22,7 +22,7 @@
     render(el, w) {
       const s = w.state;
       const suggested = P().suggestRoot(s.tree);
-      if (!s.cfg.root || !s.tree.people.has(s.cfg.root)) s.cfg.root = suggested;
+      if (!s.cfg.root || !s.tree.people.has(s.cfg.root)) { s.cfg.root = suggested; w.changed(); }
       const list = h('ul', { class: 'people', id: 'people' });
       const pick = (id) => { s.cfg.root = id; w.changed(); show(search.value); };
       const show = (q) => {

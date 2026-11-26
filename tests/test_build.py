@@ -512,6 +512,13 @@ class TestPrivacy(Base):
         self.assertIn("not the output of a previous build", self.stderr)
         self.assertTrue((self.out / "site" / "precious.txt").exists())
 
+    def test_foreign_manifest_is_not_a_marker(self):
+        (self.out / "site").mkdir(parents=True)
+        (self.out / "site" / "precious.txt").write_text("x")
+        (self.out / "manifest.json").write_text("{}")    # a web app manifest, not ours
+        self.build(code=2)
+        self.assertTrue((self.out / "site" / "precious.txt").exists())
+
 
 class TestConfig(Base):
     def test_missing_key(self):

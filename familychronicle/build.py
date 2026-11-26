@@ -599,9 +599,9 @@ def build(config_path: Path, out: Path, today: date) -> int:
     out = out.resolve()
     existing = out / cfg["site_dir"]
     marker = out / OUTPUT_MARKER
-    if existing.exists() and not marker.is_file() and not (out / "manifest.json").is_file():
+    if existing.exists() and not marker.is_file():
         print(f"Refusing to replace {existing}: it is not the output of a previous build "
-              "(no manifest.json next to it). Choose another --out or remove the folder yourself.",
+              f"(no {OUTPUT_MARKER} next to it). Choose another --out or remove the folder yourself.",
               file=sys.stderr)
         return 2
     out.mkdir(parents=True, exist_ok=True)
