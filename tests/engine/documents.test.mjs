@@ -174,3 +174,11 @@ test('example_documents_load_and_decide', () => {
   assert.ok(cropOnly.length);
   for (const d of cropOnly) { assert.ok(d.crop); assert.ok(!d.people.some((p) => sc.living.has(p))); }
 });
+
+test('document_id_must_be_a_plain_name', () => {
+  const f = new Map([['p.png', png(10, 10)]]);
+  for (const id of ['../../static/x', 'a/b', '', '.hidden']) {
+    assert.throws(() => D.loadDocuments([doc({ id, source: 'p.png' })], f), /id/, id);
+  }
+  assert.equal(D.loadDocuments([doc({ id: 'baptism-1934_a.1', source: 'p.png' })], f).length, 1);
+});

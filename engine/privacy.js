@@ -94,7 +94,10 @@
   const SEP = '[./\\-\\u2010\\u2011\\u2012\\u2013]';
 
   // Tolerant regex sources for a full date and for month+year (a bare year is not searched here).
-  function patternSources(d, sp = SP_CHECK, ext = null) {
+  // [source, kind] for a date; kind says what a text must contain for the pattern to match:
+  // "dmy" day.month.year (the first full-date pattern), "name" the year and a month name,
+  // "day<year" / "month<year" that number right before the year, "year>month" the month right after it
+  function patternSpecs(d, sp = SP_CHECK, ext = null) {
     if (d.year === null || d.year === undefined || !d.month) return [];
     const y = d.year, m = d.month;
     const month = '(?:' + dates.monthNames(m, ext ? ext.months : null).map(escapeRe).join('|') + ')';
@@ -107,20 +110,23 @@
     if (d.day) {
       const n0 = `0?${d.day}`;
       out.push(
-        `${nd}${n0}${sp}${SEP}${sp}${m0}${sp}${SEP}${sp}(?:${y}${od}|${yy}${od})`,
-        `${nd}${m0}${sp}[/]${sp}${n0}${sp}[/]${sp}${y}${od}`,
-        `${nd}${y}${sp}${SEP}${sp}${m0}${sp}${SEP}${sp}${n0}${od}`,
-        `${nd}${n0}${sp}(?:\\.${sp})?${month}\\.?${sp}(?:,${sp})?${yearWord}${y}${od}`,
-        `${wb}${month}\\.?${sp}${n0}(?:st|nd|rd|th)?${sp}(?:,${sp})?${yearWord}${y}${od}`,
+        [`${nd}${n0}${sp}${SEP}${sp}${m0}${sp}${SEP}${sp}(?:${y}${od}|${yy}${od})`, 'dmy'],
+        [`${nd}${m0}${sp}[/]${sp}${n0}${sp}[/]${sp}${y}${od}`, 'day<year'],
+        [`${nd}${y}${sp}${SEP}${sp}${m0}${sp}${SEP}${sp}${n0}${od}`, 'year>month'],
+        [`${nd}${n0}${sp}(?:\\.${sp})?${month}\\.?${sp}(?:,${sp})?${yearWord}${y}${od}`, 'name'],
+        [`${wb}${month}\\.?${sp}${n0}(?:st|nd|rd|th)?${sp}(?:,${sp})?${yearWord}${y}${od}`, 'name'],
       );
     }
     out.push(
-      `${wb}${month}\\.?${sp}(?:,${sp})?${yearWord}${y}${od}`,
-      `${nd}${m0}${sp}[/.]${sp}${y}${od}`,
-      `${nd}${y}${sp}${DASH}${sp}${pad2(m)}${od}`,
+      [`${wb}${month}\\.?${sp}(?:,${sp})?${yearWord}${y}${od}`, 'name'],
+      [`${nd}${m0}${sp}[/.]${sp}${y}${od}`, 'month<year'],
+      [`${nd}${y}${sp}${DASH}${sp}${pad2(m)}${od}`, 'year>month'],
     );
     return out;
   }
+
+  // Tolerant regex sources for a full date and for month+year (a bare year is not searched here).
+  const patternSources = (d, sp = SP_CHECK, ext = null) => patternSpecs(d, sp, ext).map(([src]) => src);
 
   // --- sensitive dates ------------------------------------------------------------------------------
 
@@ -182,6 +188,9 @@
     md = md.replace(HIDE, '');
     md = md.replace(HIDE_OPEN, '');   // unclosed block: better to lose the rest
     for (const d of sensitive) {
+      // every pattern of a date contains its year (the first full-date one may have two digits only)
+      if (d.year === null || d.year === undefined) continue;
+      if (!md.includes(String(d.year)) && !(d.day && md.includes(pad2(d.year % 100)))) continue;
       for (const p of patternSources(d, SP_REDACT, ext)) md = del(md, p, false, ext);
       if (d.year !== null && d.year !== undefined) md = del(md, `(?<!${DIGIT})${d.year}(?!${DIGIT})`, true, ext);
     }
@@ -238,12 +247,27 @@
   const EMAIL_FILE_SUFFIXES = new Set(['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'css', 'js', 'json', 'woff', 'woff2', 'avif', 'ico', 'map', 'html']);
   const PHONE = new RegExp(`(?<![${WORD}.,/+\\-])(?:\\+?${DIGIT}{3}[ \\-]?)?${DIGIT}{3}[ \\-]?${DIGIT}{3}[ \\-]?${DIGIT}{3}(?!${W}|[.,]${DIGIT})`, 'gu');
   const DISTANCE = 80;
+  // every "day sep month sep year" in a text, as "d.m.yyyy" / "d.m.yy" (overlapping, a superset of
+  // what the first date pattern can match)
+  const DMY = new RegExp(`(?=([0-9]{1,2})${S}*${SEP}${S}*([0-9]{1,2})${S}*${SEP}${S}*([0-9]{2,4})(?![0-9]))`, 'gu');
+  // a number right before a year ("5/1995", "1.1995") and right after it ("1995-01")
+  const NUM_YEAR = new RegExp(`(?=([0-9]{1,3})${S}*${SEP}${S}*([0-9]{3,4})(?![0-9]))`, 'gu');
+  const YEAR_NUM = new RegExp(`(?<![0-9])(?=([0-9]{3,4})${S}*${SEP}${S}*([0-9]{1,3}))`, 'gu');
+  function dmyOf(t) {
+    const out = new Set();
+    for (const m of t.matchAll(DMY)) out.add(`${+m[1]}.${+m[2]}.${m[3]}`);
+    for (const m of t.matchAll(NUM_YEAR)) out.add(`${+m[1]}<${m[2]}`);
+    for (const m of t.matchAll(YEAR_NUM)) out.add(`${m[1]}>${+m[2]}`);
+    return out;
+  }
   // a phone number has nine digits, at most one separator between any two of them
   const NINE_DIGITS = /\p{Nd}(?:[ \-]?\p{Nd}){8}/u;
   const WORD_RE = /[\p{L}\p{N}_]+/gu;
   const INVISIBLE = /[\u00ad\u200b\u200c\u200d\u2060\ufeff]/gu;
 
-  const casefold = (s) => s.toLowerCase().replace(/ß/g, 'ss').replace(/ς/g, 'σ');
+  // Python str.casefold() where it differs from toLowerCase(): sharp s, final sigma, ligatures, long s
+  const FOLD = { 'ß': 'ss', 'ẞ': 'ss', 'ς': 'σ', 'ﬀ': 'ff', 'ﬁ': 'fi', 'ﬂ': 'fl', 'ﬃ': 'ffi', 'ﬄ': 'ffl', 'ﬅ': 'st', 'ﬆ': 'st', 'ſ': 's', 'ŉ': 'ʼn' };
+  const casefold = (s) => s.toLowerCase().replace(/[ßẞςﬀ-ﬆſŉ]/g, (c) => FOLD[c] || c);
   const stripAccents = (s) => casefold(s.normalize('NFD').replace(/\p{Mn}/gu, ''));
   const chars = (s) => Array.from(s);
 
@@ -326,7 +350,8 @@
 
   // [texts for rules a-d, texts for the year-near-name rule]
   function fileTexts(rel, bytes) {
-    let raw = new TextDecoder('utf-8').decode(bytes);
+    // as Python's read_text: universal newlines
+    let raw = new TextDecoder('utf-8').decode(bytes).replace(/\r\n?/g, '\n');
     let suffix = suffixOf(rel);
     const twin = suffix === '.js' ? DATA_TWIN.exec(raw) : null;
     if (twin) {
@@ -381,17 +406,41 @@
     const problems = [];
     // each pattern needs its year (or the two-digit year of a full date) in the text: test that first
     const patterns = [];
+    const sourceSeen = new Set();
     for (const [, ds] of living) {
       for (const d of ds) {
-        // only the first pattern of a full date accepts a two-digit year ("5.1.95")
-        patternSources(d, SP_CHECK, ext).forEach((src, k) => {
-          patterns.push([new RegExp(src, 'iu'), d.day && k === 0 ? [String(d.year), pad2(d.year % 100)] : [String(d.year)]]);
-        });
+        // the first pattern of a full date ("5.1.95", "05-01-1995") is looked up by day.month.year,
+        // the others need the four-digit year; identical patterns run once
+        for (const [src, kind] of patternSpecs(d, SP_CHECK, ext)) {
+          if (sourceSeen.has(src)) continue;
+          sourceSeen.add(src);
+          const keys = {
+            dmy: [`${d.day}.${d.month}.${d.year}`, `${d.day}.${d.month}.${pad2(d.year % 100)}`],
+            'day<year': [`${d.day}<${d.year}`], 'month<year': [`${d.month}<${d.year}`], 'year>month': [`${d.year}>${d.month}`],
+          }[kind] || [];
+          patterns.push([new RegExp(src, 'iu'), kind === 'name' ? [String(d.year)] : [], keys, kind === 'name' ? d.month : null]);
+        }
       }
     }
-    const byNeedle = new Map();
-    patterns.forEach(([, needles], i) => {
+    // one regex for all month names (with the locale extensions): which months a text names
+    const monthForms = [];
+    for (let mo = 1; mo <= 12; mo++) for (const f of dates.monthNames(mo, ext ? ext.months : null)) monthForms.push([f, mo]);
+    const monthOfForm = new Map();   // a form may belong to more months (locale extensions)
+    for (const [f, mo] of monthForms) { const k = f.toLowerCase(); if (!monthOfForm.has(k)) monthOfForm.set(k, new Set()); monthOfForm.get(k).add(mo); }
+    const MONTH_RE = new RegExp(`(?<!${W})(?:${monthForms.map(([f]) => escapeRe(f)).sort((x, y) => y.length - x.length).join('|')})`, 'giu');
+    const monthsOf = (t) => {
+      const out = new Set();
+      for (const [f] of t.matchAll(MONTH_RE)) {
+        const mos = monthOfForm.get(f.toLowerCase());
+        if (mos) for (const mo of mos) out.add(mo); else out.add(-1);
+      }
+      if (out.has(-1)) for (let mo = 1; mo <= 12; mo++) out.add(mo);   // a case form we cannot map: try all
+      return out;
+    };
+    const byNeedle = new Map(), byDmy = new Map();
+    patterns.forEach(([, needles, dmys], i) => {
       for (const x of new Set(needles)) { if (!byNeedle.has(x)) byNeedle.set(x, []); byNeedle.get(x).push(i); }
+      for (const x of new Set(dmys)) { if (!byDmy.has(x)) byDmy.set(x, []); byDmy.get(x).push(i); }
     });
     // [names, years] of every living person, and year -> indexes of the people with that year
     const livingYears = living.map(([names, ds]) => [names, [...new Set(ds.filter((d) => d.year !== null && d.year !== undefined).map((d) => d.year))]]);
@@ -423,7 +472,14 @@
       for (const t of texts) {
         const tried = new Set();
         for (const x of digitsOf(t)) for (const i of byNeedle.get(x) || []) tried.add(i);
+        if (byDmy.size && /[0-9]/.test(t)) for (const x of dmyOf(t)) for (const i of byDmy.get(x) || []) tried.add(i);
+        let months = null;   // month numbers whose names occur in the text, computed when needed
         for (const i of [...tried].sort((a, b) => a - b)) {
+          const month = patterns[i][3];
+          if (month !== null) {
+            if (months === null) months = monthsOf(t);
+            if (!months.has(month)) continue;
+          }
           const m = patterns[i][0].exec(t);
           if (m) report(`date of a living person "${m[0]}"`);
         }
@@ -445,7 +501,11 @@
         });
         words = [...wordLines.keys()].sort(cmp);
       };
-      const linesWithPrefix = (stem, into) => {
+      const linesWithPrefix = (full, into) => {
+        // a stem may contain a non-word character ("o'br"): look up its leading word part, the
+        // regex decides; a stem starting with a non-word character could be anywhere
+        const stem = (/^[\p{L}\p{N}_]*/u.exec(full) || [''])[0];
+        if (!stem) { for (let li = 0; li < lines.length; li++) into.add(li); return; }
         let lo = 0, hi = words.length;
         while (lo < hi) { const mid = (lo + hi) >> 1; if (words[mid] < stem) lo = mid + 1; else hi = mid; }
         for (let i = lo; i < words.length && words[i].startsWith(stem); i++) for (const li of wordLines.get(words[i])) into.add(li);

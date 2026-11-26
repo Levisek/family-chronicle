@@ -261,3 +261,21 @@ test('old_and_short_years_are_still_checked', () => {
   assert.ok(runCheck({ 'a.txt': 'John Smith 995' }, [[['John', 'Smith'], [gd(995, null, null)]]]).length >= 1);
   assert.ok(runCheck({ 'a.txt': '5.1.95' }).length >= 1);
 });
+
+test('names_with_apostrophes_and_brackets', () => {
+  // the word index must not hide stems with a non-word character (review finding)
+  assert.ok(runCheck({ 'a.txt': "O'Brien (1985)" }, [[['Patrick', "O'Brien"], [gd(1985, null, null)]]]).length >= 1);
+  assert.ok(runCheck({ 'a.json': '{"a":"(Mařenka) 1985"}' }, [[['(Mařenka)'], [gd(1985, null, null)]]]).length >= 1);
+});
+
+test('crlf_counts_like_python', () => {
+  // Python reads text files with universal newlines: "\r\n" is one character
+  const text = 'John Smith' + ' x\r\n'.repeat(25) + 'x 1995';
+  assert.ok(runCheck({ 'a.txt': text }).length >= 1);
+});
+
+test('casefold_like_python', () => {
+  // Python's casefold also folds ligatures and the long s: "ﬁala" is "fiala"
+  assert.ok(runCheck({ 'a.txt': 'ﬁala 1995' }, [[['Fiala'], [gd(1995, null, null)]]]).length >= 1);
+  assert.ok(runCheck({ 'a.txt': 'Šimon Waſſer 1995' }, [[['Wasser'], [gd(1995, null, null)]]]).length >= 1);
+});

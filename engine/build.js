@@ -36,6 +36,8 @@
   const has = (o, k) => o !== null && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k);
   const isObject = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
   const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  // set a key that comes from user data (also "__proto__") as an own property
+  const put = (obj, k, v) => Object.defineProperty(obj, k, { value: v, enumerable: true, writable: true, configurable: true });
   const pyFormat = (template, values) => template.replace(/\{(\w+)\}/g, (all, k) => (has(values, k) ? String(values[k]) : all));
 
   // --- JSON as Python's json.dumps(ensure_ascii=False, indent=1, sort_keys=True) ---------------
@@ -105,7 +107,7 @@
       t = fill(t, [['{root_full}', rootFull], ['{root}', rootGiven]]);
       if (!isObject(t.chapters)) t.chapters = {};
       for (const [slug, [title, branchName]] of chapterTitles) {
-        if (!has(t.chapters, slug)) t.chapters[slug] = { title, short: branchName[lang] || title, subtitle: '' };
+        if (!has(t.chapters, slug)) put(t.chapters, slug, { title, short: branchName[lang] || title, subtitle: '' });
       }
       out[lang] = t;
     }
@@ -125,9 +127,9 @@
       const other = f.husband === pid ? f.wife : f.husband;
       if (!other || other === pid || !scope.people.has(other)) continue;
       const kinds = new Set(f.events.map((x) => x.type));
-      if (kinds.has('DIV')) out[other] = 'divorced';
-      else if (!kinds.has('MARR') && (scope.living.has(pid) || scope.living.has(other))) out[other] = 'partner';
-      else out[other] = 'spouse';
+      if (kinds.has('DIV')) put(out, other, 'divorced');
+      else if (!kinds.has('MARR') && (scope.living.has(pid) || scope.living.has(other))) put(out, other, 'partner');
+      else put(out, other, 'spouse');
     }
     return out;
   }
@@ -465,6 +467,10 @@
     } catch (error) {
       throw new BuildError(`cannot read the GEDCOM: ${error.message}`);
     }
+    if (tree.encoding === 'windows-1252 (fallback)') {
+      warnings.push('Warning: the GEDCOM says ANSI but is not UTF-8; it was read as Windows-1252. If names look wrong '
+        + '(ø instead of ř, è instead of č), export the file again as UTF-8.');
+    }
     if (!tree.people.has(cfg.root)) throw new BuildError(`root ${cfg.root} is not in the GEDCOM`);
     const scope = scopeMod.determineScope(tree, cfg, today);
     const places = new placesMod.Places(readJson(files, p('places'), 'places file'), cfg.ignore_places || []);
@@ -494,7 +500,7 @@
       const slug = chronicles.chapterSlug(key);
       if (slug === RESERVED_SLUG || chronicleFiles.has(slug)) throw new BuildError(`chronicle name ${text.pyRepr(slug)} is reserved or used twice`);
       chronicleFiles.set(slug, key);
-      slugs[b.key] = slug;
+      put(slugs, b.key, slug);
     }
 
     const rootPerson = tree.people.get(cfg.root);
@@ -609,7 +615,7 @@
           ext: privacyExt, docFiles: projectFiles,
         });
         ch.html = cleanHtml(ch.html, strings[lang].table);
-        chapters[lang][slug] = ch;
+        put(chapters[lang], slug, ch);
       }
     }
 

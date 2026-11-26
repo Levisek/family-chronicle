@@ -665,13 +665,14 @@ test('map_chapter', async () => {
 
 // --- a large tree --------------------------------------------------------------------------------------
 test('large_tree_timing', async () => {
-  // 5 000 people: a root, 12 generations of ancestors and their descendants by two children per family
+  // 5 000 people: a root, 12 generations of ancestors and their descendants by two children per family.
+  // Worst case for the output check: full birth dates and most people living (born after 1880).
   const lines = ['0 HEAD', '1 CHAR UTF-8'];
   let n = 0, f = 0;
   const person = (year, famc, fams) => {
     n += 1; const id = `I${n}`;
-    lines.push(`0 @${id}@ INDI`, `1 NAME P${n} /S${n % 50}/`, '1 BIRT', `2 DATE ${year}`, '2 PLAC Springfield');
-    if (year < 1925) lines.push('1 DEAT');
+    lines.push(`0 @${id}@ INDI`, `1 NAME P${n} /S${n % 50}/`, '1 BIRT', `2 DATE ${1 + (n % 28)} ${['JAN', 'MAR', 'JUN', 'OCT'][n % 4]} ${year}`, '2 PLAC Springfield');
+    if (year < 1880) lines.push('1 DEAT');
     if (famc) lines.push(`1 FAMC @${famc}@`);
     for (const x of fams) lines.push(`1 FAMS @${x}@`);
     return id;
@@ -715,4 +716,21 @@ test('large_tree_timing', async () => {
   assert.ok(n >= 4000, `people: ${n}`);
   assert.ok(Object.keys(s.people()).length > 20);
   assert.ok(ms < 10000, `build took ${ms} ms`);
+});
+
+test('ansi_fallback_warns', async () => {
+  const p = miniProject({ ged: (g) => g.replace('1 CHAR UTF-8', '1 CHAR ANSI').replace('Eve /Newman/', 'Eve /Novák/') });
+  const bytes = p.files.get('project/tree.ged');
+  const latin = Uint8Array.from([...fromUtf8(bytes)].map((c) => c.charCodeAt(0) & 0xff));
+  p.files.set('project/tree.ged', latin);
+  const s = await build(p);
+  assert.ok(s.warnings.includes('read as Windows-1252'));
+});
+
+test('proto_ids_and_keys', async () => {
+  // a spouse with the GEDCOM id __proto__ and a branch keyed __proto__ must not vanish
+  const s = await build(miniProject({ ged: (g) => g.split('@I7@').join('@__proto__@'),
+    config: { ...clone(CONFIG), branches: [{ ...CONFIG.branches[0], key: '__proto__' }] } }));
+  assert.equal(Object.getOwnPropertyDescriptor(s.people().I1.partners, '__proto__').value, 'partner');
+  assert.ok(s.read('index.html').includes('<li class="branch-__proto__"><a href="story/overview.html">'));
 });

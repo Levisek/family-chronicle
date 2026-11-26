@@ -214,3 +214,12 @@ test('odd_ids', () => {
   assert.deepEqual(t.parents('I-12_a'), ['__proto__']);
   assert.deepEqual(t.children('__proto__'), ['I-12_a']);
 });
+
+test('ansi_fallback_is_reported', () => {
+  // "CHAR ANSI" with bytes that are not UTF-8: read as Windows-1252, and the tree says so
+  const raw = new Uint8Array([...utf8('0 HEAD\n1 CHAR ANSI\n0 @I1@ INDI\n1 NAME '), 0xf8, ...utf8(' /X/\n0 TRLR\n')]);
+  const t = G.load(raw);
+  assert.equal(t.people.get('I1').given, 'ø');
+  assert.equal(t.encoding, 'windows-1252 (fallback)');
+  assert.equal(G.load(utf8('0 HEAD\n0 TRLR\n')).encoding, 'utf-8');
+});

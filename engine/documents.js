@@ -41,6 +41,10 @@
   function loadDocuments(data, files) {
     const ids = new Set();
     for (const d of data) {
+      // the id becomes a file name in documents/
+      if (typeof d.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(d.id) || d.id.includes('..')) {
+        throw new Error(`Document id must be a plain name (letters, digits, . _ -): ${JSON.stringify(d.id)}`);
+      }
       if (ids.has(d.id)) throw new Error(`Duplicate document id: ${d.id}`);
       ids.add(d.id);
       for (const field of ['source', 'marked']) {

@@ -143,6 +143,7 @@
   };
 
   function decodeAnsel(raw) {
+    lastEncoding = 'ansel';
     let out = '', marks = '';
     for (let i = 0; i < raw.length; i++) {
       const b = raw[i];
@@ -164,6 +165,7 @@
   };
 
   function decodeAs(raw, codec) {
+    if (lastEncoding !== 'windows-1252 (fallback)') lastEncoding = codec;
     const bad = UNDEFINED[codec];
     if (bad) {
       const i = raw.findIndex((b) => bad.has(b));
@@ -179,7 +181,10 @@
   // Decode a GEDCOM file: a BOM wins (UTF-8, UTF-16), else the `1 CHAR` header (UTF-8/UNICODE,
   // ASCII/ANSI as UTF-8 when valid, else Windows-1252; ANSEL; Windows-1250), UTF-16 without a
   // BOM is recognised by its NUL bytes.
+  let lastEncoding = 'utf-8';
+
   function decode(raw) {
+    lastEncoding = 'utf-8';
     if (raw[0] === 0xef && raw[1] === 0xbb && raw[2] === 0xbf) return decodeAs(raw, 'utf-8');
     if (raw[0] === 0xff && raw[1] === 0xfe) return decodeAs(raw, 'utf-16le');
     if (raw[0] === 0xfe && raw[1] === 0xff) return decodeAs(raw, 'utf-16be');
@@ -191,7 +196,7 @@
     if (charset === 'WINDOWS-1250' || charset === 'CP1250') return decodeAs(raw, 'windows-1250');
     if (['ASCII', 'ANSI', 'WINDOWS-1252', 'CP1252'].includes(charset)) {
       // many programs label UTF-8 files as ANSI; valid UTF-8 is almost never real cp1252
-      try { return new TextDecoder('utf-8', { fatal: true }).decode(raw); } catch (e) { return decodeAs(raw, 'windows-1252'); }
+      try { return new TextDecoder('utf-8', { fatal: true }).decode(raw); } catch (e) { lastEncoding = 'windows-1252 (fallback)'; return decodeAs(raw, 'windows-1252'); }
     }
     return decodeAs(raw, 'utf-8');
   }
@@ -257,7 +262,14 @@
     return new Tree(people, families);
   }
 
-  const load = (bytes) => parse(decode(bytes));
+  // `tree.encoding` says how the file was read; "windows-1252 (fallback)" means the header said
+  // ANSI/ASCII but the bytes were not UTF-8 (a Czech program may have meant Windows-1250)
+  function load(bytes) {
+    const text = decode(bytes);
+    const tree = parse(text);
+    tree.encoding = lastEncoding;
+    return tree;
+  }
 
   const api = { GedcomEncodingError, parseDate, ageAtDeath, decode, parse, load, Person, Family, Tree, MONTHS };
   if (typeof module !== 'undefined') module.exports = api;

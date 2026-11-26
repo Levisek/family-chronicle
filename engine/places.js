@@ -6,7 +6,9 @@
   'use strict';
 
   // Python str.casefold() for the letters that differ from toLowerCase()
-  const casefold = (s) => s.toLowerCase().replace(/ß/g, 'ss').replace(/ς/g, 'σ');
+  // Python str.casefold() where it differs from toLowerCase(): sharp s, final sigma, ligatures, long s
+  const FOLD = { 'ß': 'ss', 'ẞ': 'ss', 'ς': 'σ', 'ﬀ': 'ff', 'ﬁ': 'fi', 'ﬂ': 'fl', 'ﬃ': 'ffi', 'ﬄ': 'ffl', 'ﬅ': 'st', 'ﬆ': 'st', 'ſ': 's', 'ŉ': 'ʼn' };
+  const casefold = (s) => s.toLowerCase().replace(/[ßẞςﬀ-ﬆſŉ]/g, (c) => FOLD[c] || c);
   const key = (s) => casefold(s.replace(/\s+/g, ' ').trim());
 
   // Python's \b with Unicode word characters (JS \b only knows ASCII)

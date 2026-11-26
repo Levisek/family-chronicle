@@ -62,7 +62,9 @@
       if (town === null) continue;
       const words = { cs: WORD[t][0] };
       const description = {};
-      for (const l of languages) description[l] = `${l in words ? words[l] : WORD[t][1]} — ${names}`;
+      for (const l of languages) {
+        Object.defineProperty(description, l, { value: `${Object.prototype.hasOwnProperty.call(words, l) ? words[l] : WORD[t][1]} — ${names}`, enumerable: true, writable: true, configurable: true });
+      }
       out.push({
         id: eid, type: t, year: e.date ? e.date.year : null, date: formatDate(e.date, lang), place: town,
         branch, people, description, documents: [], certainty: 'tree',
