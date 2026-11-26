@@ -134,6 +134,9 @@
       if (['ok', 'saved', 'refused'].includes(b.phase)) {
         el.appendChild(h('p', { class: 'ok', id: 'build-ok', role: 'status' }, t('build_ok', { files: b.result.files.size }), ' ', t('build_time', { seconds: (b.ms / 1000).toLocaleString(FCApp.lang, { maximumFractionDigits: 1 }) })));
       }
+      if (['ok', 'saved', 'refused'].includes(b.phase) && (b.result.fillIns || []).length) {
+        el.appendChild(h('ul', { class: 'note', id: 'fill-ins' }, b.result.fillIns.map((x) => h('li', {}, t('build_fill_ins', { file: x.file, n: x.count })))));
+      }
       if (b.phase === 'saved' && project.mode === 'folder') el.appendChild(h('p', { class: 'ok', id: 'saved' }, t('build_saved', { name: project.name })));
       if (b.phase === 'ok' && project.mode === 'memory' && !isExample) {
         el.append(h('p', {}, h('button', { type: 'button', class: 'primary-button', id: 'choose-folder', onclick: () => chooseFolder(w) }, FCApp.store.canFolder() ? t('build_choose_folder') : t('build_save_browser'))),

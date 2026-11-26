@@ -7,7 +7,7 @@
 //   assets    static: Map<name, bytes> (static/*), fonts: Map<name, bytes> (*.ttf, OFL.txt),
 //             locales: {lang: object} (locales/*.json)
 //   images    ImageAdapter (see documents.js)
-// BuildResult = {ok, files, findings, warnings, approval, manifest}; `files` keys are relative to
+// BuildResult = {ok, files, findings, warnings, approval, manifest, fillIns: [{file, count}]}; `files` keys are relative to
 // the output folder: "<site_dir>/...", "manifest.json", "approval.md".
 (function (g) {
   'use strict';
@@ -607,13 +607,23 @@
     const imagesCfg = (cfg.chronicle_images || []).map((x) => [...x]);
     const openHeadings = cfg.open_questions_headings || {};
 
-    // chronicles
+    // chronicles; the marks of the app's draft ("[Fill in: …]") stay off the website, counted
+    const marks = chronicles.fillPattern(locales);
+    const fillIns = [];
+    for (const key of chronicleFiles.values()) {
+      const dir = key.slice(0, key.lastIndexOf('/') + 1), slug = chronicles.chapterSlug(key);
+      for (const f of [key, ...languages.map((l) => `${dir}${slug}.${l}.md`)]) {
+        if (!files.has(f) || fillIns.some((x) => x.file === f)) continue;
+        const count = (text.fromUtf8(files.get(f)).match(marks) || []).length;
+        if (count) fillIns.push({ file: f, count });
+      }
+    }
     const chapters = Object.fromEntries(languages.map((l) => [l, {}]));
     for (const lang of languages) {
       for (const [slug, key] of chronicleFiles) {
         const ch = chronicles.render(key, lang, sensitive, published, exports, files, {
           strings: strings[lang], rootUrl: '../'.repeat(lang === defaultLanguage ? 1 : 2), defaultLanguage, images: imagesCfg,
-          ext: privacyExt, docFiles: projectFiles,
+          ext: privacyExt, docFiles: projectFiles, fillPattern: marks,
         });
         ch.html = cleanHtml(ch.html, strings[lang].table);
         put(chapters[lang], slug, ch);
@@ -694,7 +704,7 @@
     const manifest = { files: manifestFiles, check: findings.length ? 'failed' : 'ok', created: isoNow(now) };
     out.set('approval.md', text.utf8(approval));
     out.set('manifest.json', text.utf8(JSON.stringify(manifest, null, 2)));
-    return { ok: !findings.length, files: out, findings, warnings, approval, manifest };
+    return { ok: !findings.length, files: out, findings, warnings, approval, manifest, fillIns };
   }
 
   const api = { build, BuildError, pyJson, cleanHtml };

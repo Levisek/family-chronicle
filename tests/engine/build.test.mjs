@@ -734,3 +734,13 @@ test('proto_ids_and_keys', async () => {
   assert.equal(Object.getOwnPropertyDescriptor(s.people().I1.partners, '__proto__').value, 'partner');
   assert.ok(s.read('index.html').includes('<li class="branch-__proto__"><a href="story/overview.html">'));
 });
+
+test('build_counts_fill_ins', async () => {
+  const files = folderMap(join(REPO, 'example'));
+  const huber = new TextDecoder().decode(files.get('chronicles/huber.md'));
+  files.set('chronicles/huber.md', new TextEncoder().encode(huber.replace('a cartwright', 'a cartwright [Fill in: trade]. Born [Fill in: birthplace]')));
+  const r = await B.build({ files, configPath: 'site.json', assets: ASSETS, today: TODAY, images: fakeImages() });
+  assert.ok(r.ok, r.findings.join('\n'));
+  assert.deepEqual(r.fillIns, [{ file: 'chronicles/huber.md', count: 2 }]);
+  for (const [k, v] of r.files) if (k.endsWith('.html')) assert.ok(!new TextDecoder().decode(v).includes('[Fill in'), k);
+});

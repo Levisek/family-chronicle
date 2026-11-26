@@ -198,3 +198,13 @@ test('example_chronicles_match_python', () => {
     }
   }
 });
+
+test('fill_in_hidden_on_web', () => {
+  const pattern = C.fillPattern({ en: { skeleton: { fill_in: 'Fill in' } }, cs: { skeleton: { fill_in: 'Doplňte' } } });
+  const ch = render('# T\n\n## A\n\nFirst. Katharina was born in [Fill in: birthplace]. Last [Doplňte: rok] here!\n\nKept.\n', { fillPattern: pattern });
+  assert.ok(ch.html.includes('<p>First. </p>') || ch.html.includes('<p>First.</p>'), ch.html);
+  assert.ok(!/Fill in|Doplňte|Katharina|Last/.test(ch.html), ch.html);
+  assert.ok(ch.html.includes('<p>Kept.</p>'));
+  // without a pattern nothing is removed (the Python build and old callers)
+  assert.ok(render('# T\n\nA [Fill in: x].\n').html.includes('[Fill in: x]'));
+});

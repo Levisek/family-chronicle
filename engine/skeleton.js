@@ -14,17 +14,13 @@
 
   const fill = (tpl, vars) => String(tpl).replace(/\{(\w+)\}/g, (all, k) => (k in vars ? vars[k] : all));
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const fullName = (p) => esc([p.given, p.surname].filter(Boolean).join(' ').trim() || p.id);
   const deathOf = (p) => p.events.find((e) => e.type === 'DEAT') || p.events.find((e) => e.type === 'BURI') || null;
   const yearOf = (ev) => (ev && ev.date && ev.date.year != null ? ev.date.year : null);
 
-  // The marks of every language: "[Fill in: …]", "[Doplňte: …]".
-  function fillPattern(locales) {
-    const labels = Object.values(locales || {}).map((l) => l && l.skeleton && l.skeleton.fill_in).filter(Boolean);
-    const all = [...new Set(labels.length ? labels : ['Fill in'])].map(reEsc).join('|');
-    return new RegExp(`\\[(?:${all}): [^\\]\\n]*\\]`, 'g');
-  }
+  // The marks of every language: "[Fill in: …]", "[Doplňte: …]" (kept in chronicles.js: the build
+  // needs them and is loaded first).
+  const fillPattern = (locales) => M('chronicles').fillPattern(locales);
 
   function build({ tree, scope, cfg, branchKey, lang, locale, places }) {
     const sk = locale && locale.skeleton ? locale.skeleton : null;

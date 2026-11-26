@@ -124,9 +124,26 @@
   // Render one chapter. `mdFile` is the key of the default-language file; for another `lang` its
   // `<key>.<lang>.md` translation is used when present. options: strings, rootUrl ('../'),
   // defaultLanguage ('en'), images ([chapter slug, snippet, source, crop, caption]), ext.
+  const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // The marks of the chronicle draft in every language ("[Fill in: …]", "[Doplňte: …]"), from
+  // locales[*].skeleton.fill_in.
+  function fillPattern(locales) {
+    const labels = Object.values(locales || {}).map((l) => l && l.skeleton && l.skeleton.fill_in).filter(Boolean);
+    const all = [...new Set(labels.length ? labels : ['Fill in'])].map(reEsc).join('|');
+    return new RegExp(`\\[(?:${all}): [^\\]\\n]*\\]`, 'g');
+  }
+
+  // A sentence with a mark is left off the website.
+  function withoutFillIns(src, pattern) {
+    const mark = pattern.source;
+    const sentence = new RegExp(`[^.!?\\n]*${mark}[^.!?\\n]*(?:[.!?]+|$)[ \\t]*`, 'gm');
+    return src.replace(sentence, '').replace(/[ \t]+$/gm, '');
+  }
+
   function render(mdFile, lang, sensitive, published, exports, files, options = {}) {
     // docFiles: the files that document paths (colors.json) resolve against, when not `files`
-    const { strings = {}, rootUrl = '../', defaultLanguage = 'en', images = [], ext = null, docFiles = files } = options;
+    const { strings = {}, rootUrl = '../', defaultLanguage = 'en', images = [], ext = null, docFiles = files, fillPattern: marks = null } = options;
     const slugName = chapterSlug(mdFile);
     let path = mdFile, contentLanguage = defaultLanguage;
     if (lang !== defaultLanguage) {
@@ -135,6 +152,7 @@
     }
     if (!files.has(path)) throw new Error(`chronicle not found: ${path}`);
     let src = readText(files, path);
+    if (marks) src = withoutFillIns(src, marks);
     src = src.replace(TEXT, (all, t) => text.escapeText(t.replace(/^\n+|\n+$/g, '')));
     src = privacy.redact(src, sensitive, ext);
     src = markers(src);
@@ -181,7 +199,7 @@
     return out;
   }
 
-  const api = { chapterSlug, render, openSectionIndexes, cutSections, slug };
+  const api = { chapterSlug, render, fillPattern, withoutFillIns, openSectionIndexes, cutSections, slug };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).chronicles = api;
 })(typeof window !== 'undefined' ? window : globalThis);
