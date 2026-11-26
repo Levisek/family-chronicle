@@ -104,6 +104,7 @@
     for (const lang of cfg.languages) {
       let t = merge(JSON.parse(JSON.stringify(locales[lang])), overrides[lang] || {});
       delete t.privacy;
+      delete t.skeleton;   // sentences of the chronicle draft (the app), not a text for the browser
       t = fill(t, [['{root_full}', rootFull], ['{root}', rootGiven]]);
       if (!isObject(t.chapters)) t.chapters = {};
       for (const [slug, [title, branchName]] of chapterTitles) {

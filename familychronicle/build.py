@@ -186,6 +186,7 @@ def _load_strings(cfg, root_given: str, root_full: str, chapter_titles: dict[str
         t = json.loads((LOCALES / f"{lang}.json").read_text(encoding="utf-8"))
         t = _merge(t, overrides.get(lang, {}))
         t.pop("privacy", None)      # redaction data (months, birth words), not a text for the browser
+        t.pop("skeleton", None)     # sentences of the chronicle draft in the app, not a text for the browser
         t = _fill(t, {"{root_full}": root_full, "{root}": root_given})
         chapters = t.setdefault("chapters", {})
         for slug, (title, branch_name) in chapter_titles.items():

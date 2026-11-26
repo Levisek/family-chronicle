@@ -259,5 +259,25 @@
   "counts_short": "{n} people, {verified} backed by sources",
   "compass_north": "N",
   "degrees_east": "{n}° E",
-  "unit_km": "km"
+  "unit_km": "km",
+  "skeleton": {
+    "fill_in": "Fill in",
+    "generation": "Generation {n}",
+    "born_m": "{name} was born {date} in {place}.",
+    "born_f": "{name} was born {date} in {place}.",
+    "died_m": "{name} died {date} in {place}.",
+    "died_f": "{name} died {date} in {place}.",
+    "married": "{a} and {b} married {date} in {place}.",
+    "children": "Children: {list}.",
+    "occupation": "{name} worked as {list}.",
+    "moved": "The family also appears in {list}.",
+    "living": "{name} ({relationship}).",
+    "what_birth_date": "birth date",
+    "what_birth_place": "birthplace",
+    "what_death_date": "date of death",
+    "what_death_place": "place of death",
+    "what_marriage_date": "wedding date",
+    "what_marriage_place": "place of the wedding",
+    "new_from_data": "New from the data"
+  }
 }

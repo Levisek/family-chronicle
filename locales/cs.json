@@ -259,5 +259,25 @@
   "counts_short": "{n} osob, {verified} doloženo v pramenech",
   "compass_north": "S",
   "degrees_east": "{n}° v. d.",
-  "unit_km": "km"
+  "unit_km": "km",
+  "skeleton": {
+    "fill_in": "Doplňte",
+    "generation": "{n}. generace",
+    "born_m": "{name} se narodil {date} v obci {place}.",
+    "born_f": "{name} se narodila {date} v obci {place}.",
+    "died_m": "{name} zemřel {date} v obci {place}.",
+    "died_f": "{name} zemřela {date} v obci {place}.",
+    "married": "{a} a {b} uzavřeli sňatek {date} v obci {place}.",
+    "children": "Děti: {list}.",
+    "occupation": "{name} – povolání: {list}.",
+    "moved": "Rodina se objevuje také v obcích: {list}.",
+    "living": "{name} ({relationship}).",
+    "what_birth_date": "datum narození",
+    "what_birth_place": "místo narození",
+    "what_death_date": "datum úmrtí",
+    "what_death_place": "místo úmrtí",
+    "what_marriage_date": "datum sňatku",
+    "what_marriage_place": "místo sňatku",
+    "new_from_data": "Nové údaje z dat"
+  }
 }
