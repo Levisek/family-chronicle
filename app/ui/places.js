@@ -45,26 +45,54 @@
     const strings = all.filter((p) => !known.isIgnored(p) && !regions.includes(p));
     const res = Z().resolveAll(strings, s.tree, g.FC_GAZ, s.places);
     const towns = Z().nearFamily(Z().groupTowns(strings, res));
-    for (const x of towns) if (x.status !== 'pending' && !x.existing) setPlace(s, x, x.coords, x.source, x.guess ? countryOf(x.guess.cc) : x.country);
+    for (const x of towns) {
+      if (x.existing) {
+        // a new spelling of a town already saved ("Kelč - dýmkař" next to Kelč): only the alias
+        if (x.coords) addAliases(s, x);
+        if (x.source === 'guess') x.check = true;   // picked by the app earlier, not checked yet
+      } else if (x.status !== 'pending') {
+        setPlace(s, x, x.coords, x.check ? 'guess' : x.source, x.guess ? countryOf(x.guess.cc) : x.country);
+      }
+    }
     return { towns, regions, sources: sourcesOf(s.tree), active: null, running: null };
   }
 
-  // The coordinates of a town; its place strings that would not find it by name become aliases.
-  // `name`: a new places.json key (a search under another name).
-  function setPlace(s, x, coords, source, country, name) {
-    if (name && name !== x.town) {
-      if (!x.existing) delete s.places[x.town];
-      x.town = name;
-      x.existing = false;
-    }
+  // The place strings of a town that would not find it by name become its aliases (and no longer
+  // aliases of another town).
+  const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  function addAliases(s, x, carry = []) {
     const key = E().places.key;
-    const old = Object.prototype.hasOwnProperty.call(s.places, x.town) ? s.places[x.town] : {};
-    const aliases = new Set(old.aliases || []);
+    const entry = s.places[x.town];
+    const aliases = new Set([...(entry.aliases || []), ...carry]);
     for (const p of x.strings) {
       const town = E().places.toTown(p);
       if (key(p) !== key(x.town) && key(town || '') !== key(x.town)) aliases.add(p);
     }
-    s.places[x.town] = { ...old, coords, country: country || old.country || {}, aliases: [...aliases], source };
+    aliases.delete(x.town);
+    entry.aliases = [...aliases];
+    for (const [k, e] of Object.entries(s.places)) {
+      if (k !== x.town && e && (e.aliases || []).some((a) => x.strings.includes(a))) e.aliases = e.aliases.filter((a) => !x.strings.includes(a));
+    }
+  }
+
+  // The coordinates of a town. `name`: a new places.json key (a search under another name); when
+  // that key is another town more than SAME_KM away, the old key stays (nothing is overwritten).
+  // source 'guess': picked by the app, to be checked (kept so across sessions).
+  const SAME_KM = 5;
+  function setPlace(s, x, coords, source, country, name) {
+    let carry = [];
+    if (name && name !== x.town) {
+      const other = own(s.places, name) ? s.places[name] : null;
+      if (!other || !other.coords || Z().distanceKm(other.coords, coords) <= SAME_KM) {
+        const mine = own(s.places, x.town) ? s.places[x.town] : null;
+        if (mine) { carry = mine.aliases || []; delete s.places[x.town]; }
+        x.town = name;
+        x.existing = false;
+      }
+    }
+    const old = own(s.places, x.town) ? s.places[x.town] : {};
+    s.places[x.town] = { ...old, coords, country: country || old.country || {}, aliases: old.aliases || [], source };
+    addAliases(s, x, carry);
     x.coords = coords;
     x.source = source;
   }
@@ -94,7 +122,7 @@
           x.status = 'online';
           x.check = true;
           x.guess = found[0];
-          setPlace(w.state, x, [found[0].lat, found[0].lon], 'online', countryOf(found[0].cc));
+          setPlace(w.state, x, [found[0].lat, found[0].lon], 'guess', countryOf(found[0].cc));
           w.changed();
         }
       } catch (e) {
@@ -199,10 +227,16 @@
     if (check.length) {
       box.append(h('h3', {}, t('places_check_title')), h('ul', { class: 'place-list', id: 'check' }, check.map((x) => h('li', { class: 'place' },
         h('span', { class: 'place-name' }, x.town), ` – ${x.guess ? candidateLabel(x.guess) : ''}`, origin(s, ps, x),
-        h('button', { type: 'button', class: 'link', onclick: () => { x.check = false; w.changed(); w.rerender(); } }, t('places_ok')), ' · ',
+        h('button', { type: 'button', class: 'link', onclick: () => {
+          x.check = false;
+          if (own(s.places, x.town)) s.places[x.town].source = 'manual';   // checked by the person
+          w.changed();
+          w.rerender();
+        } }, t('places_ok')), ' · ',
         h('button', { type: 'button', class: 'link', onclick: () => {
           x.editing = true;
-          x.candidates = [...(x.online || []), ...(x.candidates || [])];
+          const seen = new Set();
+          x.candidates = [...(x.online || []), ...(x.candidates || [])].filter((c) => { const k = `${c.lat},${c.lon}`; if (seen.has(k)) return false; seen.add(k); return true; });
           w.rerender();
         } }, t('places_fix'))))));
     }

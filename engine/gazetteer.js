@@ -49,7 +49,7 @@
   // later parts (country, region, two-letter country code) narrow the matches. A narrowing that
   // would leave nothing is ignored.
   // "okres Příbram", "okr. Náchod", "Bezirk Linz": the district, named after its town
-  const DISTRICT = /^(?:okres|okr\.?|bezirk|bez\.|district|kreis|powiat|j[aá]r[aá]s)\s+(.+)$/iu;
+  const DISTRICT = /^(?:okres|okr\.?|bezirk|bez\.|kreis|powiat|j[aá]r[aá]s)\s+(.+)$/iu;
   const NEAR_DISTRICT_KM = 40;
 
   function lookup(place, gaz) {
@@ -175,7 +175,9 @@
     'rakousko', 'uhersko', 'rakousko-uhersko', 'rakousko uhersko', 'slovensko', 'nemecko', 'polsko', 'madarsko', 'bulharsko',
     'rumunsko', 'jugoslavie', 'srbsko', 'chorvatsko', 'ukrajina', 'rusko', 'amerika', 'usa', 'spojene staty', 'spojene staty americke',
     'kanada', 'argentina', 'evropa', 'osterreich', 'deutschland', 'ungarn', 'bohmen', 'mahren', 'schlesien', 'osterreich-ungarn',
-    'austria-hungary', 'bohemia', 'moravia', 'silesia', 'czechoslovakia', 'magyarorszag', 'polska', 'slovakia', 'america', 'europe']);
+    'austria-hungary', 'bohemia', 'moravia', 'silesia', 'czechoslovakia', 'magyarorszag', 'polska', 'slovakia', 'america', 'europe',
+    'austria', 'germany', 'czech republic', 'czechia', 'hungary', 'poland', 'romania', 'ukraine', 'russia', 'serbia', 'croatia',
+    'slovenia', 'bulgaria', 'italy', 'france', 'united states', 'canada', 'brazil', 'israel']);
   function isRegion(place, gaz) {
     const parts = String(place).split(',').map((x) => normalize(x)).filter(Boolean);
     const towns = gaz ? prepare(gaz).byName : new Map();

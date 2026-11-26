@@ -1,6 +1,6 @@
 // Step 5: who counts as living. The rule (100 years, never fewer) and the counts; people without a
-// birth date whom their relatives show to be long dead are marked deceased by the app
-// (deceased_extra, listed, can be taken back: living_extra); the rest are asked about in a table;
+// birth date whom their relatives show to be long dead count as deceased (scope.inferDeceased, at
+// every build; listed here, "alive" goes to living_extra); the rest are asked about in a table;
 // an optional town for the living, one per household, picked from the places of the family
 // (living_town). The check of the output cannot be switched off.
 (function (g) {
@@ -66,21 +66,16 @@
         return (i && i.parents) || '';
       };
 
-      // long dead by their relatives: marked by the app, listed, can be taken back
-      const inferred = P().inferDeceased(s.tree, { ...cfg, deceased_extra: [] }, today);
+      // long dead by their relatives: decided by the build every time (nothing stored that could go
+      // stale), listed here; "alive" is remembered in living_extra
+      const inferred = P().inferDeceased(s.tree, cfg, today);
+      const wouldInfer = P().inferDeceased(s.tree, { ...cfg, living_extra: [] }, today);
       const dead = new Set(cfg.deceased_extra || []);
-      const added = [...inferred.keys()].filter((id) => !dead.has(id));
-      if (added.length) {
-        for (const id of added) dead.add(id);
-        cfg.deceased_extra = [...dead];
-        w.changed();
-      }
       const setDead = (id, on) => {
         if (on) dead.add(id); else dead.delete(id);
-        cfg.deceased_extra = [...dead];
+        if (dead.size) cfg.deceased_extra = [...dead]; else delete cfg.deceased_extra;
         const alive = new Set(cfg.living_extra || []);
-        // "lives" for someone the app marked: remember it, else the app marks them again
-        if (!on && inferred.has(id)) alive.add(id); else alive.delete(id);
+        if (!on && wouldInfer.has(id)) alive.add(id); else alive.delete(id);
         if (alive.size) cfg.living_extra = [...alive]; else delete cfg.living_extra;
         w.changed();
         w.rerender();
@@ -96,7 +91,7 @@
 
       const why = (b) => (b.via === 'child' ? t('living_why_child', { name: nameOf(b.of), year: b.year })
         : b.via === 'parent' ? t('living_why_parent', { name: nameOf(b.of), year: b.year }) : t('living_why_event', { year: b.year }));
-      const marked = [...inferred].filter(([id]) => dead.has(id));
+      const marked = [...inferred].filter(([id]) => !dead.has(id));
       if (marked.length) {
         el.appendChild(h('details', { class: 'living-group', id: 'living-inferred' },
           h('summary', {}, t('living_inferred_title', { n: marked.length })),

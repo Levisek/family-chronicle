@@ -146,61 +146,18 @@
   }
 
   // Who counts as living by the rules of the build (100 years, living_extra, deceased_extra).
-  // People with neither a birth year nor a death who cannot be alive any more: a latest possible
-  // birth year from their relatives and events is more than `living_years` ago. A child is born
-  // when the parent is 12 at the earliest, a parent is at most 60 at a child's birth; a wedding at 12
-  // at the earliest; any other event of the person: they were born by then. People in
-  // living_extra or deceased_extra are left out. -> Map id -> {via: 'child'|'parent'|'event', of, year}
-  const MIN_PARENT_AGE = 12, MAX_PARENT_AGE = 60, MIN_WEDDING_AGE = 12;
-  function inferDeceased(tree, cfg, today) {
-    const years = Math.max('living_years' in cfg ? cfg.living_years : scope.LIVING_YEARS, scope.LIVING_YEARS);
-    const limit = today.getFullYear() - years;
-    const skip = new Set([...(cfg.living_extra || []), ...(cfg.deceased_extra || [])]);
-    const latest = new Map();   // id -> {year, via, of}
-    const better = (id, year, via, of) => {
-      const cur = latest.get(id);
-      if (cur && cur.year <= year) return false;
-      latest.set(id, { via, of, year });
-      return true;
-    };
-    const open = [];
-    for (const p of tree.people.values()) {
-      const y = yearOf(p.birth);
-      if (y !== null) { latest.set(p.id, { via: 'birth', of: p.id, year: y }); continue; }
-      if (p.hasDeath) continue;
-      open.push(p);
-      for (const e of p.events) if (e.type !== 'BIRT' && e.date && e.date.year != null) better(p.id, e.date.year, 'event', p.id);
-      for (const fid of p.families) {
-        const f = tree.families.get(fid);
-        for (const e of (f && f.events) || []) if (e.type === 'MARR' && e.date && e.date.year != null) better(p.id, e.date.year - MIN_WEDDING_AGE, 'event', p.id);
-      }
-    }
-    for (let changed = true, round = 0; changed && round < 50; round++) {
-      changed = false;
-      for (const p of open) {
-        for (const fid of p.families) {
-          const f = tree.families.get(fid);
-          for (const c of (f && f.children) || []) { const b = latest.get(c); if (b && better(p.id, b.year - MIN_PARENT_AGE, 'child', c)) changed = true; }
-        }
-        for (const par of tree.parents(p.id)) { const b = latest.get(par); if (b && better(p.id, b.year + MAX_PARENT_AGE, 'parent', par)) changed = true; }
-      }
-    }
-    const out = new Map();
-    for (const p of open) {
-      const b = latest.get(p.id);
-      if (b && b.year < limit && !skip.has(p.id)) out.set(p.id, b);
-    }
-    return out;
-  }
+  // who cannot be alive any more by their relatives: see scope.inferDeceased
+  const inferDeceased = (tree, cfg, today) => scope.inferDeceased(tree, cfg, today);
 
   function livingSummary(tree, cfg, today) {
     const years = 'living_years' in cfg ? cfg.living_years : scope.LIVING_YEARS;
     const extraLiving = new Set(cfg.living_extra || []), extraDead = new Set(cfg.deceased_extra || []);
+    const inferred = scope.inferDeceased(tree, cfg, today);
     const living = [], deceased = [], noBirthDate = [];
     for (const p of tree.people.values()) {
       let alive = scope.isLiving(p, today, years);
       if (extraLiving.has(p.id)) alive = true;
-      if (extraDead.has(p.id)) alive = false;
+      if (extraDead.has(p.id) || (alive && !extraLiving.has(p.id) && inferred.has(p.id))) alive = false;
       (alive ? living : deceased).push(p.id);
       if (alive && !p.hasDeath && yearOf(p.birth) === null) noBirthDate.push(p.id);
     }

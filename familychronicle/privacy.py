@@ -339,7 +339,9 @@ def check_output(folder: Path,
     (d) a phone number, (e) a file in `documents/` that is not allowed."""
     folder = Path(folder)
     problems: list[str] = []
-    stripped_exceptions = [_strip_accents(v) for v in exceptions if v]
+    # a finding of a year next to a name quotes the text without accents and line breaks: only
+    # exceptions already in that form apply to the accent-free text ("Šimon" must not hide "Simon")
+    stripped_exceptions = [v for v in exceptions if v and v == _strip_accents(v)]
     patterns = [(d, v) for _, dates in living for d in dates for v in _patterns(d, ext=ext)]
     allowed = {p.replace("\\", "/").removeprefix("documents/") for p in allowed_documents}
     for path in sorted(folder.rglob("*")):
@@ -377,8 +379,7 @@ def check_output(folder: Path,
             if not years or not names:
                 continue
             for t in lines:
-                # the finding quotes the text without accents: its exception is that text
-                sample = _year_near_name(_remove_exceptions(_strip_accents(t), stripped_exceptions), names, years)
+                sample = _year_near_name(_remove_exceptions(_strip_accents(t).replace("\n", " "), stripped_exceptions), names, years)
                 if sample:
                     report(f"year of a living person next to the name \"{sample}\"")
                     break

@@ -294,3 +294,16 @@ class CheckNameException(CheckHelper):
         self.assertEqual(len(found), 1, found)
         text = found[0].split('"', 1)[1].rsplit('"', 1)[0]
         self.assertEqual(self.run_check(files, living, [text]), [])
+
+    def test_accented_exception_does_not_hide_another_spelling(self):
+        living = [(["Simon", "Novak"], [GDate(1990, None, None, False, "1990")])]
+        files = {"a.html": "<p>Simon Novak, 1990, lives here</p>"}
+        self.assertEqual(len(self.run_check(files, living, ["Šimon Novák, 1990"])), 1)
+
+    def test_exception_for_name_finding_across_a_line_break(self):
+        living = [(["Anna", "Červeňáková"], [GDate(1952, None, None, False, "1952")])]
+        files = {"person/I9.html": "<p>Rudolf Červeňák\n born 1951,\n died 1952, age at death about a year</p>"}
+        found = self.run_check(files, living)
+        self.assertEqual(len(found), 1, found)
+        text = found[0].split('"', 1)[1].rsplit('"', 1)[0]
+        self.assertEqual(self.run_check(files, living, [text]), [])

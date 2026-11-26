@@ -161,6 +161,7 @@
     const living = new Set([...people].filter((i) => isLiving(tree.people.get(i), today, years)));
     for (const i of config.living_extra || []) if (people.has(i)) living.add(i);
     for (const i of config.deceased_extra || []) living.delete(i);
+    for (const i of inferDeceased(tree, config, today).keys()) living.delete(i);
 
     const only = (map, keep) => new Map([...map].filter(keep));
     return {
@@ -178,7 +179,66 @@
     };
   }
 
-  const api = { COMMON, OTHER, BRANCH_BOUNDARY, LIVING_YEARS, checkLivingYears, isLiving, determineScope, ahnentafel: ahnentafelOf };
+  // People with neither a birth year nor a death who cannot be alive any more: a latest possible
+  // birth year from their relatives and events is more than `living_years` ago. A child is born
+  // when the parent is 12 at the earliest, a parent is at most 70 at a child's birth; a wedding at 12
+  // at the earliest; any other event of theirs: they were born by then. Only dates that bound a year
+  // from above count: "AFT", "BET", "FROM", "TO" do not, an approximate year ("ABT", "EST", "CAL")
+  // gets 5 years more. People in living_extra are left out (the person said they live).
+  // Decided anew at every build, so a corrected date of a relative is never outrun by a stored mark.
+  // -> Map id -> {via: 'child'|'parent'|'event', of, year}
+  const MIN_PARENT_AGE = 12, MAX_PARENT_AGE = 70, MIN_WEDDING_AGE = 12, APPROX_MARGIN = 5;
+  const latestYear = (d) => {
+    if (!d || d.year === null || d.year === undefined) return null;
+    const first = String(d.text || '').trim().split(/\s+/)[0].toUpperCase();
+    if (['AFT', 'BET', 'FROM', 'TO'].includes(first)) return null;
+    return d.approximate && first !== 'BEF' ? d.year + APPROX_MARGIN : d.year;
+  };
+  function inferDeceased(tree, config, today) {
+    const lv = 'living_years' in config && Number.isInteger(config.living_years) ? config.living_years : LIVING_YEARS;
+    const limit = today.getFullYear() - Math.max(lv, LIVING_YEARS);
+    const skip = new Set(config.living_extra || []);
+    const latest = new Map();   // id -> {year, via, of}
+    const better = (id, year, via, of) => {
+      if (year === null) return false;
+      const cur = latest.get(id);
+      if (cur && cur.year <= year) return false;
+      latest.set(id, { via, of, year });
+      return true;
+    };
+    const open = [];
+    for (const p of tree.people.values()) {
+      if (p.birth && p.birth.date && p.birth.date.year != null) { better(p.id, latestYear(p.birth.date), 'birth', p.id); continue; }
+      if (p.hasDeath) continue;
+      open.push(p);
+      for (const e of p.events) if (e.type !== 'BIRT') better(p.id, latestYear(e.date), 'event', p.id);
+      for (const fid of p.families) {
+        const f = tree.families.get(fid);
+        for (const e of (f && f.events) || []) {
+          const y = e.type === 'MARR' ? latestYear(e.date) : null;
+          if (y !== null) better(p.id, y - MIN_WEDDING_AGE, 'event', p.id);
+        }
+      }
+    }
+    for (let changed = true, round = 0; changed && round < 50; round++) {
+      changed = false;
+      for (const p of open) {
+        for (const fid of p.families) {
+          const f = tree.families.get(fid);
+          for (const c of (f && f.children) || []) { const b = latest.get(c); if (b && better(p.id, b.year - MIN_PARENT_AGE, 'child', c)) changed = true; }
+        }
+        for (const par of tree.parents(p.id)) { const b = latest.get(par); if (b && better(p.id, b.year + MAX_PARENT_AGE, 'parent', par)) changed = true; }
+      }
+    }
+    const out = new Map();
+    for (const p of open) {
+      const b = latest.get(p.id);
+      if (b && b.year < limit && !skip.has(p.id)) out.set(p.id, b);
+    }
+    return out;
+  }
+
+  const api = { inferDeceased, COMMON, OTHER, BRANCH_BOUNDARY, LIVING_YEARS, checkLivingYears, isLiving, determineScope, ahnentafel: ahnentafelOf };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).scope = api;
 })(typeof window !== 'undefined' ? window : globalThis);

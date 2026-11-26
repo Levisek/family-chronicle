@@ -9,7 +9,7 @@
 // Scenarios: chromium_example, chromium_folder, xss_name, leak_refused, own_basemap,
 // online_only_places, firefox_backup_warning, firefox_saved_family, firefox_suggested_root,
 // new_gedcom_renumbered, new_gedcom_same_answer_twice, chronicle_editor, chronicle_xss_preview,
-// firefox_chronicle, ai_dialog, living_step, places_step.
+// firefox_chronicle, ai_dialog, living_step, places_step, places_saved_family.
 // ONLY=<name>,<name> runs just those.
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
@@ -248,8 +248,10 @@ await scenario('leak_refused', chromium, async (page) => {
   // in words: whose date it looks like and where; the same date from several files is one item
   const said = await page.textContent('#findings > li > p:first-child');
   assert(/Daniel/.test(said) && /home page/.test(said) && !/\.html/.test(said), `the finding does not say whose date and where: ${said}`);
-  assert(await page.locator('#findings > li').count() === 1, `one date, ${await page.locator('#findings > li').count()} items: ${(await page.locator('#findings > li > p:first-child').allTextContents()).slice(0, 6).join(' | ')}`);
-  await page.click('#findings .finding-ok');
+  // one item for the date, one for the name with the year: each button silences only what it shows
+  assert(await page.locator('#findings > li').count() === 2, `two items, ${await page.locator('#findings > li').count()}: ${(await page.locator('#findings > li > p:first-child').allTextContents()).slice(0, 6).join(' | ')}`);
+  assert(!said.includes('daniel was born'), 'the date item quotes the name finding');
+  await page.click('#findings > li:first-child .finding-ok');
   await page.waitForSelector('#saved', { timeout: 60000 });
   const site2 = JSON.parse((await folderList(page, 'leak'))['site.json']);
   assert(site2.check_exceptions.some((x) => x.text === '12 March 1990' && /Daniel/.test(x.reason)), 'the exception has no reason in words');
@@ -331,6 +333,33 @@ await scenario('places_step', chromium, async (page) => {
   assert((await page.textContent('#ignored')).includes('dýmkař'), 'dýmkař is not listed as not a place');
   await page.click('#ignored >> text=undo');
   await page.waitForSelector('#pending li[data-town="dýmkař"]');
+});
+
+await scenario('places_saved_family', chromium, async (page) => {
+  // a saved family: "Linz - Urfahr" is a new spelling of the saved Linz (alias only, coordinates
+  // kept); "Xyzzy" searched as "Linz" and answered with Linz am Rhein must not overwrite Linz
+  const files = exampleFiles();
+  const ged = readFileSync(join(REPO, 'example/family.ged'), 'utf8').replace(/2 PLAC Linz\n/g, ((n) => (all) => (++n === 1 ? '2 PLAC Linz - Urfahr\n' : n === 2 ? '2 PLAC Xyzzy\n' : all))(0));
+  files['family.ged'] = Buffer.from(ged).toString('base64');
+  await seedFolder(page, 'saved-places', files);
+  await page.click('text=Open a saved family');
+  await page.click('#home-places');
+  await page.waitForSelector('#pending li[data-town="Xyzzy"]');
+  const item = page.locator('#pending li[data-town="Xyzzy"]');
+  await item.locator('.place-search').fill('Linz');
+  await item.locator('.place-search').press('Enter');
+  await page.locator('#pending li[data-town="Xyzzy"] .candidates button >> text=Rheinland-Pfalz').click();
+  await nextTo(page, 6);
+  await page.click('#build');
+  await page.waitForSelector('#saved, #findings, .error', { timeout: 60000 });
+  assert(await page.isVisible('#saved'), `not saved: ${await page.textContent('#screen')}`);
+  const places = JSON.parse((await folderList(page, 'saved-places'))['places.json']);
+  assert(JSON.stringify(places.Linz.coords) === '[48.3069,14.2858]', `Linz was moved: ${JSON.stringify(places.Linz)}`);
+  assert(places.Linz.aliases.includes('Linz - Urfahr'), `no alias for the new spelling: ${JSON.stringify(places.Linz)}`);
+  assert(places.Xyzzy && places.Xyzzy.coords[1] < 10, `Xyzzy: ${JSON.stringify(places.Xyzzy)}`);
+  await page.click('#home');
+  // only Salzburg (several of them, none near) is left
+  assert((await page.textContent('#home-places')).startsWith('1 '), await page.textContent('#home-places'));
 });
 
 await scenario('own_basemap', chromium, async (page) => {

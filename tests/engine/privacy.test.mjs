@@ -302,3 +302,19 @@ test('whose_finding', () => {
   assert.deepEqual(PV.whoseFinding('   rudolf cervenak   born  1951   died  1952   age', tree, scope), ['A']);
   assert.deepEqual(PV.whoseFinding('nothing here', tree, scope), []);
 });
+
+test('accented_exception_does_not_hide_another_spelling', () => {
+  // only an exception in the accent-free form (a quoted finding) applies to the accent-free text
+  const living = [[['Simon', 'Novak'], [gd(1990, null, null, '1990')]]];
+  const files = { 'a.html': '<p>Simon Novak, 1990, lives here</p>' };
+  assert.equal(runCheck(files, living, [{ text: 'Šimon Novák, 1990', reason: 'another man' }]).length, 1);
+});
+
+test('exception_for_name_finding_across_a_line_break', () => {
+  const living = [[['Anna', 'Červeňáková'], [gd(1952, null, null, '1952')]]];
+  const files = { 'person/I9.html': '<p>Rudolf Červeňák\n born 1951,\n died 1952, age at death about a year</p>' };
+  const found = runCheck(files, living);
+  assert.equal(found.length, 1, found.join('\n'));
+  const text = /"(.*)"$/s.exec(found[0])[1];
+  assert.deepEqual(runCheck(files, living, [{ text, reason: 'a namesake' }]), []);
+});

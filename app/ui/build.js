@@ -106,47 +106,60 @@
 
   function groupFindings(s, list) {
     const scope = E().scope.determineScope(s.tree, s.cfg, new Date());
+    let ext = null;
+    try { ext = E().privacy.localeExtensions(s.cfg.languages || ['en'], FCApp.data.assets().locales, s.cfg.strings); } catch (e) { /* the build reported it */ }
     const groups = new Map();
     for (const f of list) {
       const x = parseFinding(f);
       const kind = KINDS[x.what] || 'other';
-      const who = x.text && (kind === 'date' || kind === 'name') ? E().privacy.whoseFinding(x.text, s.tree, scope) : [];
+      const who = x.text && (kind === 'date' || kind === 'name') ? E().privacy.whoseFinding(x.text, s.tree, scope, ext) : [];
       const page = where(s, x.file);
-      // one item per living person (their date and their name with a year, on all pages)
-      const key = who.length ? `living|${who.join(',')}` : `${kind}|${x.text || x.file}`;
-      if (!groups.has(key)) groups.set(key, { kind, who, pages: new Set(), texts: new Set(), dates: new Set(), raw: [], file: x.file });
+      // one item per living person and kind (dates / name with a year), over all pages: the button
+      // of an item saves only the texts that item shows
+      const key = who.length ? `${kind}|${who.join(',')}` : `${kind}|${x.text || x.file}`;
+      if (!groups.has(key)) groups.set(key, { kind, who, pages: new Set(), texts: new Set(), raw: [], file: x.file });
       const g_ = groups.get(key);
-      if (kind === 'date') g_.kind = 'date';
       if (page) g_.pages.add(page);
       if (x.text) g_.texts.add(x.text);
-      if (x.text && kind === 'date') g_.dates.add(x.text);
       g_.raw.push(f);
     }
     return [...groups.values()];
   }
 
+  // the same exceptions only once
+  function except(w, texts, reason) {
+    const s = w.state;
+    const have = new Set((s.cfg.check_exceptions || []).map((v) => (typeof v === 'string' ? v : v.text)));
+    s.cfg.check_exceptions = [...(s.cfg.check_exceptions || []), ...texts.filter((q) => !have.has(q)).map((q) => ({ text: q, reason }))];
+    w.changed();
+    run(w);
+  }
+
   function findings(w, list) {
     const s = w.state;
+    // worked out once per build, not at every redraw
+    if (!s.build.groups) s.build.groups = groupFindings(s, list);
     const nameOf = (id) => { const i = E().project.personInfo(s.tree, id, {}); return (i && i.label) || id; };
-    return h('ul', { class: 'findings', id: 'findings' }, groupFindings(s, list).map((x) => {
+    return h('ul', { class: 'findings', id: 'findings' }, s.build.groups.map((x) => {
       const living = x.who.length ? x.who.map(nameOf).join(', ') : t('finding_someone');
       const all = [...x.pages];
       const pages = all.length > 3 ? `${all.slice(0, 3).join(', ')} ${t('finding_more', { n: all.length - 3 })}` : all.join(', ') || t('finding_page_data');
-      const quoted = [...(x.kind === 'date' ? x.dates : x.texts)].map((q) => `„${q}“`).join(' / ');
+      const quoted = [...x.texts].map((q) => `„${q.trim()}“`).join(' / ');
       const text = x.kind === 'date' ? t('finding_date', { pages, texts: quoted, living })
-        : x.kind === 'name' ? t('finding_name', { pages, living })
+        : x.kind === 'name' ? t('finding_name', { pages, living, texts: quoted })
         : x.kind === 'email' ? t('finding_email', { texts: quoted, pages })
         : x.kind === 'phone' ? t('finding_phone', { texts: quoted, pages })
         : x.kind === 'document' ? t('finding_document', { file: x.file })
         : x.raw.join('; ');
       const li = h('li', { class: 'finding' }, h('p', {}, text));
-      if (x.texts.size) {
-        const reason = x.kind === 'date' || x.kind === 'name' ? t('finding_reason_other', { pages, living }) : t('finding_reason_ok', { pages });
-        li.appendChild(h('p', {}, h('button', { type: 'button', class: 'button finding-ok', onclick: () => {
-          s.cfg.check_exceptions = [...(s.cfg.check_exceptions || []), ...[...x.texts].map((q) => ({ text: q, reason }))];
-          w.changed();
-          run(w);
-        } }, x.kind === 'date' || x.kind === 'name' ? t('finding_ok_other') : t('finding_ok_plain'))));
+      if (x.texts.size && (x.kind === 'date' || x.kind === 'name')) {
+        li.appendChild(h('p', {}, h('button', { type: 'button', class: 'button finding-ok', onclick: () => except(w, [...x.texts], t('finding_reason_other', { pages, living })) }, t('finding_ok_other'))));
+      } else if (x.texts.size) {
+        // an e-mail or a phone number: the person says why in their own words
+        const reason = h('textarea', { 'aria-label': t('finding_reason'), placeholder: t('finding_reason') });
+        const ok = h('button', { type: 'button', class: 'button finding-ok', disabled: true, onclick: () => { if (reason.value.trim()) except(w, [...x.texts], reason.value.trim()); } }, t('finding_ok_plain'));
+        reason.addEventListener('input', () => { ok.disabled = !reason.value.trim(); });
+        li.append(reason, h('p', {}, ok));
       }
       li.appendChild(h('details', { class: 'note' }, h('summary', {}, t('finding_details')), h('ul', {}, x.raw.map((r) => h('li', {}, h('code', {}, r))))));
       return li;

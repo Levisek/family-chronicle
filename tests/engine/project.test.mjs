@@ -214,8 +214,8 @@ test('infer_deceased_from_relatives', () => {
     // Josef: no dates, a son born 1900 -> born by 1888 -> deceased
     '0 @J@ INDI', '1 NAME Josef /Bauer/', '1 FAMS @F1@',
     '0 @S@ INDI', '1 NAME Karel /Bauer/', '1 BIRT', '2 DATE 1900', '1 DEAT', '2 DATE 1970', '1 FAMC @F1@',
-    // Jan's father born 1850 -> Jan born by 1910 -> deceased; Jan's son Petr: no dates, his
-    // father is born by 1910 -> Petr by 1970: living (unknown)
+    // Jan's father born 1850 -> Jan born by 1920 -> deceased; Jan's son Petr: no dates, his
+    // father is born by 1920 -> Petr by 1990: living (unknown)
     '0 @O@ INDI', '1 NAME Otec /Novák/', '1 BIRT', '2 DATE 1850', '1 DEAT', '2 DATE 1920', '1 FAMS @F2@',
     '0 @N@ INDI', '1 NAME Jan /Novák/', '1 FAMC @F2@', '1 FAMS @F3@',
     '0 @P@ INDI', '1 NAME Petr /Novák/', '1 FAMC @F3@',
@@ -233,6 +233,39 @@ test('infer_deceased_from_relatives', () => {
   const out = P.inferDeceased(tree, { living_extra: ['I'] }, new Date(2026, 10, 26));
   assert.deepEqual([...out.keys()].sort(), ['J', 'M', 'N']);
   assert.deepEqual(out.get('J'), { via: 'child', of: 'S', year: 1888 });
-  assert.deepEqual(out.get('N'), { via: 'parent', of: 'O', year: 1910 });
+  assert.deepEqual(out.get('N'), { via: 'parent', of: 'O', year: 1920 });
   assert.deepEqual(out.get('M'), { via: 'event', of: 'M', year: 1893 });
+});
+
+test('infer_deceased_approximate_dates', () => {
+  const tree = G.parse(FAMILY([
+    // a wedding AFT 1920 says nothing about the latest birth
+    '0 @A@ INDI', '1 NAME Anna /After/', '1 FAMS @F1@', '0 @F1@ FAM', '1 WIFE @A@', '1 MARR', '2 DATE AFT 1920',
+    // a child BET 1900 AND 1990: nothing either
+    '0 @B@ INDI', '1 NAME Bert /Between/', '1 FAMS @F2@', '0 @BC@ INDI', '1 NAME Kid /Between/', '1 BIRT', '2 DATE BET 1900 AND 1990', '1 FAMC @F2@',
+    '0 @F2@ FAM', '1 HUSB @B@', '1 CHIL @BC@',
+    // a child ABT 1905: the parent born by 1905 + 5 - 12
+    '0 @C@ INDI', '1 NAME Carl /About/', '1 FAMS @F3@', '0 @CC@ INDI', '1 NAME Kid /About/', '1 BIRT', '2 DATE ABT 1905', '1 DEAT', '2 DATE 1980', '1 FAMC @F3@',
+    '0 @F3@ FAM', '1 HUSB @C@', '1 CHIL @CC@',
+    // a wedding BEF 1915: born by 1903
+    '0 @D@ INDI', '1 NAME Dora /Before/', '1 FAMS @F4@', '0 @F4@ FAM', '1 WIFE @D@', '1 MARR', '2 DATE BEF 1915',
+    // a father born 1860, a son without dates: up to 70 at the son's birth -> son by 1930: unknown
+    '0 @E@ INDI', '1 NAME Emil /Old/', '1 BIRT', '2 DATE 1860', '1 DEAT', '2 DATE 1940', '1 FAMS @F5@', '0 @ES@ INDI', '1 NAME Son /Old/', '1 FAMC @F5@',
+    '0 @F5@ FAM', '1 HUSB @E@', '1 CHIL @ES@',
+  ]));
+  const out = P.inferDeceased(tree, {}, new Date(2026, 10, 26));
+  assert.deepEqual([...out.keys()].sort(), ['C', 'D']);
+  assert.equal(out.get('C').year, 1898);
+});
+
+test('inferred_deceased_follow_the_data', () => {
+  // the build decides it every time: nothing is stored that could go stale
+  const S = require('../../engine/scope.js');
+  const ged = (kidYear) => FAMILY(['0 @R@ INDI', '1 NAME Root /X/', '1 BIRT', '2 DATE 1990', '1 FAMC @F1@',
+    '0 @P@ INDI', '1 NAME Parent /X/', '1 FAMS @F1@', '1 FAMS @F2@', '0 @K@ INDI', '1 NAME Kid /X/', '1 BIRT', '2 DATE ' + kidYear, '1 DEAT', '2 DATE 1999', '1 FAMC @F2@',
+    '0 @F1@ FAM', '1 HUSB @P@', '1 CHIL @R@', '0 @F2@ FAM', '1 HUSB @P@', '1 CHIL @K@']);
+  const today = new Date(2026, 10, 26);
+  assert.ok(!S.determineScope(G.parse(ged(1900)), { root: 'R' }, today).living.has('P'), 'P is not deceased by the kid of 1900');
+  assert.ok(S.determineScope(G.parse(ged(1960)), { root: 'R' }, today).living.has('P'), 'P stays deceased after the date is corrected');
+  assert.ok(S.determineScope(G.parse(ged(1900)), { root: 'R', living_extra: ['P'] }, today).living.has('P'), 'living_extra does not win');
 });

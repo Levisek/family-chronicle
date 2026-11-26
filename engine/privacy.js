@@ -403,8 +403,10 @@
   // name, (c) an e-mail, (d) a phone number, (e) a file in documents/ that is not allowed.
   function checkOutput(files, living, exceptions, allowedDocuments = new Set(), ext = null) {
     const excepted = exceptionTexts(exceptions || []);
-    // a finding of a year next to a name quotes the text without accents: its exception is that text
-    const strippedExcepted = excepted.map((v) => v && stripAccents(v));
+    // a finding of a year next to a name quotes the text without accents and line breaks: its
+    // exception is that text, so exceptions already in that form also apply to the accent-free
+    // text (and only those: an exception "Šimon" must not hide "Simon")
+    const strippedExcepted = excepted.filter((v) => v && v === stripAccents(v));
     const problems = [];
     // each pattern needs its year (or the two-digit year of a full date) in the text: test that first
     const patterns = [];
@@ -496,7 +498,7 @@
       // words of the lines (without accents, case-folded) -> lines; sorted for prefix search
       let words = null, wordLines = null, strippedLines = null;
       const buildWords = () => {
-        strippedLines = lines.map((t) => removeExceptions(stripAccents(t), strippedExcepted));
+        strippedLines = lines.map((t) => removeExceptions(stripAccents(t).split('\n').join(' '), strippedExcepted));
         wordLines = new Map();
         strippedLines.forEach((t, li) => {
           for (const [w] of t.matchAll(WORD_RE)) { if (!wordLines.has(w)) wordLines.set(w, new Set()); wordLines.get(w).add(li); }
@@ -535,8 +537,12 @@
   // it looks like): the check run on that text alone, person by person.
   function whoseFinding(text, tree, scope, ext = null) {
     const file = new Map([['finding.txt', new TextEncoder().encode(String(text))]]);
-    return livingForCheck(tree, scope).map((x, i) => [x, [...sensitiveDates(tree, scope).keys()][i]])
-      .filter(([x]) => checkOutput(file, [x], [], new Set(), ext).length).map(([, id]) => id);
+    const out = [];
+    for (const [id, ds] of sensitiveDates(tree, scope)) {
+      const p = tree.people.get(id);
+      if (checkOutput(file, [[[p.given, p.surname].filter((x) => x.trim()), ds]], [], new Set(), ext).length) out.push(id);
+    }
+    return out;
   }
 
   const api = {

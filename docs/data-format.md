@@ -334,16 +334,22 @@ web/              the built website: web/<site_dir>/, web/manifest.json, web/app
   "okr. X" go); "okres X" keeps the candidates within 40 km of X; a country or land is no question
   (`isRegion`); an open town with one candidate clearly nearest to the places found is picked for
   checking (`nearFamily`). Strings that do not find their town by name become `aliases` in
-  places.json. "Not a place" goes to `ignore_places` (can be taken back); what is left open stays
-  open and the home screen counts it.
-- **Living** (step 5): `project.inferDeceased` marks people without a birth year and death as
-  deceased when a child (−12 years), a parent (+60), a wedding (−12) or another event of theirs
-  puts their birth more than `living_years` ago; they go to `deceased_extra`, "alive" puts them to
-  `living_extra`. `living_town` is set per household from the places of the family.
+  places.json (and no longer of another town); a search under another name renames the key unless
+  that name is another town more than 5 km away. A pick by the app is saved with `source: "guess"`
+  and asked to be checked again until confirmed. "Not a place" goes to `ignore_places` (can be taken
+  back); what is left open stays open and the home screen counts it.
+- **Living** (step 5 and every build): `scope.inferDeceased` counts people without a birth year
+  and death as deceased when a child (−12 years), a parent (+70), a wedding (−12) or another event
+  of theirs puts their latest possible birth more than `living_years` ago ("AFT", "BET", "FROM",
+  "TO" dates do not count, "ABT"/"EST"/"CAL" get 5 years more). It is decided anew at every build
+  (the JS build; the Python build keeps them living), nothing is stored; "alive" in step 5 puts
+  the person to `living_extra`. `living_town` is set per household from the places of the family.
 - **Findings of the check** (step 6): `privacy.whoseFinding` tells which living people a quoted
   text points to; the app groups the findings by them and saves "it is someone else" as
-  `check_exceptions` with the reason in words. An exception also silences the finding of a year
-  next to a name, which quotes the text without accents.
+  `check_exceptions` with the reason in words (one item per living person and kind, so a button
+  saves only what its item quotes; an e-mail or a phone number needs a reason typed). An exception
+  in the accent-free form also applies to the accent-free text with line breaks as spaces (that is
+  how the finding of a year next to a name quotes it); other exceptions only to the text itself.
 - **A newer GEDCOM** (step 1 when the family already has one): `engine/match.js` pairs the people.
   Same id + same name + same birth year = the same person; otherwise the name without diacritics,
   the birth year within 2 years and, among several, the parents' names. One candidate is taken;
