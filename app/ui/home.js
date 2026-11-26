@@ -31,6 +31,7 @@
         h('button', { type: 'button', class: 'button', id: 'home-open', onclick: () => {
           info.textContent = p.mode === 'folder' ? t('home_open_where', { folder: p.name, site: cfg.site_dir || 'family' }) : t('home_open_zip');
         } }, t('home_open')),
+        h('button', { type: 'button', class: 'button', id: 'home-new-gedcom', onclick: () => FCApp.wizard.open(p, 1) }, t('home_new_gedcom')),
         h('button', { type: 'button', class: 'button', id: 'home-settings', onclick: () => FCApp.wizard.open(p, 1) }, t('home_settings')),
         p.mode === 'browser' ? h('button', { type: 'button', class: 'button', id: 'home-backup', onclick: () => { p.downloadBackup(); FCApp.refreshBanners(); } }, t('home_backup')) : null),
       info,

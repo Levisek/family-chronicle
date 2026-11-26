@@ -7,7 +7,8 @@
 // In Chromium the folder picker is replaced by an in-memory folder with the File System Access
 // interface (window.__folders); the origin private file system is not open to file:// pages.
 // Scenarios: chromium_example, chromium_folder, xss_name, leak_refused, own_basemap,
-// online_only_places, firefox_backup_warning, firefox_saved_family, firefox_suggested_root.
+// online_only_places, firefox_backup_warning, firefox_saved_family, firefox_suggested_root,
+// new_gedcom_renumbered.
 // ONLY=<name>,<name> runs just those.
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
@@ -398,6 +399,39 @@ await scenario('firefox_suggested_root', firefox, async (page) => {
   await nextTo(page, 2);
   await page.waitForSelector('#people');
   assert(await page.isVisible('.banner.warn'), 'no warning after the suggested starting person');
+});
+
+await scenario('new_gedcom_renumbered', chromium, async (page) => {
+  // a saved family; the new GEDCOM has every id renumbered (I -> X) and a second Karl Huber 1934
+  // with the same parents, so Karl (the branch root) is a question
+  await seedFolder(page, 'renumbered', exampleFiles());
+  let ged = readFileSync(join(REPO, 'example/family.ged'), 'utf8').replace(/@I(\d+)@/g, '@X$1@');
+  ged = ged.replace('1 CHIL @X5@\n', '1 CHIL @X5@\n1 CHIL @X99@\n')
+    .replace('0 TRLR', '0 @X99@ INDI\n1 NAME Karl /Huber/\n1 SEX M\n1 BIRT\n2 DATE 1934\n1 DEAT\n2 DATE 1935\n1 FAMC @F4@\n0 TRLR');
+  const path = join(TMP, 'renumbered.ged');
+  writeFileSync(path, ged);
+  await page.click('text=Open a saved family');
+  await page.click('#home-new-gedcom');
+  await page.setInputFiles('#ged-input', path);
+  await page.waitForSelector('#questions');
+  await page.click('#next');
+  assert(await page.isVisible('.messages .error'), 'the next step opens with an open question');
+  await page.click('#questions input[value="X5"]');   // the answer re-renders the step (check() would wait for the old element)
+  await page.waitForSelector('#changes');
+  assert((await page.textContent('#changes')).includes('1'), 'no overview of the changes');
+  await nextTo(page, 6);
+  await page.click('#build');
+  await page.waitForSelector('#saved, #findings, .error', { timeout: 60000 });
+  assert(await page.isVisible('#saved'), `not saved: ${await page.textContent('#screen')}`);
+  const files = await folderList(page, 'renumbered');
+  const site = JSON.parse(files['site.json']);
+  assert(site.root === 'X1', `root ${site.root}`);
+  assert(site.branches.find((b) => b.key === 'huber').roots[0] === 'X5', 'the branch root is not X5');
+  assert(!/"I\d+"/.test(files['documents.json']), 'documents.json keeps old ids');
+  const chron = await page.evaluate(() => new TextDecoder().decode(window.__folders.renumbered.dirs.get('chronicles').files.get('huber.md')));
+  assert(chron.includes('<!-- person: X43; X44 -->'), 'the chronicle anchors keep old ids');
+  assert(Object.keys(files).some((f) => /^history\/[^/]+\/family\.ged$/.test(f)), 'the old family.ged is not in history/');
+  assert(Object.keys(files).some((f) => /^history\/[^/]+\/chronicles\/huber\.md$/.test(f)), 'the old chronicle is not in history/');
 });
 
 for (const [name, status, note] of results) console.log(`${status.padEnd(4)} ${name}  ${note}`);

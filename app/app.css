@@ -168,3 +168,8 @@ label input[type="text"], label input[type="url"] { display: block; width: 100%;
   .branch-layout, .places-layout { grid-template-columns: 1fr; }
   .wizard-foot { padding: .8rem 1rem; }
 }
+
+/* a newer GEDCOM: questions about people, the overview of the changes */
+#questions .question { text-align: left; margin: 1rem 0; }
+#questions .choice { display: block; margin: .25rem 0; }
+#changes ul { text-align: left; }

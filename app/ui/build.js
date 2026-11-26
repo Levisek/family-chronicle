@@ -55,6 +55,7 @@
         for (const k of plan.deletes) await project.remove(k);
       }
       s.ged = null;
+      s.remapped = null;
       s.build = { ...s.build, phase: 'saved' };
     } catch (e) {
       s.build = { ...s.build, phase: 'error', message: e.message };
