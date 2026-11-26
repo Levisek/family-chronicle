@@ -187,3 +187,10 @@ test('at_sign_ids_in_settings', () => {
   assert.deepEqual(r.cfg.living_town, { P5: 'Linz' });
   assert.deepEqual(r.cfg.branches[0].roots, ['P6']);
 });
+
+test('chronicle_files_outside_chronicles', () => {
+  const cfg = { branches: [{ key: 'a', chronicle: 'texts/Alt family.md' }, { key: 'b' }] };
+  const paths = ['chronicles/a.md', 'chronicles/.versions/a-2026-01-01-000000.md', 'texts/Alt family.md', 'texts/Alt family.cs.md',
+    'texts/other.md', 'texts/sub/Alt family.md', 'notes.md', 'site.json'];
+  assert.deepEqual(M.chronicleFiles(cfg, paths).sort(), ['chronicles/a.md', 'texts/Alt family.cs.md', 'texts/Alt family.md']);
+});

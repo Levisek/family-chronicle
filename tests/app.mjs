@@ -407,7 +407,12 @@ await scenario('firefox_suggested_root', firefox, async (page) => {
 await scenario('new_gedcom_renumbered', chromium, async (page) => {
   // a saved family; the new GEDCOM has every id renumbered (I -> X), a second Karl Huber 1934 and a
   // second Franz Huber 1905 with the same parents, so both are questions
-  await seedFolder(page, 'renumbered', exampleFiles());
+  // the Černý chronicle lives outside chronicles/
+  const seeded = exampleFiles();
+  seeded['texts/cerny.md'] = seeded['chronicles/cerny.md'];
+  delete seeded['chronicles/cerny.md'];
+  seeded['site.json'] = Buffer.from(Buffer.from(seeded['site.json'], 'base64').toString().replace('"chronicles/cerny.md"', '"texts/cerny.md"')).toString('base64');
+  await seedFolder(page, 'renumbered', seeded);
   let ged = readFileSync(join(REPO, 'example/family.ged'), 'utf8').replace(/@I(\d+)@/g, '@X$1@');
   ged = ged.replace('1 CHIL @X5@\n', '1 CHIL @X5@\n1 CHIL @X99@\n').replace('1 CHIL @X14@\n', '1 CHIL @X14@\n1 CHIL @X98@\n')
     .replace('0 TRLR', '0 @X99@ INDI\n1 NAME Karl /Huber/\n1 SEX M\n1 BIRT\n2 DATE 1934\n1 DEAT\n2 DATE 1935\n1 FAMC @F4@\n'
@@ -443,6 +448,8 @@ await scenario('new_gedcom_renumbered', chromium, async (page) => {
   assert(JSON.parse(files['documents.json'])[0].people.includes('X14'), 'Franz is not X14 in the documents');
   const chron = await page.evaluate(() => new TextDecoder().decode(window.__folders.renumbered.dirs.get('chronicles').files.get('huber.md')));
   assert(chron.includes('<!-- person: X43; X44 -->'), 'the chronicle anchors keep old ids');
+  const cerny = await page.evaluate(() => new TextDecoder().decode(window.__folders.renumbered.dirs.get('texts').files.get('cerny.md')));
+  assert(cerny.includes('<!-- person: X37; X38 -->'), 'a chronicle outside chronicles/ keeps old ids');
   assert(Object.keys(files).some((f) => /^history\/[^/]+\/family\.ged$/.test(f)), 'the old family.ged is not in history/');
   assert(Object.keys(files).some((f) => /^history\/[^/]+\/chronicles\/huber\.md$/.test(f)), 'the old chronicle is not in history/');
 });
@@ -477,6 +484,16 @@ await scenario('chronicle_editor', chromium, async (page) => {
   await page.fill('#chron-text', `${drafted}\nTheir trade was [Fill in: trade].\n`);
   await page.waitForSelector('#chron-preview mark.fill-in');
   assert((await page.textContent('#chron-marks')).includes('1'), 'the marks are not counted');
+  // a link in the preview does not take the unsaved text away
+  const marked = await page.inputValue('#chron-text');
+  await page.fill('#chron-text', `${marked}\nSee [the parish](other.html).\n`);
+  const url = page.url();
+  const popup = page.context().waitForEvent('page', { timeout: 5000 }).catch(() => null);
+  await page.click('#chron-preview a');
+  const opened = await popup;
+  if (opened) await opened.close();
+  assert(page.url() === url && (await page.inputValue('#chron-text')).includes('See [the parish]'), `the preview link left the editor: ${page.url()}`);
+  await page.fill('#chron-text', marked);
   await page.click('#chron-save');
   await page.waitForSelector('#chron-save:disabled');
   let files = await folderList(page, 'chron');

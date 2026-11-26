@@ -204,7 +204,7 @@
     return out;
   }
 
-  const api = { chapterSlug, render, fillPattern, withoutFillIns, openSectionIndexes, cutSections, slug };
+  const api = { chapterSlug, render, fillPattern, withoutFillIns, SENTENCE_END, openSectionIndexes, cutSections, slug };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).chronicles = api;
 })(typeof window !== 'undefined' ? window : globalThis);

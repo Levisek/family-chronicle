@@ -130,3 +130,24 @@ test('refresh_crlf', () => {
   const out = K.refresh(before.replace(/\n/g, '\r\n'), before, pattern, 'New from the data');
   assert.ok(!out.includes('New from the data'), 'a CRLF chronicle got the whole draft again');
 });
+
+test('skeleton_without_locale', () => {
+  const md = draft(GED, 'de', 'huber', undefined);
+  assert.match(md, /- Johann Huber: born 1848, Vienna/);
+});
+
+test('refresh_keeps_sentence_written_into_marked_block', () => {
+  const pattern = K.fillPattern(LOCALES);
+  const before = draft(GED);
+  const kat = blockOf(before, 'I36');
+  // a sentence added by hand, the marks left in
+  const written = kat.replace('married 1904 in Linz.', 'married 1904 in Linz. They kept an inn by the river.');
+  const ged = GED.replace(/(0 @I36@ INDI[\s\S]*?\n1 BIRT\n2 DATE [^\n]*1880)/, '$1\n2 PLAC Steyr');
+  const out = blockOf(K.refresh(before.replace(kat, written), draft(ged), pattern, 'New from the data'), 'I36');
+  assert.match(out, /They kept an inn by the river\./);
+  assert.match(out, /born about 1880 in Steyr\./);
+  assert.match(out, /died \[Fill in: date of death\]/);
+  // an untouched marked block still takes the whole new draft (a new fact too)
+  const ged2 = ged.replace(/(0 @I36@ INDI\n)/, '$11 OCCU Seamstress\n');
+  assert.match(blockOf(K.refresh(before, draft(ged2), pattern, 'New from the data'), 'I36'), /Seamstress/);
+});

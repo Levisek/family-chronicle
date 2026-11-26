@@ -152,7 +152,19 @@
     return { added, removed, dates, places, nowLiving, nowDeceased };
   }
 
-  const api = { usedIds, pair, remap, changes, MAX_CANDIDATES };
+  // The chronicles of a family among `paths`: chronicles/*.md, and every branch's own chronicle
+  // with its translations (<stem>.<lang>.md next to it). Not the earlier versions.
+  function chronicleFiles(cfg, paths) {
+    const own = (cfg.branches || []).map((b) => b.chronicle).filter(Boolean).map((c) => {
+      const i = c.lastIndexOf('/');
+      return { dir: c.slice(0, i + 1), stem: c.slice(i + 1).split('.')[0] };
+    });
+    const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return paths.filter((p) => /^chronicles\/[^/]+\.md$/.test(p)
+      || own.some(({ dir, stem }) => p.startsWith(dir) && new RegExp(`^${esc(stem)}(\\.[^/.]+)?\\.md$`).test(p.slice(dir.length))));
+  }
+
+  const api = { usedIds, pair, remap, changes, chronicleFiles, MAX_CANDIDATES };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).match = api;
 })(typeof window !== 'undefined' ? window : globalThis);

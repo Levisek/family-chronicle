@@ -9,7 +9,6 @@
   const PROBLEM = { 'no-sex': 'problem_no_sex', 'bad-date': 'problem_bad_date', 'no-name': 'problem_no_name' };
 
   const dec = new TextDecoder(), enc = new TextEncoder();
-  const CHRONICLE = /^chronicles\/[^/]+\.md$/;
 
   // The current text of a project file: what the wizard is about to write, else the saved file.
   function current(s, path) {
@@ -49,7 +48,7 @@
   // settings, documents and chronicles over to the new ids.
   function startUpdate(s, tree, bytes, name) {
     const paths = [...new Set([...s.project.files.keys(), ...(s.remapped ? s.remapped.keys() : [])])];
-    const chronicles = new Map(paths.filter((p) => CHRONICLE.test(p)).map((p) => [p, dec.decode(current(s, p))]));
+    const chronicles = new Map(E().match.chronicleFiles(s.cfg, paths).map((p) => [p, dec.decode(current(s, p))]));
     const list = (key) => {
       const b = s.cfg[key] ? current(s, s.cfg[key]) : null;
       try { const x = b ? JSON.parse(dec.decode(b)) : []; return Array.isArray(x) ? x : []; } catch (e) { return []; }

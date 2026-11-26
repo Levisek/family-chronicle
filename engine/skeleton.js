@@ -23,7 +23,8 @@
   const fillPattern = (locales) => M('chronicles').fillPattern(locales);
 
   function build({ tree, scope, cfg, branchKey, lang, locale, places }) {
-    const sk = locale && locale.skeleton ? locale.skeleton : null;
+    locale = locale || {};
+    const sk = locale.skeleton || null;
     const dl = lang === 'cs' ? 'cs' : 'en';
     const P = new placesMod.Places(places || {}, cfg.ignore_places || []);
     const town = (ev) => (ev && ev.place ? esc(P.town(ev.place) || placesMod.toTown(ev.place) || ev.place.split(',')[0].trim()) : '');
@@ -52,7 +53,7 @@
     }
     const gens = [...byGen.keys()].sort((a, b) => b - a);
     gens.forEach((gen, i) => {
-      out.push(`## ${fill(sk ? sk.generation : (locale && locale.chapter_n) || '{n}', { n: i + 1 })}`, '');
+      out.push(`## ${fill(sk ? sk.generation : locale.chapter_n || '{n}', { n: i + 1 })}`, '');
       for (const [, ids] of byGen.get(gen).sort((a, b) => a[0] - b[0])) {
         out.push(...couple(ids), '');
       }
@@ -138,6 +139,29 @@
   };
   const split = (md) => md.replace(/^\n+|\n+$/g, '').split(/\n(?:[ \t]*\n)+/);
 
+  // A block with a mark against the new draft of the same people. Untouched by hand (each sentence
+  // is in the new draft, or has a mark and the new draft has it filled in): the new draft. Written
+  // in: only the sentences with a mark are replaced by their filled-in form; the rest stays.
+  const isComment = (line) => /^[ \t]*<!--/.test(line);
+  const reEsc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  function patch(block, freshBlock, pattern) {
+    const END = M('chronicles').SENTENCE_END;
+    const sentences = (b) => b.split('\n').filter((l) => !isComment(l)).flatMap((l) => l.split(END)).map((x) => x.trim()).filter(Boolean);
+    const all = new RegExp(pattern.source, `g${pattern.flags.replace('g', '')}`);
+    const one = new RegExp(pattern.source, pattern.flags.replace('g', ''));
+    const shape = (x) => new RegExp(`^${x.split(all).map(reEsc).join('[\\s\\S]+?')}$`);
+    const fresh = sentences(freshBlock);
+    const filled = (x) => { const re = shape(x); return fresh.find((f) => re.test(f)); };
+    if (sentences(block).every((x) => fresh.includes(x) || (one.test(x) && filled(x)))) return freshBlock;
+    const cut = new RegExp(`(${END.source})`, END.flags);
+    return block.split('\n').map((line) => (isComment(line) ? line : line.split(cut).map((part) => {
+      const x = part.trim();
+      if (!x || !one.test(x)) return part;
+      const f = filled(x);
+      return f ? part.replace(x, () => f) : part;
+    }).join(''))).join('\n');
+  }
+
   // A new draft over a chronicle somebody may have written in: a block that still has a mark is
   // replaced by the new draft of the same people; written blocks stay; people the chronicle does
   // not mention yet go to the end under `heading`.
@@ -152,7 +176,7 @@
       const k = keyOf(b);
       if (!k) return b;
       seen.add(k);
-      return freshBlocks.has(k) && test(b) ? freshBlocks.get(k) : b;
+      return freshBlocks.has(k) && test(b) ? patch(b, freshBlocks.get(k), pattern) : b;
     });
     const added = [...freshBlocks].filter(([k]) => !seen.has(k)).map(([, b]) => b);
     if (added.length) blocks.push(`## ${heading}`, ...added);

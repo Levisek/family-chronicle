@@ -334,7 +334,8 @@ web/              the built website: web/<site_dir>/, web/manifest.json, web/app
   the birth year within 2 years and, among several, the parents' names. One candidate is taken;
   several or none become a question, only for ids the family uses (root, branch roots,
   `living_extra`, `deceased_extra`, `exclude`, `living_town`, `people`/`main` of documents,
-  `<!-- person -->` in chronicles, `people` of events.json; `@I5@` counts as `I5`). The person
+  `<!-- person -->` in chronicles (`chronicles/*.md` and each branch's `chronicle` with its
+  translations), `people` of events.json; `@I5@` counts as `I5`). The person
   confirms the answers with one button; one new person cannot answer two questions. Then
   `match.remap` moves all of them to the new ids. An id without a pair is dropped, except in a
   document's `people`, where it stays as `?<old id>` so the document is held back until it is linked
@@ -345,8 +346,9 @@ web/              the built website: web/<site_dir>/, web/manifest.json, web/app
   paragraph a couple with `<!-- person -->` and `<!-- place -->`, sentences from
   `locales/<lang>.json` > `skeleton` (a language without it gets a list of facts). A missing date or
   place is `[<skeleton.fill_in>: <what>]`, e.g. `[Fill in: birthplace]`. Living people: name and
-  relation only. `skeleton.refresh` puts a new draft over a chronicle: blocks that still have a mark
-  are replaced, written blocks stay, people not in it yet go to the end. `skeleton` is removed from
+  relation only. `skeleton.refresh` puts a new draft over a chronicle: a block that still has a mark
+  and was not written in is replaced; in one that was, only the sentences with a mark get their
+  filled-in form; blocks without a mark stay; people not in it yet go to the end. `skeleton` is removed from
   the strings sent to the website.
 - **AI request** (`engine/aiprompt.js`): instructions (app texts), facts of the branch (deceased
   with dates and places; living people name and relation only, also as children and partners)

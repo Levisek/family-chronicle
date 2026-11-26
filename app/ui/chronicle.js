@@ -116,6 +116,8 @@
       const n = (ed.text.match(pattern) || []).length;
       marks.textContent = n ? t('chron_marks', { n }) : t('chron_no_marks');
       view.innerHTML = preview(ed.text, pattern);
+      // a link opens in a new tab: leaving this one would lose what is not saved
+      for (const a of view.querySelectorAll('a[href]:not([href^="#"])')) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
       saveBtn.disabled = ed.text === ed.saved;
     };
     const area = h('textarea', { id: 'chron-text', spellcheck: 'true', lang, 'aria-label': t('chron_text'), oninput: (e) => { ed.text = e.target.value; update(); } });
