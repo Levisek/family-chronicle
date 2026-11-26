@@ -392,6 +392,7 @@ Code: MIT, see `LICENSE`.
 - Font: **EB Garamond** by the EB Garamond Project Authors, SIL Open Font License 1.1
   (`fonts/OFL.txt`).
 - Map background: **Natural Earth** (naturalearthdata.com), public domain.
+- Place names: **GeoNames** (geonames.org), CC BY 4.0 (`app/data/gazetteer.js`, made by `tools/gazetteer.mjs`).
 - The idea of the ancestor fan chart follows the fan chart of the rodokmen-skill project
   (J. Šaršon, MIT); the code here is original (see the header of `static/fan.js`).
 - Every person, place record and scan in `example/` is invented.

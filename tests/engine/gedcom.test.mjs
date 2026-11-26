@@ -223,3 +223,17 @@ test('ansi_fallback_is_reported', () => {
   assert.equal(t.encoding, 'windows-1252 (fallback)');
   assert.equal(G.load(utf8('0 HEAD\n0 TRLR\n')).encoding, 'utf-8');
 });
+
+test('place_coords', () => {
+  const t = G.parse([
+    '0 HEAD', '0 @I1@ INDI', '1 NAME A /B/',
+    '1 BIRT', '2 DATE 1900', '2 PLAC Linz', '3 MAP', '4 LATI N48.3069', '4 LONG E14.2858',
+    '1 DEAT', '2 PLAC Linz', '3 MAP', '4 LATI N1', '4 LONG E1',
+    '1 BURI', '2 PLAC Lima', '3 MAP', '4 LATI S12.05', '4 LONG W77.04',
+    '1 MARR', '2 PLAC Nowhere',
+    '0 TRLR', ''].join('\n'));
+  assert.deepEqual(t.placeCoords.get('Linz'), [48.3069, 14.2858]);
+  assert.deepEqual(t.placeCoords.get('Lima'), [-12.05, -77.04]);
+  assert.equal(t.placeCoords.has('Nowhere'), false);
+  assert.equal(G.load(MINI).placeCoords.size, 0);
+});

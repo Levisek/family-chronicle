@@ -204,7 +204,18 @@
   function parse(text) {
     const people = new Map(), families = new Map();
     let record = null, ev = null, nameDone = false, readingName = false;
+    // PLAC -> MAP -> LATI/LONG; the first coordinates of a place string win
+    const placeCoords = new Map();
+    let coordPlace = null, inMap = false, lat = null, lon = null;
+    const coordinate = (v, neg) => {
+      const m = /^\s*([NSEW])?\s*(-?\d+(?:\.\d+)?)\s*$/i.exec(v || '');
+      if (!m) return null;
+      const x = parseFloat(m[2]);
+      return m[1] && m[1].toUpperCase() === neg ? -x : x;
+    };
     for (const [level, tag, value] of logicalLines(text)) {
+      if (level <= 3 && inMap) inMap = false;
+      if (level <= 2) coordPlace = null;
       if (level === 0) {
         record = null; ev = null; nameDone = false; readingName = false;
         // "0 @I1@ INDI": the tag column holds the ID, the value column the type
@@ -247,10 +258,16 @@
           else if (tag === 'WIFE') record.wife = ref(value);
           else if (tag === 'CHIL') record.children.push(ref(value));
         }
+      } else if (level === 3 && coordPlace !== null) {
+        inMap = tag === 'MAP';
+      } else if (level === 4 && inMap) {
+        if (tag === 'LATI') lat = coordinate(value, 'S');
+        else if (tag === 'LONG') lon = coordinate(value, 'W');
+        if (lat !== null && lon !== null && !placeCoords.has(coordPlace)) placeCoords.set(coordPlace, [lat, lon]);
       } else if (level === 2) {
         if (ev !== null) {
           if (tag === 'DATE') ev.date = parseDate(value);
-          else if (tag === 'PLAC') ev.place = value || null;
+          else if (tag === 'PLAC') { ev.place = value || null; coordPlace = ev.place; lat = lon = null; }
           else if (tag === 'CAUS') ev.cause = value;
           else if (tag === 'AGE') ev.age = value;
         } else if (isPerson && readingName && (tag === 'GIVN' || tag === 'SURN')) {
@@ -259,7 +276,7 @@
         }
       }
     }
-    return new Tree(people, families);
+    return Object.assign(new Tree(people, families), { placeCoords });
   }
 
   // `tree.encoding` says how the file was read; "windows-1252 (fallback)" means the header said
