@@ -9,7 +9,7 @@
 // Scenarios: chromium_example, chromium_folder, xss_name, leak_refused, own_basemap,
 // online_only_places, firefox_backup_warning, firefox_saved_family, firefox_suggested_root,
 // new_gedcom_renumbered, new_gedcom_same_answer_twice, chronicle_editor, chronicle_xss_preview,
-// firefox_chronicle, ai_dialog, living_step.
+// firefox_chronicle, ai_dialog, living_step, places_step.
 // ONLY=<name>,<name> runs just those.
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
@@ -291,6 +291,46 @@ await scenario('living_step', chromium, async (page) => {
   const site = JSON.parse((await folderList(page, 'living'))['site.json']);
   assert(site.living_extra.includes('X1') && !site.deceased_extra?.includes('X1'), 'taking Ignaz back is not saved');
   assert(Object.values(site.living_town).filter((v) => v === 'Linz').length >= 2, `the household town is not set for all: ${JSON.stringify(site.living_town)}`);
+});
+
+await scenario('places_step', chromium, async (page) => {
+  // "Kelč - dýmkař" is Kelč with an alias; "VM - Zašová" is found by another name; "dýmkař" is left
+  // for later, the home screen reminds, and then it is "not a place" (and can be taken back)
+  await page.addInitScript(FAKE_PICKER, 'places');
+  await page.goto(APP);
+  await page.click('text=Start with your own GEDCOM');
+  const path = gedcom('Ann /Smith/', 'VM - Zašová', 'Kelč - dýmkař').replace(/\.ged$/, '');
+  writeFileSync(`${path}2.ged`, readFileSync(`${path}.ged`, 'utf8').replace('2 PLAC Linz\n1 DEAT', '2 PLAC dýmkař\n1 DEAT'));
+  await page.setInputFiles('#ged-input', `${path}2.ged`);
+  await page.waitForSelector('#gedcom-summary');
+  await nextTo(page, 4);
+  await page.waitForSelector('#places-panel');
+  assert(await page.locator('#pending li[data-town^="Kelč"]').count() === 0, 'Kelč with a note is asked about');
+  const vm = page.locator('#pending li[data-town="VM - Zašová"]');
+  assert((await vm.textContent()).includes('Ann Smith: birth 1990'), `no origin: ${await vm.textContent()}`);
+  await vm.locator('.place-search').fill('Zašová');
+  await vm.locator('.place-search').press('Enter');
+  await page.locator('#pending li[data-town="VM - Zašová"] .candidates button').first().click();
+  await page.locator('#pending li[data-town="Linz"] .candidates button >> text=Upper Austria').click();
+  await page.locator('#pending li[data-town="dýmkař"] >> text=later').click();
+  assert((await page.textContent('#later')).includes('dýmkař'), 'dýmkař is not left for later');
+  await nextTo(page, 6);
+  await page.click('#build');
+  await page.waitForSelector('#choose-folder, #findings, .error', { timeout: 60000 });
+  await page.click('#choose-folder');
+  await page.waitForSelector('#saved', { timeout: 30000 });
+  const places = JSON.parse((await folderList(page, 'places'))['places.json']);
+  assert(places['Zašová'] && places['Zašová'].aliases.includes('VM - Zašová'), `Zašová: ${JSON.stringify(places['Zašová'])}`);
+  assert(places['Kelč'] && places['Kelč'].aliases.includes('Kelč - dýmkař'), `Kelč: ${JSON.stringify(places['Kelč'])}`);
+  await page.click('#home');
+  await page.waitForSelector('#home-places');
+  assert((await page.textContent('#home-places')).startsWith('1 '), await page.textContent('#home-places'));
+  await page.click('#home-places');
+  await page.waitForSelector('#pending li[data-town="dýmkař"]');
+  await page.locator('#pending li[data-town="dýmkař"] >> text=not a place').click();
+  assert((await page.textContent('#ignored')).includes('dýmkař'), 'dýmkař is not listed as not a place');
+  await page.click('#ignored >> text=undo');
+  await page.waitForSelector('#pending li[data-town="dýmkař"]');
 });
 
 await scenario('own_basemap', chromium, async (page) => {

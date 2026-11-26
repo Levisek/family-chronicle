@@ -329,6 +329,21 @@ web/              the built website: web/<site_dir>/, web/manifest.json, web/app
   (`tree.placeCoords`), the gazetteer, then Nominatim only after a click (only the place string,
   at most one request a second), then a choice from candidates or a click into the map.
   Several equal matches are never picked automatically.
+- **Places** (step 4, `engine/gazetteer.js`): the town of a place string is cut of notes
+  (`townName`: "Kelč - dýmkař" -> Kelč when the part before the dash is a known town, "(…)" and
+  "okr. X" go); "okres X" keeps the candidates within 40 km of X; a country or land is no question
+  (`isRegion`); an open town with one candidate clearly nearest to the places found is picked for
+  checking (`nearFamily`). Strings that do not find their town by name become `aliases` in
+  places.json. "Not a place" goes to `ignore_places` (can be taken back); what is left open stays
+  open and the home screen counts it.
+- **Living** (step 5): `project.inferDeceased` marks people without a birth year and death as
+  deceased when a child (−12 years), a parent (+60), a wedding (−12) or another event of theirs
+  puts their birth more than `living_years` ago; they go to `deceased_extra`, "alive" puts them to
+  `living_extra`. `living_town` is set per household from the places of the family.
+- **Findings of the check** (step 6): `privacy.whoseFinding` tells which living people a quoted
+  text points to; the app groups the findings by them and saves "it is someone else" as
+  `check_exceptions` with the reason in words. An exception also silences the finding of a year
+  next to a name, which quotes the text without accents.
 - **A newer GEDCOM** (step 1 when the family already has one): `engine/match.js` pairs the people.
   Same id + same name + same birth year = the same person; otherwise the name without diacritics,
   the birth year within 2 years and, among several, the parents' names. One candidate is taken;

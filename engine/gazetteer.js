@@ -86,6 +86,18 @@
     return { status: cand.length === 1 ? 'unique' : 'ambiguous', candidates: cand.slice(0, MAX_CANDIDATES).map((i) => candidate(gaz, i)) };
   }
 
+  // The places.json key for a place string: its town without what a person wrote after it ("Kelč -
+  // dýmkař", "Kelč (9.10. uvádí maminka)", "Podlesí okr. Příbram"). A part before " - " counts only
+  // when it is a known town ("VM - Zašová" stays as it is: the person decides).
+  function townName(place, gaz) {
+    const { byName } = prepare(gaz);
+    let t = (placesMod.toTown(place) || String(place).split(',')[0]).trim();
+    t = t.replace(/\s+(?:okres|okr\.?)\s+.*$/iu, '').replace(/\s*\(.*$/u, '').trim() || t;
+    const dash = /^(.+?)\s+[-–]\s+/u.exec(t);
+    if (dash && byName.has(normalize(dash[1]))) t = dash[1].trim();
+    return t;
+  }
+
   // {place string: entry}. An entry with coordinates: {town, coords, source, country[, name, existing]};
   // otherwise {town, status: 'ambiguous' | 'none', candidates}. `town` is the places.json key.
   // Places already in places.json (`existing`) are returned as they are and never changed.
@@ -102,7 +114,7 @@
         set({ town, coords: [...e.coords], source: e.source || 'manual', country: e.country || {}, existing: true });
         continue;
       }
-      const name = placesMod.toTown(p) || p.split(',')[0].trim();
+      const name = townName(p, gaz);
       if (coordsOf.has(p)) { set({ town: name, coords: [...coordsOf.get(p)], source: 'gedcom', country: {} }); continue; }
       const r = lookup(p, gaz);
       if (r.status === 'unique') {
@@ -166,7 +178,19 @@
     'austria-hungary', 'bohemia', 'moravia', 'silesia', 'czechoslovakia', 'magyarorszag', 'polska', 'slovakia', 'america', 'europe']);
   function isRegion(place, gaz) {
     const parts = String(place).split(',').map((x) => normalize(x)).filter(Boolean);
-    return parts.length > 0 && parts.every((n) => REGIONS.has(n) || has(gaz && gaz.countries, n));
+    const towns = gaz ? prepare(gaz).byName : new Map();
+    return parts.length > 0 && parts.every((n) => REGIONS.has(n) || (has(gaz && gaz.countries, n) && !towns.has(n)));
+  }
+
+  // The nearest place already found (no guess) to coords: {town, km}, or null.
+  function closest(coords, towns) {
+    let best = null;
+    for (const x of towns) {
+      if (!x.coords || x.check || x.status === 'pending') continue;
+      const km = distanceKm(coords, x.coords);
+      if (!best || km < best.km) best = { town: x.town, km };
+    }
+    return best;
   }
 
   // A town still open, with one candidate clearly the nearest to the places already found (not to
@@ -208,7 +232,7 @@
     return out;
   }
 
-  const api = { normalize, lookup, resolveAll, groupTowns, isRegion, nearFamily, distanceKm, onlineQuery, nominatimUrl, parseNominatim, MAX_CANDIDATES };
+  const api = { normalize, lookup, resolveAll, groupTowns, isRegion, nearFamily, distanceKm, closest, townName, onlineQuery, nominatimUrl, parseNominatim, MAX_CANDIDATES };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).gazetteer = api;
 })(typeof window !== 'undefined' ? window : globalThis);

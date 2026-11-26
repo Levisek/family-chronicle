@@ -18,8 +18,12 @@
     const p = FCApp.project;
     const cfg = readJson(p, 'site.json') || {};
     const places = readJson(p, cfg.places || 'places.json') || {};
-    let people = 0;
-    try { people = E().gedcom.load(p.files.get(cfg.gedcom || 'family.ged')).people.size; } catch (e) { /* shown by the wizard */ }
+    let people = 0, missing = 0;
+    try {
+      const tree = E().gedcom.load(p.files.get(cfg.gedcom || 'family.ged'));
+      people = tree.people.size;
+      missing = FCApp.placesMissing(tree, places, cfg.ignore_places);
+    } catch (e) { /* shown by the wizard */ }
     const where = p.mode === 'folder' ? t('home_saved_in', { name: p.name }) : p.example ? t('home_example') : t('home_browser');
     const info = h('p', { class: 'note', id: 'open-info', role: 'status' });
     const nPlaces = Object.values(places).filter((x) => x && x.coords).length;
@@ -31,6 +35,7 @@
         h('button', { type: 'button', class: 'button', id: 'home-open', onclick: () => {
           info.textContent = p.mode === 'folder' ? t('home_open_where', { folder: p.name, site: cfg.site_dir || 'family' }) : t('home_open_zip');
         } }, t('home_open')),
+        missing ? h('button', { type: 'button', class: 'button', id: 'home-places', onclick: () => FCApp.wizard.open(p, 4) }, t('home_places_missing', { n: missing })) : null,
         h('button', { type: 'button', class: 'button', id: 'home-new-gedcom', onclick: () => FCApp.wizard.open(p, 1) }, t('home_new_gedcom')),
         h('button', { type: 'button', class: 'button', id: 'home-settings', onclick: () => FCApp.wizard.open(p, 1) }, t('home_settings')),
         p.mode === 'browser' ? h('button', { type: 'button', class: 'button', id: 'home-backup', onclick: () => { p.downloadBackup(); FCApp.refreshBanners(); } }, t('home_backup')) : null),

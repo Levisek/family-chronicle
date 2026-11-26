@@ -183,3 +183,32 @@ test('near_family_suggests_for_checking', () => {
   // a guess is no anchor for the next one: two candidates both near nothing confirmed stay
   assert.ok(Z.distanceKm([50.08, 14.42], [49.96, 14.07]) > 20 && Z.distanceKm([50.08, 14.42], [49.96, 14.07]) < 30);
 });
+
+test('town_name_without_notes', () => {
+  const gaz = { ...CZ, names: [...CZ.names, ['Kelč', 49.48, 17.82, 'CZ', '89']] };
+  assert.equal(Z.townName('Kelč - dýmkař', gaz), 'Kelč');
+  assert.equal(Z.townName('Kelč  (9.10. 1898 uvádí maminka)', gaz), 'Kelč');
+  assert.equal(Z.townName('Kelč (9.10. 1898', gaz), 'Kelč');
+  assert.equal(Z.townName('Praha - vyučen postřihačem, nájemce pivovaru v Hranicích', gaz), 'Praha');
+  assert.equal(Z.townName('Podlesí č. 85, okres Příbram', gaz), 'Podlesí');
+  assert.equal(Z.townName('Podlesí okr. Příbram', gaz), 'Podlesí');
+  // what is before the dash is no town: the whole stays (the person decides)
+  assert.equal(Z.townName('VM - Zašová', gaz), 'VM - Zašová');
+  // a resolved string keeps the cleaned name as its town
+  const r = Z.resolveAll(['Kelč - dýmkař'], G.parse('0 HEAD\n0 TRLR\n'), gaz, {});
+  assert.equal(r['Kelč - dýmkař'].town, 'Kelč');
+});
+
+test('a_town_named_like_a_country_is_a_town', () => {
+  const gaz = { ...CZ, names: [...CZ.names, ['Svatá Helena', 44.6, 21.7, 'RO', '08']], countries: { ...CZ.countries, 'svata helena': 'SH', rumunsko: 'RO' } };
+  assert.ok(!Z.isRegion('Svatá Helena, Rumunsko', gaz));
+  assert.ok(Z.isRegion('Rumunsko', gaz));
+});
+
+test('closest_family_place', () => {
+  const towns = [{ town: 'Beroun', status: 'found', coords: [49.96, 14.07] }, { town: 'Guess', status: 'found', check: true, coords: [50.08, 14.42] }];
+  const c = Z.closest([50.08, 14.42], towns);
+  assert.equal(c.town, 'Beroun');
+  assert.ok(c.km > 20 && c.km < 30);
+  assert.equal(Z.closest([1, 1], []), null);
+});
