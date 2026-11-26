@@ -35,6 +35,12 @@
         h('button', { type: 'button', class: 'button', id: 'home-settings', onclick: () => FCApp.wizard.open(p, 1) }, t('home_settings')),
         p.mode === 'browser' ? h('button', { type: 'button', class: 'button', id: 'home-backup', onclick: () => { p.downloadBackup(); FCApp.refreshBanners(); } }, t('home_backup')) : null),
       info,
+      (cfg.branches || []).length ? h('div', { class: 'home-chronicles' }, h('h2', {}, t('home_chronicles')),
+        h('div', { class: 'home-actions' }, cfg.branches.map((b) => {
+          const name = b.name[FCApp.lang] || b.name[cfg.default_language] || Object.values(b.name)[0] || b.key;
+          return h('button', { type: 'button', class: 'button', 'data-branch': b.key, onclick: () => FCApp.show('chronicle', b.key) },
+            t(b.chronicle && p.files.has(b.chronicle) ? 'home_chronicle' : 'home_chronicle_new', { name }));
+        }))) : null,
       h('p', {}, h('button', { type: 'button', class: 'link', onclick: () => { FCApp.project = null; FCApp.show('start'); } }, t('home_start')))));
   };
 })(window);

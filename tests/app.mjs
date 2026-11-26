@@ -8,7 +8,8 @@
 // interface (window.__folders); the origin private file system is not open to file:// pages.
 // Scenarios: chromium_example, chromium_folder, xss_name, leak_refused, own_basemap,
 // online_only_places, firefox_backup_warning, firefox_saved_family, firefox_suggested_root,
-// new_gedcom_renumbered.
+// new_gedcom_renumbered, chronicle_editor, chronicle_xss_preview,
+// firefox_chronicle.
 // ONLY=<name>,<name> runs just those.
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
@@ -432,6 +433,75 @@ await scenario('new_gedcom_renumbered', chromium, async (page) => {
   assert(chron.includes('<!-- person: X43; X44 -->'), 'the chronicle anchors keep old ids');
   assert(Object.keys(files).some((f) => /^history\/[^/]+\/family\.ged$/.test(f)), 'the old family.ged is not in history/');
   assert(Object.keys(files).some((f) => /^history\/[^/]+\/chronicles\/huber\.md$/.test(f)), 'the old chronicle is not in history/');
+});
+
+await scenario('chronicle_editor', chromium, async (page) => {
+  await seedFolder(page, 'chron', exampleFiles());
+  await page.click('text=Open a saved family');
+  await page.click('[data-branch="kowalski"]');
+  await page.waitForSelector('#chron-text');
+  assert(await page.isVisible('#chron-draft-note'), 'no note that this is a draft');
+  const drafted = await page.inputValue('#chron-text');
+  assert(drafted.startsWith('# Kowalski and Szabó') && drafted.includes('<!-- person: I41; I42 -->'), 'the draft is not from the data');
+  await page.fill('#chron-text', `${drafted}\nTheir trade was [Fill in: trade].\n`);
+  await page.waitForSelector('#chron-preview mark.fill-in');
+  assert((await page.textContent('#chron-marks')).includes('1'), 'the marks are not counted');
+  await page.click('#chron-save');
+  await page.waitForSelector('#chron-save:disabled');
+  let files = await folderList(page, 'chron');
+  assert(JSON.parse(files['site.json']).branches.find((b) => b.key === 'kowalski').chronicle === 'chronicles/kowalski.md', 'site.json has no chronicle for the branch');
+  assert(files['chronicles/kowalski.md'] > 0, 'the chronicle was not written');
+  assert(Object.keys(files).some((f) => /^history\/[^/]+\/site\.json$/.test(f)), 'the old site.json is not in history/');
+  // a second save keeps the first text as a version
+  await page.fill('#chron-text', `${drafted}\nWritten by hand.\n`);
+  await page.click('#chron-save');
+  await page.waitForSelector('#chron-save:disabled');
+  files = await folderList(page, 'chron');
+  assert(Object.keys(files).some((f) => /^chronicles\/\.versions\/kowalski-\d{4}-\d\d-\d\d-\d{6}\.md$/.test(f)), 'no version in chronicles/.versions/');
+  await page.click('#chron-versions-btn');
+  await page.waitForSelector('#chron-versions li');
+  // the website: built with the new chronicle, no marks on it
+  await page.click('#chron-home');
+  await page.click('#home-build');
+  await page.click('#build');
+  await page.waitForSelector('#saved, #findings, .error', { timeout: 60000 });
+  assert(await page.isVisible('#saved'), `not saved: ${await page.textContent('#screen')}`);
+  const story = await page.evaluate(() => {
+    let d = window.__folders.chron;
+    for (const p of ['web', 'family', 'story']) d = d.dirs.get(p);
+    return new TextDecoder().decode(d.files.get('kowalski.html'));
+  });
+  assert(story.includes('Written by hand.') && !story.includes('[Fill in'), 'the website chronicle is not the saved text');
+});
+
+await scenario('chronicle_xss_preview', chromium, async (page) => {
+  await seedFolder(page, 'chron-xss', exampleFiles());
+  await page.click('text=Open a saved family');
+  await page.click('[data-branch="huber"]');
+  await page.waitForSelector('#chron-text');
+  await page.fill('#chron-text', '# T\n\nHello <img src=x onerror=window.__x=1> and <script>window.__x=2</script>\n');
+  await page.waitForFunction(() => document.querySelector('#chron-preview').textContent.includes('<img'));
+  assert(await page.locator('#chron-preview img, #chron-preview script').count() === 0, 'HTML of the text got into the preview');
+  assert(await page.evaluate(() => window.__x) === undefined, 'a handler ran');
+  page.once('dialog', (d) => d.accept());
+  await page.click('#chron-home');
+  await page.waitForSelector('#home-counts');
+});
+
+await scenario('firefox_chronicle', firefox, async (page) => {
+  await page.goto(APP);
+  await page.click('text=Try it on the example');
+  await nextTo(page, 6);
+  await page.click('#build');
+  await page.waitForSelector('#home', { timeout: 60000 });
+  await page.click('#home');
+  await page.click('[data-branch="huber"]');
+  await page.waitForSelector('#chron-text');
+  assert(!(await page.isVisible('#chron-draft-note')), 'the existing chronicle is shown as a draft');
+  await page.fill('#chron-text', `${await page.inputValue('#chron-text')}\nOne more line.\n`);
+  await page.click('#chron-save');
+  await page.waitForSelector('#chron-save:disabled');
+  assert(await page.isVisible('.banner.warn'), 'no backup warning after saving the chronicle in this browser');
 });
 
 for (const [name, status, note] of results) console.log(`${status.padEnd(4)} ${name}  ${note}`);

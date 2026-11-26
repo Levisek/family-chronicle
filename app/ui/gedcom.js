@@ -86,7 +86,7 @@
       u.r.questions.map((q) => {
         const old = E().project.personInfo(u.oldTree, q.id, locale) || { label: q.id, years: '' };
         const group = `q-${q.id}`;
-        const radio = (value, label) => h('label', { class: 'choice' },
+        const radio = (value, label) => h('label', { class: 'answer' },
           h('input', { type: 'radio', name: group, value, checked: u.answers.has(q.id) && (u.answers.get(q.id) || '') === value, onchange: () => answer(q.id, value) }), ' ', label);
         const found = h('div', { class: 'candidates' });
         const search = h('input', { type: 'search', placeholder: t('update_search'), 'aria-label': t('update_search'), oninput: (e) => {
