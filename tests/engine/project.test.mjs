@@ -180,3 +180,8 @@ test('suggest_large_tree', () => {
   assert.equal(b.length, 4);
   assert.ok(ms < 1000, `${ms} ms`);
 });
+
+test('person_info', () => {
+  assert.deepEqual(P.personInfo(TREE, 'I1', LOCALES.en), P.searchPeople(TREE, 'Daniel Huber', 1, LOCALES.en)[0]);
+  assert.equal(P.personInfo(TREE, 'nobody', LOCALES.en), null);
+});

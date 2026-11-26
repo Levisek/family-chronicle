@@ -79,17 +79,22 @@
       out.push(p);
     }
     out.sort((a, b) => fullName(a).localeCompare(fullName(b)) || idCmp(a.id, b.id));
-    return out.slice(0, limit).map((p) => {
-      const names = tree.parents(p.id).map((x) => fullName(tree.people.get(x))).filter(Boolean);
-      let parents = '';
-      if (names.length) {
-        const x = names.length === 2 ? fill(locale.join_and || '{a} & {b}', { a: names[0], b: names[1] }) : names[0];
-        const role = p.sex === 'F' ? 'daughter' : 'son';
-        const roles = locale.roles_of || {};
-        parents = roles[role] ? fill(roles[role], { x }) : x;
-      }
-      return { id: p.id, label: fullName(p) || p.id, years: lifeYears(p), parents };
-    });
+    return out.slice(0, limit).map((p) => personInfo(tree, p.id, locale));
+  }
+
+  // {id, label, years, parents} of one person, the card of the wizard; null when not in the tree.
+  function personInfo(tree, id, locale = {}) {
+    const p = tree.people.get(id);
+    if (!p) return null;
+    const names = tree.parents(p.id).map((x) => fullName(tree.people.get(x))).filter(Boolean);
+    let parents = '';
+    if (names.length) {
+      const x = names.length === 2 ? fill(locale.join_and || '{a} & {b}', { a: names[0], b: names[1] }) : names[0];
+      const role = p.sex === 'F' ? 'daughter' : 'son';
+      const roles = locale.roles_of || {};
+      parents = roles[role] ? fill(roles[role], { x }) : x;
+    }
+    return { id: p.id, label: fullName(p), years: lifeYears(p), parents };
   }
 
   const branchKey = (s) => plain(s).replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'branch';
@@ -167,7 +172,7 @@
 
   const serialize = (obj) => new TextEncoder().encode(JSON.stringify(obj, null, 2) + '\n');
 
-  const api = { PALETTE, summary, suggestRoot, searchPeople, suggestBranches, mergeBranches, renameBranch, recolorBranch, livingSummary, newConfig, serialize, parseConfig: config.parse };
+  const api = { PALETTE, summary, suggestRoot, searchPeople, personInfo, suggestBranches, mergeBranches, renameBranch, recolorBranch, livingSummary, newConfig, serialize, parseConfig: config.parse };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).project = api;
 })(typeof window !== 'undefined' ? window : globalThis);

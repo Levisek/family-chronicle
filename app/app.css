@@ -68,6 +68,7 @@ main { padding: 0 1.5rem 7rem; }
 h1 { font-size: 2.6rem; font-weight: 500; line-height: 1.15; margin: 2rem 0 .4rem; }
 h1::after { content: ""; display: block; width: 4rem; margin: .8rem auto 0; border-top: 1px solid var(--line); }
 .page.wide h1::after { margin-left: 0; }
+.page.wide .lead { margin-left: 0; }
 h2 { font-size: 1.35rem; font-weight: 500; margin: 1.6rem 0 .5rem; }
 .lead { font-style: italic; color: var(--text-muted); margin: .4rem auto 1.4rem; max-width: 40rem; }
 .note { font-style: italic; color: var(--text-muted); font-size: .9rem; }
@@ -97,7 +98,7 @@ h2 { font-size: 1.35rem; font-weight: 500; margin: 1.6rem 0 .5rem; }
 .steps [aria-current="step"] { color: var(--text); font-weight: 600; border-bottom: 3px double var(--text); }
 .wizard-foot {
   position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center;
-  gap: 1rem; padding: .8rem 4rem; background: linear-gradient(rgba(244, 236, 216, 0), var(--paper) 35%);
+  gap: 1rem; padding: .7rem 4rem; background: var(--paper); border-top: 1px solid var(--line);
 }
 .wizard-foot .spacer { flex: 1; }
 
@@ -119,9 +120,9 @@ h2 { font-size: 1.35rem; font-weight: 500; margin: 1.6rem 0 .5rem; }
 .person[aria-pressed="true"] { border-left-color: var(--accent); background: #f6e6d3; }
 .monogram { flex: none; width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: .85rem; color: var(--text-muted); }
 .person-name { font-weight: 600; }
-.person-sub { font-style: italic; font-size: .88rem; color: var(--text-muted); }
+.person-sub { display: block; font-style: italic; font-size: .88rem; color: var(--text-muted); }
 
-.branch-layout { display: grid; grid-template-columns: minmax(18rem, 26rem) 1fr; gap: 2rem; align-items: start; }
+.branch-layout { display: grid; grid-template-columns: minmax(16rem, 22rem) 1fr; gap: 2rem; align-items: start; }
 .branch-list { list-style: none; padding: 0; margin: 0; }
 .branch { border-bottom: 1px solid var(--paper-dark); padding: .6rem 0; }
 .branch-head { display: flex; gap: .6rem; align-items: center; }
@@ -132,7 +133,7 @@ h2 { font-size: 1.35rem; font-weight: 500; margin: 1.6rem 0 .5rem; }
 .branch input[type="text"] { border: 1px solid var(--line); background: var(--paper-light); padding: .15rem .4rem; width: 100%; }
 .field { display: block; margin: .35rem 0; font-size: .92rem; }
 .pedigree { width: 100%; height: auto; background: var(--paper-light); border: 1px solid var(--line); }
-.pedigree text { font-family: var(--font); font-size: 12px; fill: var(--text); }
+.pedigree text { font-family: var(--font); font-size: 15px; fill: var(--text); }
 
 .places-layout { display: grid; grid-template-columns: 1fr minmax(20rem, 28rem); gap: 1.5rem; align-items: start; }
 .panel { background: var(--paper-light); border: 1px solid var(--line); border-left: 4px solid var(--accent); padding: 1rem 1.3rem; box-shadow: var(--shadow); }

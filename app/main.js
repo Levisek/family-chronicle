@@ -15,7 +15,7 @@
     const el = clear(document.getElementById('banners'));
     const p = FCApp.project;
     if (current.screen === 'start' && !FCApp.store.canFolder()) el.appendChild(h('p', { class: 'banner', role: 'note' }, t('no_folder_banner')));
-    if (p && p.mode !== 'folder' && p.dirty) {
+    if (p && p.mode !== 'folder' && p.dirty && !FCApp.store.canFolder()) {
       el.appendChild(h('p', { class: 'banner warn', role: 'status' }, t('dirty_warning'), ' ',
         h('button', { class: 'link', type: 'button', onclick: () => { p.downloadBackup(FCApp.pending ? FCApp.pending() : null); banners(); } }, t('dirty_download'))));
     }
@@ -40,10 +40,12 @@
     g.scrollTo(0, 0);
   };
   FCApp.refreshBanners = banners;
-  // something changed that is not saved in a folder yet
+  // the screen changed its own state (a wizard step): a re-render keeps it
+  FCApp.replaceArgs = (...args) => { current.args = args; };
+  // something changed that only this browser keeps (Firefox/Safari: no folder to save into)
   FCApp.changed = () => {
     const p = FCApp.project;
-    if (p && p.mode !== 'folder') { p.dirty = true; banners(); }
+    if (p && p.mode !== 'folder' && !FCApp.store.canFolder()) { p.dirty = true; banners(); }
   };
   FCApp.error = (el, message) => el.appendChild(h('p', { class: 'error', role: 'alert' }, message));
 
