@@ -48,9 +48,13 @@
   // Parts after the comma, left to right: the first part found in the gazetteer is the town; the
   // later parts (country, region, two-letter country code) narrow the matches. A narrowing that
   // would leave nothing is ignored.
+  // "okres Příbram", "okr. Náchod", "Bezirk Linz": the district, named after its town
+  const DISTRICT = /^(?:okres|okr\.?|bezirk|bez\.|district|kreis|powiat|j[aá]r[aá]s)\s+(.+)$/iu;
+  const NEAR_DISTRICT_KM = 40;
+
   function lookup(place, gaz) {
     const { byName, admin1 } = prepare(gaz);
-    const parts = String(place).split(',').map((x) => x.trim()).filter(Boolean);
+    const parts = String(place).replace(/\s+(okres|okr\.?)\s+/giu, ', $1 ').split(',').map((x) => x.trim()).filter(Boolean);
     let found = null, rest = [];
     for (let i = 0; i < parts.length && !found; i++) {
       const k = normalize(parts[i]);
@@ -60,6 +64,17 @@
     if (!found) return { status: 'none', candidates: [] };
     let cand = found.slice();
     for (const part of rest) {
+      const d = DISTRICT.exec(part);
+      if (d) {
+        const dk = normalize(d[1]);
+        const towns = byName.get(dk) || (dk.includes('-') ? byName.get(dk.split('-')[0].trim()) : null);
+        if (towns) {
+          const at = (i) => [gaz.names[i][1], gaz.names[i][2]];
+          const near = cand.filter((i) => towns.some((j) => distanceKm(at(i), at(j)) <= NEAR_DISTRICT_KM));
+          if (near.length) cand = near;
+        }
+        continue;
+      }
       const n = normalize(part);
       let keep = null;
       if (has(gaz.countries, n)) keep = (i) => gaz.names[i][3] === gaz.countries[n];
@@ -135,6 +150,42 @@
     return out;
   }
 
+  // Great-circle distance in km between [lat, lon] pairs.
+  function distanceKm(a, b) {
+    const r = Math.PI / 180;
+    const x = Math.sin(((b[0] - a[0]) * r) / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(((b[1] - a[1]) * r) / 2) ** 2;
+    return 12742 * Math.asin(Math.min(1, Math.sqrt(x)));
+  }
+
+  // A country or a land, not a town: "Česko", "Rakousko-Uhersko", "Austria". It has no point on
+  // the map, so it is no question either.
+  const REGIONS = new Set(['cesko', 'ceska republika', 'cr', 'csr', 'cssr', 'csfr', 'ceskoslovensko', 'cechy', 'morava', 'slezsko',
+    'rakousko', 'uhersko', 'rakousko-uhersko', 'rakousko uhersko', 'slovensko', 'nemecko', 'polsko', 'madarsko', 'bulharsko',
+    'rumunsko', 'jugoslavie', 'srbsko', 'chorvatsko', 'ukrajina', 'rusko', 'amerika', 'usa', 'spojene staty', 'spojene staty americke',
+    'kanada', 'argentina', 'evropa', 'osterreich', 'deutschland', 'ungarn', 'bohmen', 'mahren', 'schlesien', 'osterreich-ungarn',
+    'austria-hungary', 'bohemia', 'moravia', 'silesia', 'czechoslovakia', 'magyarorszag', 'polska', 'slovakia', 'america', 'europe']);
+  function isRegion(place, gaz) {
+    const parts = String(place).split(',').map((x) => normalize(x)).filter(Boolean);
+    return parts.length > 0 && parts.every((n) => REGIONS.has(n) || has(gaz && gaz.countries, n));
+  }
+
+  // A town still open, with one candidate clearly the nearest to the places already found (not to
+  // guesses): that candidate, for the person to check. Within NEAR_FAMILY_KM, and the next one at
+  // least three times as far (and 30 km farther).
+  const NEAR_FAMILY_KM = 50;
+  function nearFamily(towns) {
+    const anchors = towns.filter((x) => x.coords && !x.check && x.status !== 'pending').map((x) => x.coords);
+    if (!anchors.length) return towns;
+    for (const x of towns) {
+      if (x.status !== 'pending' || !(x.candidates || []).length) continue;
+      const scored = x.candidates.map((c) => ({ c, d: Math.min(...anchors.map((a) => distanceKm([c.lat, c.lon], a))) })).sort((a, b) => a.d - b.d);
+      const [best, next] = scored;
+      if (best.d > NEAR_FAMILY_KM || (next && next.d < Math.max(3 * best.d, best.d + 30))) continue;
+      Object.assign(x, { status: 'found', check: true, guess: best.c, coords: [best.c.lat, best.c.lon], source: 'gazetteer' });
+    }
+    return towns;
+  }
+
   // What goes to the online lookup: the place without house numbers and street addresses.
   function onlineQuery(place) {
     return String(place).split(',').map((s) => s.trim()).filter((s) => s && !/^\d/.test(s) && !/^ul\.\s/i.test(s))
@@ -157,7 +208,7 @@
     return out;
   }
 
-  const api = { normalize, lookup, resolveAll, groupTowns, onlineQuery, nominatimUrl, parseNominatim, MAX_CANDIDATES };
+  const api = { normalize, lookup, resolveAll, groupTowns, isRegion, nearFamily, distanceKm, onlineQuery, nominatimUrl, parseNominatim, MAX_CANDIDATES };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).gazetteer = api;
 })(typeof window !== 'undefined' ? window : globalThis);

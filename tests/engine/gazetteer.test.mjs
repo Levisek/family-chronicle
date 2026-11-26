@@ -141,3 +141,45 @@ test('online_query_no_house_numbers', () => {
   assert.equal(Z.onlineQuery('ul. Długa 5, Kraków'), 'Kraków');
   assert.equal(Z.onlineQuery('Xyzzy Hamlet, Neverland'), 'Xyzzy Hamlet, Neverland');
 });
+
+// --- fewer questions: district, regions, near the family ------------------------------------------
+const CZ = {
+  names: [
+    ['Praha', 48.6, 19.5, 'SK', '03'], ['Prague', 50.08, 14.42, 'CZ', '52'],
+    ['Příbram', 49.69, 14.01, 'CZ', '88'], ['Podlesí', 49.67, 13.98, 'CZ', '88'], ['Podlesí', 50.3, 12.5, 'CZ', '81'],
+    ['Příbram', 50.6, 14.0, 'CZ', '85'], ['Beroun', 49.96, 14.07, 'CZ', '88'],
+  ],
+  index: { praha: [0, 1] },
+  admin1: { 'CZ.88': ['Central Bohemia', 'central bohemia'], 'CZ.81': ['Carlsbad Region', 'carlsbad region'] },
+  countries: { austria: 'AT', 'czech republic': 'CZ' },
+  countryNames: {},
+};
+
+test('district_picks_the_town_near_it', () => {
+  for (const p of ['Podlesí č. 85, okres Příbram', 'Podlesí okr. Příbram', 'Podlesí, okr Příbram']) {
+    const r = Z.lookup(p, CZ);
+    assert.equal(r.status, 'unique', p);
+    assert.equal(r.candidates[0].lat, 49.67, p);
+  }
+});
+
+test('regions_are_not_towns', () => {
+  for (const p of ['Česko', 'Česká republika', 'ČR', 'Rakousko-Uhersko', 'Řakousko-Uhersko', 'Austria', 'Czech Republic, Austria']) assert.ok(Z.isRegion(p, CZ), p);
+  for (const p of ['Vojvodovo, Bulharsko', 'Praha', 'dýmkař']) assert.ok(!Z.isRegion(p, CZ), p);
+});
+
+test('near_family_suggests_for_checking', () => {
+  const towns = [
+    { town: 'Beroun', strings: ['Beroun'], status: 'found', coords: [49.96, 14.07], source: 'gazetteer' },
+    { town: 'Praha', strings: ['Praha'], status: 'pending', candidates: Z.lookup('Praha', CZ).candidates },
+    { town: 'Far', strings: ['Far'], status: 'pending', candidates: [{ name: 'Far', lat: 45, lon: 5, cc: 'FR', admin1: '' }, { name: 'Far', lat: 46, lon: 6, cc: 'FR', admin1: '' }] },
+  ];
+  Z.nearFamily(towns);
+  assert.equal(towns[1].status, 'found');
+  assert.equal(towns[1].check, true);
+  assert.deepEqual(towns[1].coords, [50.08, 14.42]);
+  assert.equal(towns[1].guess.cc, 'CZ');
+  assert.equal(towns[2].status, 'pending');
+  // a guess is no anchor for the next one: two candidates both near nothing confirmed stay
+  assert.ok(Z.distanceKm([50.08, 14.42], [49.96, 14.07]) > 20 && Z.distanceKm([50.08, 14.42], [49.96, 14.07]) < 30);
+});
