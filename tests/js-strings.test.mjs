@@ -85,3 +85,37 @@ test('placeholders in the strings the scripts fill exist in every locale', () =>
     }
   }
 });
+
+// --- the offline app (app/strings.js) ----------------------------------------------------------
+function appFiles(dir = 'app/') {
+  const out = [];
+  for (const e of readdirSync(new URL(dir, root), { withFileTypes: true })) {
+    if (e.isDirectory()) { if (e.name !== 'data') out.push(...appFiles(`${dir}${e.name}/`)); } else if (e.name.endsWith('.js')) out.push(dir + e.name);
+  }
+  return out;
+}
+
+function appStrings() {
+  const window = {};
+  new Function('window', readFileSync(new URL('app/strings.js', root), 'utf8'))(window);
+  return window.FCApp.strings;
+}
+
+test('strings_complete', () => {
+  const S = appStrings();
+  assert.deepEqual(Object.keys(S).sort(), ['cs', 'en']);
+  assert.deepEqual(Object.keys(S.cs).sort(), Object.keys(S.en).sort());
+  for (const lang of ['en', 'cs']) {
+    for (const [k, v] of Object.entries(S[lang])) {
+      assert.equal(typeof v, 'string', `${lang}.${k}`);
+      assert.doesNotMatch(v, /\p{Extended_Pictographic}/u, `${lang}.${k} has an emoji`);
+      const vars = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+      assert.deepEqual(vars(v), vars(S.en[k]), `${lang}.${k}: placeholders`);
+    }
+  }
+  // every t('key') in the app exists
+  const used = new Set();
+  for (const f of appFiles()) for (const m of code(readFileSync(new URL(f, root), 'utf8')).matchAll(/\bt\(\s*'([a-z0-9_]+)'/g)) used.add(m[1]);
+  assert.ok(used.size > 10, `the scan found the keys (${used.size})`);
+  for (const k of used) assert.ok(k in S.en, `app string missing: ${k}`);
+});
