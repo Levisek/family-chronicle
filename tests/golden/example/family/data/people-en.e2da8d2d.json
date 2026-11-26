@@ -1,0 +1,1884 @@
+{
+ "I1": {
+  "ahnentafel": 1,
+  "branch": "common",
+  "living": true,
+  "name": "Daniel Huber",
+  "parents": [
+   "I2",
+   "I3"
+  ],
+  "partners": {},
+  "relationship": "the author",
+  "sex": "M",
+  "town": "Linz"
+ },
+ "I10": {
+  "ahnentafel": 6,
+  "birth": {
+   "date": "1932",
+   "place": "Kraków"
+  },
+  "branch": "common",
+  "death": {
+   "date": "1998",
+   "place": "Vienna"
+  },
+  "death_age": "about 66 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1958",
+    "place": "Budapest",
+    "spouse": "I11"
+   }
+  ],
+  "mentions": [],
+  "name": "Jan Kowalski",
+  "page": "person/I10.html",
+  "parents": [
+   "I24",
+   "I25"
+  ],
+  "partners": {
+   "I11": "spouse"
+  },
+  "relationship": "grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "poland",
+    1932,
+    1958
+   ],
+   [
+    "hungary",
+    1958,
+    1998
+   ],
+   [
+    "austria",
+    1998,
+    1998
+   ]
+  ],
+  "town": "Kraków"
+ },
+ "I11": {
+  "ahnentafel": 7,
+  "birth": {
+   "date": "1935",
+   "place": "Budapest"
+  },
+  "branch": "common",
+  "death": {
+   "date": "2008",
+   "place": "Vienna"
+  },
+  "death_age": "about 73 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1958",
+    "place": "Budapest",
+    "spouse": "I10"
+   }
+  ],
+  "mentions": [],
+  "name": "Judit Szabó",
+  "page": "person/I11.html",
+  "parents": [
+   "I27",
+   "I28"
+  ],
+  "partners": {
+   "I10": "spouse"
+  },
+  "relationship": "grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "hungary",
+    1935,
+    2008
+   ],
+   [
+    "austria",
+    2008,
+    2008
+   ]
+  ],
+  "town": "Budapest"
+ },
+ "I12": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1960",
+   "place": "Vienna"
+  },
+  "branch": "common",
+  "death": {
+   "date": "2019",
+   "place": "Vienna"
+  },
+  "death_age": "about 59 years",
+  "documents": [],
+  "living": false,
+  "mentions": [],
+  "name": "Piotr Kowalski",
+  "page": "person/I12.html",
+  "parents": [
+   "I10",
+   "I11"
+  ],
+  "partners": {},
+  "relationship": "brother of mother",
+  "sex": "M",
+  "sibling_of": "I3",
+  "states": [
+   [
+    "austria",
+    1960,
+    2019
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I14": {
+  "ahnentafel": 8,
+  "birth": {
+   "date": "1905",
+   "place": "Vienna"
+  },
+  "branch": "huber",
+  "death": {
+   "date": "1971",
+   "place": "Vienna"
+  },
+  "death_age": "about 66 years",
+  "documents": [
+   "death-1971"
+  ],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1929",
+    "place": "Linz",
+    "spouse": "I15"
+   }
+  ],
+  "mentions": [
+   "baptism-1934"
+  ],
+  "name": "Franz Huber",
+  "occupations": [
+   "tailor (1930)"
+  ],
+  "page": "person/I14.html",
+  "parents": [
+   "I30",
+   "I31"
+  ],
+  "partners": {
+   "I15": "spouse"
+  },
+  "relationship": "great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria-hungary",
+    1905,
+    1918
+   ],
+   [
+    "austria",
+    1918,
+    1971
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I15": {
+  "ahnentafel": 9,
+  "birth": {
+   "date": "1908",
+   "place": "Linz"
+  },
+  "branch": "huber",
+  "death": {
+   "date": "1980",
+   "place": "Linz"
+  },
+  "death_age": "about 72 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1929",
+    "place": "Linz",
+    "spouse": "I14"
+   }
+  ],
+  "mentions": [
+   "baptism-1934",
+   "death-1971"
+  ],
+  "name": "Theresia Berger",
+  "page": "person/I15.html",
+  "parents": [
+   "I35",
+   "I36"
+  ],
+  "partners": {
+   "I14": "spouse"
+  },
+  "relationship": "great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "austria-hungary",
+    1908,
+    1918
+   ],
+   [
+    "austria",
+    1918,
+    1980
+   ]
+  ],
+  "town": "Linz"
+ },
+ "I16": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1930",
+   "place": "Vienna"
+  },
+  "branch": "common",
+  "death": {
+   "date": "2005",
+   "place": "Linz"
+  },
+  "death_age": "about 75 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1953",
+    "place": "Salzburg",
+    "spouse": "I17"
+   }
+  ],
+  "mentions": [],
+  "name": "Hilde Huber",
+  "page": "person/I16.html",
+  "parents": [
+   "I14",
+   "I15"
+  ],
+  "partners": {
+   "I17": "divorced"
+  },
+  "relationship": "sister of grandfather",
+  "sex": "F",
+  "sibling_of": "I5",
+  "states": [
+   [
+    "austria",
+    1930,
+    2005
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I17": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1927",
+   "place": "Salzburg"
+  },
+  "branch": "",
+  "death": {
+   "date": "1985",
+   "place": null
+  },
+  "death_age": "about 58 years",
+  "divorced": true,
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1953",
+    "place": "Salzburg",
+    "spouse": "I16"
+   }
+  ],
+  "mentions": [],
+  "name": "Otto Maier",
+  "page": "person/I17.html",
+  "parents": [],
+  "partners": {
+   "I16": "divorced"
+  },
+  "relationship": "former husband of sister of grandfather",
+  "sex": "M",
+  "spouse_of": "I16",
+  "town": "Salzburg"
+ },
+ "I18": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1956",
+   "place": "Linz"
+  },
+  "branch": "common",
+  "death": {
+   "date": "2020",
+   "place": "Linz"
+  },
+  "death_age": "about 64 years",
+  "documents": [],
+  "living": false,
+  "mentions": [],
+  "name": "Peter Maier",
+  "page": "person/I18.html",
+  "parents": [
+   "I17",
+   "I16"
+  ],
+  "partners": {},
+  "relationship": "first cousin of father",
+  "sex": "M",
+  "states": [
+   [
+    "austria",
+    1956,
+    2020
+   ]
+  ],
+  "town": "Linz"
+ },
+ "I19": {
+  "ahnentafel": 10,
+  "birth": {
+   "date": "1900",
+   "place": "Prague"
+  },
+  "branch": "cerny",
+  "death": {
+   "date": "1968",
+   "place": "Prague"
+  },
+  "death_age": "about 68 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1928",
+    "place": "Brno",
+    "spouse": "I20"
+   }
+  ],
+  "mentions": [],
+  "name": "Václav Černý",
+  "occupations": [
+   "printer (1925)",
+   "union representative"
+  ],
+  "page": "person/I19.html",
+  "parents": [
+   "I37",
+   "I38"
+  ],
+  "partners": {
+   "I20": "spouse"
+  },
+  "relationship": "great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria-hungary",
+    1900,
+    1918
+   ],
+   [
+    "czechoslovakia",
+    1918,
+    1939
+   ],
+   [
+    "protectorate",
+    1939,
+    1945
+   ],
+   [
+    "czechoslovakia",
+    1945,
+    1968
+   ]
+  ],
+  "town": "Prague"
+ },
+ "I2": {
+  "ahnentafel": 2,
+  "birth": {
+   "date": "1961",
+   "place": "Linz"
+  },
+  "branch": "common",
+  "death": {
+   "date": "3 Nov 2015",
+   "place": "Linz"
+  },
+  "death_age": "about 54 years",
+  "death_cause": "heart failure",
+  "documents": [
+   "death-2015"
+  ],
+  "living": false,
+  "mentions": [],
+  "name": "Thomas Huber",
+  "page": "person/I2.html",
+  "parents": [
+   "I5",
+   "I6"
+  ],
+  "partners": {
+   "I3": "spouse"
+  },
+  "relationship": "father",
+  "sex": "M",
+  "states": [
+   [
+    "austria",
+    1961,
+    2015
+   ]
+  ],
+  "town": "Linz"
+ },
+ "I20": {
+  "ahnentafel": 11,
+  "birth": {
+   "date": "1905",
+   "place": "Brno"
+  },
+  "branch": "cerny",
+  "death": {
+   "date": "1975",
+   "place": "Prague"
+  },
+  "death_age": "about 70 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1928",
+    "place": "Brno",
+    "spouse": "I19"
+   }
+  ],
+  "mentions": [],
+  "name": "Anežka Dvořáková",
+  "page": "person/I20.html",
+  "parents": [
+   "I39",
+   "I40"
+  ],
+  "partners": {
+   "I19": "spouse"
+  },
+  "relationship": "great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "austria-hungary",
+    1905,
+    1918
+   ],
+   [
+    "czechoslovakia",
+    1918,
+    1939
+   ],
+   [
+    "protectorate",
+    1939,
+    1945
+   ],
+   [
+    "czechoslovakia",
+    1945,
+    1975
+   ]
+  ],
+  "town": "Brno"
+ },
+ "I21": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1930",
+   "place": "Prague"
+  },
+  "branch": "common",
+  "death": {
+   "date": "1999",
+   "place": "Prague"
+  },
+  "death_age": "about 69 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1955",
+    "place": "Prague",
+    "spouse": "I22"
+   }
+  ],
+  "mentions": [],
+  "name": "Josef Černý",
+  "page": "person/I21.html",
+  "parents": [
+   "I19",
+   "I20"
+  ],
+  "partners": {
+   "I22": "spouse"
+  },
+  "relationship": "brother of grandmother",
+  "sex": "M",
+  "sibling_of": "I6",
+  "states": [
+   [
+    "czechoslovakia",
+    1930,
+    1939
+   ],
+   [
+    "protectorate",
+    1939,
+    1945
+   ],
+   [
+    "czechoslovakia",
+    1945,
+    1993
+   ],
+   [
+    "czechia",
+    1993,
+    1999
+   ]
+  ],
+  "town": "Prague"
+ },
+ "I22": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1933",
+   "place": "Brno"
+  },
+  "branch": "",
+  "death": {
+   "date": "2015",
+   "place": "Prague"
+  },
+  "death_age": "about 82 years",
+  "divorced": false,
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1955",
+    "place": "Prague",
+    "spouse": "I21"
+   }
+  ],
+  "mentions": [],
+  "name": "Jitka Svobodová",
+  "page": "person/I22.html",
+  "parents": [],
+  "partners": {
+   "I21": "spouse"
+  },
+  "relationship": "wife of brother of grandmother",
+  "sex": "F",
+  "spouse_of": "I21",
+  "states": [
+   [
+    "czechoslovakia",
+    1933,
+    1939
+   ],
+   [
+    "protectorate",
+    1939,
+    1945
+   ],
+   [
+    "czechoslovakia",
+    1945,
+    1993
+   ],
+   [
+    "czechia",
+    1993,
+    2015
+   ]
+  ],
+  "town": "Brno"
+ },
+ "I23": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1960",
+   "place": "Prague"
+  },
+  "branch": "common",
+  "death": {
+   "date": "2021",
+   "place": "Prague"
+  },
+  "death_age": "about 61 years",
+  "documents": [],
+  "living": false,
+  "mentions": [],
+  "name": "Pavel Černý",
+  "page": "person/I23.html",
+  "parents": [
+   "I21",
+   "I22"
+  ],
+  "partners": {},
+  "relationship": "first cousin of father",
+  "sex": "M",
+  "states": [
+   [
+    "czechoslovakia",
+    1960,
+    1993
+   ],
+   [
+    "czechia",
+    1993,
+    2021
+   ]
+  ],
+  "town": "Prague"
+ },
+ "I24": {
+  "ahnentafel": 12,
+  "birth": {
+   "date": "1900",
+   "place": "Kraków"
+  },
+  "branch": "kowalski",
+  "death": {
+   "date": "1944",
+   "place": "Kraków"
+  },
+  "death_age": "44 years",
+  "death_cause": "killed in the war",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1929",
+    "place": "Kraków",
+    "spouse": "I25"
+   }
+  ],
+  "mentions": [],
+  "name": "Stanisław Kowalski",
+  "page": "person/I24.html",
+  "parents": [
+   "I41",
+   "I42"
+  ],
+  "partners": {
+   "I25": "spouse"
+  },
+  "relationship": "great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria-hungary",
+    1900,
+    1918
+   ],
+   [
+    "poland",
+    1918,
+    1944
+   ]
+  ],
+  "town": "Kraków"
+ },
+ "I25": {
+  "ahnentafel": 13,
+  "birth": {
+   "date": "1904",
+   "place": "Kraków"
+  },
+  "branch": "kowalski",
+  "death": {
+   "date": "1980",
+   "place": "Kraków"
+  },
+  "death_age": "about 76 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1929",
+    "place": "Kraków",
+    "spouse": "I24"
+   }
+  ],
+  "mentions": [],
+  "name": "Zofia Wójcik",
+  "page": "person/I25.html",
+  "parents": [],
+  "partners": {
+   "I24": "spouse"
+  },
+  "relationship": "great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "austria-hungary",
+    1904,
+    1918
+   ],
+   [
+    "poland",
+    1918,
+    1980
+   ]
+  ],
+  "town": "Kraków"
+ },
+ "I26": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1935",
+   "place": "Kraków"
+  },
+  "branch": "common",
+  "death": {
+   "date": "1990",
+   "place": "Kraków"
+  },
+  "death_age": "about 55 years",
+  "documents": [],
+  "living": false,
+  "mentions": [],
+  "name": "Tadeusz Kowalski",
+  "page": "person/I26.html",
+  "parents": [
+   "I24",
+   "I25"
+  ],
+  "partners": {},
+  "relationship": "brother of grandfather",
+  "sex": "M",
+  "sibling_of": "I10",
+  "states": [
+   [
+    "poland",
+    1935,
+    1990
+   ]
+  ],
+  "town": "Kraków"
+ },
+ "I27": {
+  "ahnentafel": 14,
+  "birth": {
+   "date": "1898",
+   "place": "Budapest"
+  },
+  "branch": "kowalski",
+  "death": {
+   "date": "1960",
+   "place": "Budapest"
+  },
+  "death_age": "about 62 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1925",
+    "place": "Budapest",
+    "spouse": "I28"
+   }
+  ],
+  "mentions": [],
+  "name": "István Szabó",
+  "page": "person/I27.html",
+  "parents": [
+   "I45",
+   "I46"
+  ],
+  "partners": {
+   "I28": "spouse"
+  },
+  "relationship": "great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "hungary",
+    1898,
+    1960
+   ]
+  ],
+  "town": "Budapest"
+ },
+ "I28": {
+  "ahnentafel": 15,
+  "birth": {
+   "date": "1903",
+   "place": "Budapest"
+  },
+  "branch": "kowalski",
+  "death": {
+   "date": "1985",
+   "place": "Budapest"
+  },
+  "death_age": "about 82 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1925",
+    "place": "Budapest",
+    "spouse": "I27"
+   }
+  ],
+  "mentions": [],
+  "name": "Ilona Nagy",
+  "page": "person/I28.html",
+  "parents": [],
+  "partners": {
+   "I27": "spouse"
+  },
+  "relationship": "great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "hungary",
+    1903,
+    1985
+   ]
+  ],
+  "town": "Budapest"
+ },
+ "I29": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1930",
+   "place": "Budapest"
+  },
+  "branch": "common",
+  "death": {
+   "date": "1956",
+   "place": "Budapest"
+  },
+  "death_age": "about 26 years",
+  "documents": [],
+  "living": false,
+  "mentions": [],
+  "name": "Béla Szabó",
+  "page": "person/I29.html",
+  "parents": [
+   "I27",
+   "I28"
+  ],
+  "partners": {},
+  "relationship": "brother of grandmother",
+  "sex": "M",
+  "sibling_of": "I11",
+  "states": [
+   [
+    "hungary",
+    1930,
+    1956
+   ]
+  ],
+  "town": "Budapest"
+ },
+ "I3": {
+  "ahnentafel": 3,
+  "branch": "common",
+  "living": true,
+  "name": "Eva Kowalska",
+  "parents": [
+   "I10",
+   "I11"
+  ],
+  "partners": {
+   "I2": "spouse"
+  },
+  "relationship": "mother",
+  "sex": "F",
+  "town": null
+ },
+ "I30": {
+  "ahnentafel": 16,
+  "birth": {
+   "date": "1878",
+   "place": "Vienna"
+  },
+  "branch": "huber",
+  "death": {
+   "date": "1949",
+   "place": "Vienna"
+  },
+  "death_age": "about 71 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1903",
+    "place": "Vienna",
+    "spouse": "I31"
+   }
+  ],
+  "mentions": [],
+  "name": "Josef Huber",
+  "page": "person/I30.html",
+  "parents": [
+   "I43",
+   "I44"
+  ],
+  "partners": {
+   "I31": "spouse"
+  },
+  "relationship": "2× great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria-hungary",
+    1878,
+    1918
+   ],
+   [
+    "austria",
+    1918,
+    1949
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I31": {
+  "ahnentafel": 17,
+  "birth": {
+   "date": "about 1882",
+   "place": "Vienna"
+  },
+  "branch": "huber",
+  "death": {
+   "date": "1950",
+   "place": "Vienna"
+  },
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1903",
+    "place": "Vienna",
+    "spouse": "I30"
+   }
+  ],
+  "mentions": [],
+  "name": "Rosa Bruckner",
+  "page": "person/I31.html",
+  "parents": [],
+  "partners": {
+   "I30": "spouse"
+  },
+  "relationship": "2× great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "austria-hungary",
+    1882,
+    1918
+   ],
+   [
+    "austria",
+    1918,
+    1950
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I32": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1880",
+   "place": "Vienna"
+  },
+  "branch": "huber",
+  "death": {
+   "date": "1955",
+   "place": "Vienna"
+  },
+  "death_age": "about 75 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1908",
+    "place": "Vienna",
+    "spouse": "I34"
+   }
+  ],
+  "mentions": [],
+  "name": "Anton Huber",
+  "page": "person/I32.html",
+  "parents": [
+   "I43",
+   "I44"
+  ],
+  "partners": {
+   "I34": "spouse"
+  },
+  "relationship": "brother of 2× great-grandfather",
+  "sex": "M",
+  "sibling_of": "I30",
+  "states": [
+   [
+    "austria-hungary",
+    1880,
+    1918
+   ],
+   [
+    "austria",
+    1918,
+    1955
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I33": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1910",
+   "place": "Vienna"
+  },
+  "branch": "huber",
+  "death": {
+   "date": "1980",
+   "place": "Linz"
+  },
+  "death_age": "about 70 years",
+  "documents": [],
+  "living": false,
+  "mentions": [],
+  "name": "Rudolf Huber",
+  "page": "person/I33.html",
+  "parents": [
+   "I32",
+   "I34"
+  ],
+  "partners": {},
+  "relationship": "first cousin of great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria-hungary",
+    1910,
+    1918
+   ],
+   [
+    "austria",
+    1918,
+    1980
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I34": {
+  "ahnentafel": null,
+  "birth": null,
+  "branch": "",
+  "death": null,
+  "divorced": false,
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1908",
+    "place": "Vienna",
+    "spouse": "I32"
+   }
+  ],
+  "mentions": [],
+  "name": "Helene Fuchs",
+  "page": "person/I34.html",
+  "parents": [],
+  "partners": {
+   "I32": "spouse"
+  },
+  "relationship": "wife of brother of 2× great-grandfather",
+  "sex": "F",
+  "spouse_of": "I32",
+  "states": [
+   [
+    "austria-hungary",
+    1908,
+    1908
+   ]
+  ],
+  "town": null
+ },
+ "I35": {
+  "ahnentafel": 18,
+  "birth": {
+   "date": "1875",
+   "place": "Linz"
+  },
+  "branch": "huber",
+  "death": {
+   "date": "1940",
+   "place": "Linz"
+  },
+  "death_age": "about 65 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1904",
+    "place": "Linz",
+    "spouse": "I36"
+   }
+  ],
+  "mentions": [],
+  "name": "Johann Berger",
+  "page": "person/I35.html",
+  "parents": [],
+  "partners": {
+   "I36": "spouse"
+  },
+  "relationship": "2× great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria-hungary",
+    1875,
+    1918
+   ],
+   [
+    "austria",
+    1918,
+    1940
+   ]
+  ],
+  "town": "Linz"
+ },
+ "I36": {
+  "ahnentafel": 19,
+  "birth": {
+   "date": "about 1880",
+   "place": null
+  },
+  "branch": "huber",
+  "death": {
+   "date": "",
+   "place": null
+  },
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1904",
+    "place": "Linz",
+    "spouse": "I35"
+   }
+  ],
+  "mentions": [],
+  "name": "Katharina Lang",
+  "page": "person/I36.html",
+  "parents": [],
+  "partners": {
+   "I35": "spouse"
+  },
+  "relationship": "2× great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "austria-hungary",
+    1880,
+    1904
+   ]
+  ],
+  "town": null
+ },
+ "I37": {
+  "ahnentafel": 20,
+  "birth": {
+   "date": "1872",
+   "place": "Prague"
+  },
+  "branch": "cerny",
+  "death": {
+   "date": "1938",
+   "place": "Prague"
+  },
+  "death_age": "about 66 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1898",
+    "place": "Prague",
+    "spouse": "I38"
+   }
+  ],
+  "mentions": [],
+  "name": "František Černý",
+  "page": "person/I37.html",
+  "parents": [],
+  "partners": {
+   "I38": "spouse"
+  },
+  "relationship": "2× great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria-hungary",
+    1872,
+    1918
+   ],
+   [
+    "czechoslovakia",
+    1918,
+    1938
+   ]
+  ],
+  "town": "Prague"
+ },
+ "I38": {
+  "ahnentafel": 21,
+  "birth": {
+   "date": "about 1880",
+   "place": "Prague"
+  },
+  "branch": "cerny",
+  "death": {
+   "date": "1942",
+   "place": "Prague"
+  },
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1898",
+    "place": "Prague",
+    "spouse": "I37"
+   }
+  ],
+  "mentions": [],
+  "name": "Ludmila Horáková",
+  "page": "person/I38.html",
+  "parents": [],
+  "partners": {
+   "I37": "spouse"
+  },
+  "relationship": "2× great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "austria-hungary",
+    1880,
+    1918
+   ],
+   [
+    "czechoslovakia",
+    1918,
+    1939
+   ],
+   [
+    "protectorate",
+    1939,
+    1942
+   ]
+  ],
+  "town": "Prague"
+ },
+ "I39": {
+  "ahnentafel": 22,
+  "birth": {
+   "date": "1876",
+   "place": "Brno"
+  },
+  "branch": "cerny",
+  "death": {
+   "date": "1930",
+   "place": "Brno"
+  },
+  "death_age": "about 54 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1902",
+    "place": "Brno",
+    "spouse": "I40"
+   }
+  ],
+  "mentions": [],
+  "name": "Karel Dvořák",
+  "page": "person/I39.html",
+  "parents": [],
+  "partners": {
+   "I40": "spouse"
+  },
+  "relationship": "2× great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria-hungary",
+    1876,
+    1918
+   ],
+   [
+    "czechoslovakia",
+    1918,
+    1930
+   ]
+  ],
+  "town": "Brno"
+ },
+ "I4": {
+  "ahnentafel": null,
+  "branch": "common",
+  "living": true,
+  "name": "Lena Huber",
+  "parents": [
+   "I2",
+   "I3"
+  ],
+  "partners": {},
+  "relationship": "sister",
+  "sex": "F",
+  "sibling_of": "I1",
+  "town": null
+ },
+ "I40": {
+  "ahnentafel": 23,
+  "birth": {
+   "date": "1880",
+   "place": "Brno"
+  },
+  "branch": "cerny",
+  "death": {
+   "date": "1962",
+   "place": "Brno"
+  },
+  "death_age": "about 82 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1902",
+    "place": "Brno",
+    "spouse": "I39"
+   }
+  ],
+  "mentions": [],
+  "name": "Alžběta Procházková",
+  "page": "person/I40.html",
+  "parents": [],
+  "partners": {
+   "I39": "spouse"
+  },
+  "relationship": "2× great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "austria-hungary",
+    1880,
+    1918
+   ],
+   [
+    "czechoslovakia",
+    1918,
+    1939
+   ],
+   [
+    "protectorate",
+    1939,
+    1945
+   ],
+   [
+    "czechoslovakia",
+    1945,
+    1962
+   ]
+  ],
+  "town": "Brno"
+ },
+ "I41": {
+  "ahnentafel": 24,
+  "birth": {
+   "date": "1870",
+   "place": "Kraków"
+  },
+  "branch": "kowalski",
+  "death": {
+   "date": "1925",
+   "place": "Kraków"
+  },
+  "death_age": "about 55 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1895",
+    "place": "Kraków",
+    "spouse": "I42"
+   }
+  ],
+  "mentions": [],
+  "name": "Wojciech Kowalski",
+  "page": "person/I41.html",
+  "parents": [],
+  "partners": {
+   "I42": "spouse"
+  },
+  "relationship": "2× great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria-hungary",
+    1870,
+    1918
+   ],
+   [
+    "poland",
+    1918,
+    1925
+   ]
+  ],
+  "town": "Kraków"
+ },
+ "I42": {
+  "ahnentafel": 25,
+  "birth": {
+   "date": "about 1875",
+   "place": "Kraków"
+  },
+  "branch": "kowalski",
+  "death": {
+   "date": "1940",
+   "place": "Kraków"
+  },
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1895",
+    "place": "Kraków",
+    "spouse": "I41"
+   }
+  ],
+  "mentions": [],
+  "name": "Maria Nowak",
+  "page": "person/I42.html",
+  "parents": [],
+  "partners": {
+   "I41": "spouse"
+  },
+  "relationship": "2× great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "austria-hungary",
+    1875,
+    1918
+   ],
+   [
+    "poland",
+    1918,
+    1940
+   ]
+  ],
+  "town": "Kraków"
+ },
+ "I43": {
+  "ahnentafel": 32,
+  "birth": {
+   "date": "1848",
+   "place": "Vienna"
+  },
+  "branch": "huber",
+  "death": {
+   "date": "1915",
+   "place": "Vienna"
+  },
+  "death_age": "about 67 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1875",
+    "place": "Vienna",
+    "spouse": "I44"
+   }
+  ],
+  "mentions": [],
+  "name": "Johann Huber",
+  "page": "person/I43.html",
+  "parents": [],
+  "partners": {
+   "I44": "spouse"
+  },
+  "relationship": "3× great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austrian-empire",
+    1848,
+    1867
+   ],
+   [
+    "austria-hungary",
+    1867,
+    1915
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I44": {
+  "ahnentafel": 33,
+  "birth": {
+   "date": "1850",
+   "place": "Vienna"
+  },
+  "branch": "huber",
+  "death": {
+   "date": "1921",
+   "place": "Vienna"
+  },
+  "death_age": "about 71 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1875",
+    "place": "Vienna",
+    "spouse": "I43"
+   }
+  ],
+  "mentions": [],
+  "name": "Barbara Maier",
+  "page": "person/I44.html",
+  "parents": [],
+  "partners": {
+   "I43": "spouse"
+  },
+  "relationship": "3× great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "austrian-empire",
+    1850,
+    1867
+   ],
+   [
+    "austria-hungary",
+    1867,
+    1918
+   ],
+   [
+    "austria",
+    1918,
+    1921
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I45": {
+  "ahnentafel": 28,
+  "birth": {
+   "date": "1868",
+   "place": "Budapest"
+  },
+  "branch": "kowalski",
+  "death": {
+   "date": "1930",
+   "place": "Budapest"
+  },
+  "death_age": "about 62 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1895",
+    "place": "Budapest",
+    "spouse": "I46"
+   }
+  ],
+  "mentions": [],
+  "name": "Gábor Szabó",
+  "page": "person/I45.html",
+  "parents": [],
+  "partners": {
+   "I46": "spouse"
+  },
+  "relationship": "2× great-grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "hungary",
+    1868,
+    1930
+   ]
+  ],
+  "town": "Budapest"
+ },
+ "I46": {
+  "ahnentafel": 29,
+  "birth": {
+   "date": "1872",
+   "place": "Budapest"
+  },
+  "branch": "kowalski",
+  "death": {
+   "date": "about 1930",
+   "place": "Budapest"
+  },
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1895",
+    "place": "Budapest",
+    "spouse": "I45"
+   }
+  ],
+  "mentions": [],
+  "name": "Julianna Tóth",
+  "page": "person/I46.html",
+  "parents": [],
+  "partners": {
+   "I45": "spouse"
+  },
+  "relationship": "2× great-grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "hungary",
+    1872,
+    1930
+   ]
+  ],
+  "town": "Budapest"
+ },
+ "I5": {
+  "ahnentafel": 4,
+  "birth": {
+   "date": "1934",
+   "place": "Vienna"
+  },
+  "branch": "common",
+  "death": {
+   "date": "2001",
+   "place": "Linz"
+  },
+  "death_age": "about 67 years",
+  "documents": [
+   "baptism-1934",
+   "marriage-1957"
+  ],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1957",
+    "place": "Linz",
+    "spouse": "I6"
+   }
+  ],
+  "mentions": [],
+  "name": "Karl Huber",
+  "page": "person/I5.html",
+  "parents": [
+   "I14",
+   "I15"
+  ],
+  "partners": {
+   "I6": "spouse"
+  },
+  "relationship": "grandfather",
+  "sex": "M",
+  "states": [
+   [
+    "austria",
+    1934,
+    2001
+   ]
+  ],
+  "town": "Vienna"
+ },
+ "I6": {
+  "ahnentafel": 5,
+  "birth": {
+   "date": "1937",
+   "place": "Prague"
+  },
+  "branch": "common",
+  "death": {
+   "date": "2010",
+   "place": "Linz"
+  },
+  "death_age": "about 73 years",
+  "documents": [
+   "marriage-1957"
+  ],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1957",
+    "place": "Linz",
+    "spouse": "I5"
+   }
+  ],
+  "mentions": [],
+  "name": "Helena Černá",
+  "page": "person/I6.html",
+  "parents": [
+   "I19",
+   "I20"
+  ],
+  "partners": {
+   "I5": "spouse"
+  },
+  "relationship": "grandmother",
+  "sex": "F",
+  "states": [
+   [
+    "czechoslovakia",
+    1937,
+    1939
+   ],
+   [
+    "protectorate",
+    1939,
+    1945
+   ],
+   [
+    "czechoslovakia",
+    1945,
+    1957
+   ],
+   [
+    "austria",
+    1957,
+    2010
+   ]
+  ],
+  "town": "Prague"
+ },
+ "I7": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1959",
+   "place": "Linz"
+  },
+  "branch": "common",
+  "death": {
+   "date": "2019",
+   "place": "Linz"
+  },
+  "death_age": "about 60 years",
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1986",
+    "place": "Linz",
+    "spouse": "I9"
+   }
+  ],
+  "mentions": [],
+  "name": "Gerhard Huber",
+  "page": "person/I7.html",
+  "parents": [
+   "I5",
+   "I6"
+  ],
+  "partners": {
+   "I9": "spouse"
+  },
+  "relationship": "brother of father",
+  "sex": "M",
+  "sibling_of": "I2",
+  "states": [
+   [
+    "austria",
+    1959,
+    2019
+   ]
+  ],
+  "town": "Linz"
+ },
+ "I8": {
+  "ahnentafel": null,
+  "branch": "common",
+  "living": true,
+  "name": "Sophie Huber",
+  "parents": [
+   "I7",
+   "I9"
+  ],
+  "partners": {},
+  "relationship": "first cousin",
+  "sex": "F",
+  "town": null
+ },
+ "I9": {
+  "ahnentafel": null,
+  "birth": {
+   "date": "1962",
+   "place": "Vienna"
+  },
+  "branch": "",
+  "death": {
+   "date": "2022",
+   "place": "Linz"
+  },
+  "death_age": "about 60 years",
+  "divorced": false,
+  "documents": [],
+  "living": false,
+  "marriages": [
+   {
+    "date": "1986",
+    "place": "Linz",
+    "spouse": "I7"
+   }
+  ],
+  "mentions": [],
+  "name": "Claudia Weiss",
+  "page": "person/I9.html",
+  "parents": [],
+  "partners": {
+   "I7": "spouse"
+  },
+  "relationship": "wife of brother of father",
+  "sex": "F",
+  "spouse_of": "I7",
+  "states": [
+   [
+    "austria",
+    1962,
+    2022
+   ]
+  ],
+  "town": "Vienna"
+ }
+}

@@ -1,0 +1,1452 @@
+[
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1932",
+  "description": {
+   "cs": "narození — Jan Kowalski",
+   "en": "birth — Jan Kowalski"
+  },
+  "documents": [],
+  "id": "birth-I10",
+  "people": [
+   "I10"
+  ],
+  "place": "Kraków",
+  "type": "birth",
+  "year": 1932
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1998",
+  "description": {
+   "cs": "úmrtí — Jan Kowalski",
+   "en": "death — Jan Kowalski"
+  },
+  "documents": [],
+  "id": "death-I10",
+  "people": [
+   "I10"
+  ],
+  "place": "Vienna",
+  "type": "death",
+  "year": 1998
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1935",
+  "description": {
+   "cs": "narození — Judit Szabó",
+   "en": "birth — Judit Szabó"
+  },
+  "documents": [],
+  "id": "birth-I11",
+  "people": [
+   "I11"
+  ],
+  "place": "Budapest",
+  "type": "birth",
+  "year": 1935
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "2008",
+  "description": {
+   "cs": "úmrtí — Judit Szabó",
+   "en": "death — Judit Szabó"
+  },
+  "documents": [],
+  "id": "death-I11",
+  "people": [
+   "I11"
+  ],
+  "place": "Vienna",
+  "type": "death",
+  "year": 2008
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1960",
+  "description": {
+   "cs": "narození — Piotr Kowalski",
+   "en": "birth — Piotr Kowalski"
+  },
+  "documents": [],
+  "id": "birth-I12",
+  "people": [
+   "I12"
+  ],
+  "place": "Vienna",
+  "type": "birth",
+  "year": 1960
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "2019",
+  "description": {
+   "cs": "úmrtí — Piotr Kowalski",
+   "en": "death — Piotr Kowalski"
+  },
+  "documents": [],
+  "id": "death-I12",
+  "people": [
+   "I12"
+  ],
+  "place": "Vienna",
+  "type": "death",
+  "year": 2019
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1905",
+  "description": {
+   "cs": "narození — Franz Huber",
+   "en": "birth — Franz Huber"
+  },
+  "documents": [],
+  "id": "birth-I14",
+  "people": [
+   "I14"
+  ],
+  "place": "Vienna",
+  "type": "birth",
+  "year": 1905
+ },
+ {
+  "branch": "huber",
+  "certainty": "document",
+  "date": "1971",
+  "description": {
+   "cs": "úmrtí — Franz Huber",
+   "en": "death — Franz Huber"
+  },
+  "documents": [
+   "death-1971"
+  ],
+  "id": "death-I14",
+  "people": [
+   "I14"
+  ],
+  "place": "Vienna",
+  "type": "death",
+  "year": 1971
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1908",
+  "description": {
+   "cs": "narození — Theresia Berger",
+   "en": "birth — Theresia Berger"
+  },
+  "documents": [],
+  "id": "birth-I15",
+  "people": [
+   "I15"
+  ],
+  "place": "Linz",
+  "type": "birth",
+  "year": 1908
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1980",
+  "description": {
+   "cs": "úmrtí — Theresia Berger",
+   "en": "death — Theresia Berger"
+  },
+  "documents": [],
+  "id": "death-I15",
+  "people": [
+   "I15"
+  ],
+  "place": "Linz",
+  "type": "death",
+  "year": 1980
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1930",
+  "description": {
+   "cs": "narození — Hilde Huber",
+   "en": "birth — Hilde Huber"
+  },
+  "documents": [],
+  "id": "birth-I16",
+  "people": [
+   "I16"
+  ],
+  "place": "Vienna",
+  "type": "birth",
+  "year": 1930
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "2005",
+  "description": {
+   "cs": "úmrtí — Hilde Huber",
+   "en": "death — Hilde Huber"
+  },
+  "documents": [],
+  "id": "death-I16",
+  "people": [
+   "I16"
+  ],
+  "place": "Linz",
+  "type": "death",
+  "year": 2005
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1900",
+  "description": {
+   "cs": "narození — Václav Černý",
+   "en": "birth — Václav Černý"
+  },
+  "documents": [],
+  "id": "birth-I19",
+  "people": [
+   "I19"
+  ],
+  "place": "Prague",
+  "type": "birth",
+  "year": 1900
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1968",
+  "description": {
+   "cs": "úmrtí — Václav Černý",
+   "en": "death — Václav Černý"
+  },
+  "documents": [],
+  "id": "death-I19",
+  "people": [
+   "I19"
+  ],
+  "place": "Prague",
+  "type": "death",
+  "year": 1968
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1961",
+  "description": {
+   "cs": "narození — Thomas Huber",
+   "en": "birth — Thomas Huber"
+  },
+  "documents": [],
+  "id": "birth-I2",
+  "people": [
+   "I2"
+  ],
+  "place": "Linz",
+  "type": "birth",
+  "year": 1961
+ },
+ {
+  "branch": "common",
+  "certainty": "document",
+  "date": "3. 11. 2015",
+  "description": {
+   "cs": "úmrtí — Thomas Huber",
+   "en": "death — Thomas Huber"
+  },
+  "documents": [
+   "death-2015"
+  ],
+  "id": "death-I2",
+  "people": [
+   "I2"
+  ],
+  "place": "Linz",
+  "type": "death",
+  "year": 2015
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1905",
+  "description": {
+   "cs": "narození — Anežka Dvořáková",
+   "en": "birth — Anežka Dvořáková"
+  },
+  "documents": [],
+  "id": "birth-I20",
+  "people": [
+   "I20"
+  ],
+  "place": "Brno",
+  "type": "birth",
+  "year": 1905
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1975",
+  "description": {
+   "cs": "úmrtí — Anežka Dvořáková",
+   "en": "death — Anežka Dvořáková"
+  },
+  "documents": [],
+  "id": "death-I20",
+  "people": [
+   "I20"
+  ],
+  "place": "Prague",
+  "type": "death",
+  "year": 1975
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1930",
+  "description": {
+   "cs": "narození — Josef Černý",
+   "en": "birth — Josef Černý"
+  },
+  "documents": [],
+  "id": "birth-I21",
+  "people": [
+   "I21"
+  ],
+  "place": "Prague",
+  "type": "birth",
+  "year": 1930
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1999",
+  "description": {
+   "cs": "úmrtí — Josef Černý",
+   "en": "death — Josef Černý"
+  },
+  "documents": [],
+  "id": "death-I21",
+  "people": [
+   "I21"
+  ],
+  "place": "Prague",
+  "type": "death",
+  "year": 1999
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1900",
+  "description": {
+   "cs": "narození — Stanisław Kowalski",
+   "en": "birth — Stanisław Kowalski"
+  },
+  "documents": [],
+  "id": "birth-I24",
+  "people": [
+   "I24"
+  ],
+  "place": "Kraków",
+  "type": "birth",
+  "year": 1900
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1944",
+  "description": {
+   "cs": "úmrtí — Stanisław Kowalski",
+   "en": "death — Stanisław Kowalski"
+  },
+  "documents": [],
+  "id": "death-I24",
+  "people": [
+   "I24"
+  ],
+  "place": "Kraków",
+  "type": "death",
+  "year": 1944
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1904",
+  "description": {
+   "cs": "narození — Zofia Wójcik",
+   "en": "birth — Zofia Wójcik"
+  },
+  "documents": [],
+  "id": "birth-I25",
+  "people": [
+   "I25"
+  ],
+  "place": "Kraków",
+  "type": "birth",
+  "year": 1904
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1980",
+  "description": {
+   "cs": "úmrtí — Zofia Wójcik",
+   "en": "death — Zofia Wójcik"
+  },
+  "documents": [],
+  "id": "death-I25",
+  "people": [
+   "I25"
+  ],
+  "place": "Kraków",
+  "type": "death",
+  "year": 1980
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1935",
+  "description": {
+   "cs": "narození — Tadeusz Kowalski",
+   "en": "birth — Tadeusz Kowalski"
+  },
+  "documents": [],
+  "id": "birth-I26",
+  "people": [
+   "I26"
+  ],
+  "place": "Kraków",
+  "type": "birth",
+  "year": 1935
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1990",
+  "description": {
+   "cs": "úmrtí — Tadeusz Kowalski",
+   "en": "death — Tadeusz Kowalski"
+  },
+  "documents": [],
+  "id": "death-I26",
+  "people": [
+   "I26"
+  ],
+  "place": "Kraków",
+  "type": "death",
+  "year": 1990
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1898",
+  "description": {
+   "cs": "narození — István Szabó",
+   "en": "birth — István Szabó"
+  },
+  "documents": [],
+  "id": "birth-I27",
+  "people": [
+   "I27"
+  ],
+  "place": "Budapest",
+  "type": "birth",
+  "year": 1898
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1960",
+  "description": {
+   "cs": "úmrtí — István Szabó",
+   "en": "death — István Szabó"
+  },
+  "documents": [],
+  "id": "death-I27",
+  "people": [
+   "I27"
+  ],
+  "place": "Budapest",
+  "type": "death",
+  "year": 1960
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1903",
+  "description": {
+   "cs": "narození — Ilona Nagy",
+   "en": "birth — Ilona Nagy"
+  },
+  "documents": [],
+  "id": "birth-I28",
+  "people": [
+   "I28"
+  ],
+  "place": "Budapest",
+  "type": "birth",
+  "year": 1903
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1985",
+  "description": {
+   "cs": "úmrtí — Ilona Nagy",
+   "en": "death — Ilona Nagy"
+  },
+  "documents": [],
+  "id": "death-I28",
+  "people": [
+   "I28"
+  ],
+  "place": "Budapest",
+  "type": "death",
+  "year": 1985
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1930",
+  "description": {
+   "cs": "narození — Béla Szabó",
+   "en": "birth — Béla Szabó"
+  },
+  "documents": [],
+  "id": "birth-I29",
+  "people": [
+   "I29"
+  ],
+  "place": "Budapest",
+  "type": "birth",
+  "year": 1930
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1956",
+  "description": {
+   "cs": "úmrtí — Béla Szabó",
+   "en": "death — Béla Szabó"
+  },
+  "documents": [],
+  "id": "death-I29",
+  "people": [
+   "I29"
+  ],
+  "place": "Budapest",
+  "type": "death",
+  "year": 1956
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1878",
+  "description": {
+   "cs": "narození — Josef Huber",
+   "en": "birth — Josef Huber"
+  },
+  "documents": [],
+  "id": "birth-I30",
+  "people": [
+   "I30"
+  ],
+  "place": "Vienna",
+  "type": "birth",
+  "year": 1878
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1949",
+  "description": {
+   "cs": "úmrtí — Josef Huber",
+   "en": "death — Josef Huber"
+  },
+  "documents": [],
+  "id": "death-I30",
+  "people": [
+   "I30"
+  ],
+  "place": "Vienna",
+  "type": "death",
+  "year": 1949
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "kolem 1882",
+  "description": {
+   "cs": "narození — Rosa Bruckner",
+   "en": "birth — Rosa Bruckner"
+  },
+  "documents": [],
+  "id": "birth-I31",
+  "people": [
+   "I31"
+  ],
+  "place": "Vienna",
+  "type": "birth",
+  "year": 1882
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1950",
+  "description": {
+   "cs": "úmrtí — Rosa Bruckner",
+   "en": "death — Rosa Bruckner"
+  },
+  "documents": [],
+  "id": "death-I31",
+  "people": [
+   "I31"
+  ],
+  "place": "Vienna",
+  "type": "death",
+  "year": 1950
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1880",
+  "description": {
+   "cs": "narození — Anton Huber",
+   "en": "birth — Anton Huber"
+  },
+  "documents": [],
+  "id": "birth-I32",
+  "people": [
+   "I32"
+  ],
+  "place": "Vienna",
+  "type": "birth",
+  "year": 1880
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1955",
+  "description": {
+   "cs": "úmrtí — Anton Huber",
+   "en": "death — Anton Huber"
+  },
+  "documents": [],
+  "id": "death-I32",
+  "people": [
+   "I32"
+  ],
+  "place": "Vienna",
+  "type": "death",
+  "year": 1955
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1875",
+  "description": {
+   "cs": "narození — Johann Berger",
+   "en": "birth — Johann Berger"
+  },
+  "documents": [],
+  "id": "birth-I35",
+  "people": [
+   "I35"
+  ],
+  "place": "Linz",
+  "type": "birth",
+  "year": 1875
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1940",
+  "description": {
+   "cs": "úmrtí — Johann Berger",
+   "en": "death — Johann Berger"
+  },
+  "documents": [],
+  "id": "death-I35",
+  "people": [
+   "I35"
+  ],
+  "place": "Linz",
+  "type": "death",
+  "year": 1940
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1872",
+  "description": {
+   "cs": "narození — František Černý",
+   "en": "birth — František Černý"
+  },
+  "documents": [],
+  "id": "birth-I37",
+  "people": [
+   "I37"
+  ],
+  "place": "Prague",
+  "type": "birth",
+  "year": 1872
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1938",
+  "description": {
+   "cs": "úmrtí — František Černý",
+   "en": "death — František Černý"
+  },
+  "documents": [],
+  "id": "death-I37",
+  "people": [
+   "I37"
+  ],
+  "place": "Prague",
+  "type": "death",
+  "year": 1938
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "kolem 1880",
+  "description": {
+   "cs": "narození — Ludmila Horáková",
+   "en": "birth — Ludmila Horáková"
+  },
+  "documents": [],
+  "id": "birth-I38",
+  "people": [
+   "I38"
+  ],
+  "place": "Prague",
+  "type": "birth",
+  "year": 1880
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1942",
+  "description": {
+   "cs": "úmrtí — Ludmila Horáková",
+   "en": "death — Ludmila Horáková"
+  },
+  "documents": [],
+  "id": "death-I38",
+  "people": [
+   "I38"
+  ],
+  "place": "Prague",
+  "type": "death",
+  "year": 1942
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1876",
+  "description": {
+   "cs": "narození — Karel Dvořák",
+   "en": "birth — Karel Dvořák"
+  },
+  "documents": [],
+  "id": "birth-I39",
+  "people": [
+   "I39"
+  ],
+  "place": "Brno",
+  "type": "birth",
+  "year": 1876
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1930",
+  "description": {
+   "cs": "úmrtí — Karel Dvořák",
+   "en": "death — Karel Dvořák"
+  },
+  "documents": [],
+  "id": "death-I39",
+  "people": [
+   "I39"
+  ],
+  "place": "Brno",
+  "type": "death",
+  "year": 1930
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1880",
+  "description": {
+   "cs": "narození — Alžběta Procházková",
+   "en": "birth — Alžběta Procházková"
+  },
+  "documents": [],
+  "id": "birth-I40",
+  "people": [
+   "I40"
+  ],
+  "place": "Brno",
+  "type": "birth",
+  "year": 1880
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1962",
+  "description": {
+   "cs": "úmrtí — Alžběta Procházková",
+   "en": "death — Alžběta Procházková"
+  },
+  "documents": [],
+  "id": "death-I40",
+  "people": [
+   "I40"
+  ],
+  "place": "Brno",
+  "type": "death",
+  "year": 1962
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1870",
+  "description": {
+   "cs": "narození — Wojciech Kowalski",
+   "en": "birth — Wojciech Kowalski"
+  },
+  "documents": [],
+  "id": "birth-I41",
+  "people": [
+   "I41"
+  ],
+  "place": "Kraków",
+  "type": "birth",
+  "year": 1870
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1925",
+  "description": {
+   "cs": "úmrtí — Wojciech Kowalski",
+   "en": "death — Wojciech Kowalski"
+  },
+  "documents": [],
+  "id": "death-I41",
+  "people": [
+   "I41"
+  ],
+  "place": "Kraków",
+  "type": "death",
+  "year": 1925
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "kolem 1875",
+  "description": {
+   "cs": "narození — Maria Nowak",
+   "en": "birth — Maria Nowak"
+  },
+  "documents": [],
+  "id": "birth-I42",
+  "people": [
+   "I42"
+  ],
+  "place": "Kraków",
+  "type": "birth",
+  "year": 1875
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1940",
+  "description": {
+   "cs": "úmrtí — Maria Nowak",
+   "en": "death — Maria Nowak"
+  },
+  "documents": [],
+  "id": "death-I42",
+  "people": [
+   "I42"
+  ],
+  "place": "Kraków",
+  "type": "death",
+  "year": 1940
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1848",
+  "description": {
+   "cs": "narození — Johann Huber",
+   "en": "birth — Johann Huber"
+  },
+  "documents": [],
+  "id": "birth-I43",
+  "people": [
+   "I43"
+  ],
+  "place": "Vienna",
+  "type": "birth",
+  "year": 1848
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1915",
+  "description": {
+   "cs": "úmrtí — Johann Huber",
+   "en": "death — Johann Huber"
+  },
+  "documents": [],
+  "id": "death-I43",
+  "people": [
+   "I43"
+  ],
+  "place": "Vienna",
+  "type": "death",
+  "year": 1915
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1850",
+  "description": {
+   "cs": "narození — Barbara Maier",
+   "en": "birth — Barbara Maier"
+  },
+  "documents": [],
+  "id": "birth-I44",
+  "people": [
+   "I44"
+  ],
+  "place": "Vienna",
+  "type": "birth",
+  "year": 1850
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1921",
+  "description": {
+   "cs": "úmrtí — Barbara Maier",
+   "en": "death — Barbara Maier"
+  },
+  "documents": [],
+  "id": "death-I44",
+  "people": [
+   "I44"
+  ],
+  "place": "Vienna",
+  "type": "death",
+  "year": 1921
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1868",
+  "description": {
+   "cs": "narození — Gábor Szabó",
+   "en": "birth — Gábor Szabó"
+  },
+  "documents": [],
+  "id": "birth-I45",
+  "people": [
+   "I45"
+  ],
+  "place": "Budapest",
+  "type": "birth",
+  "year": 1868
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1930",
+  "description": {
+   "cs": "úmrtí — Gábor Szabó",
+   "en": "death — Gábor Szabó"
+  },
+  "documents": [],
+  "id": "death-I45",
+  "people": [
+   "I45"
+  ],
+  "place": "Budapest",
+  "type": "death",
+  "year": 1930
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1872",
+  "description": {
+   "cs": "narození — Julianna Tóth",
+   "en": "birth — Julianna Tóth"
+  },
+  "documents": [],
+  "id": "birth-I46",
+  "people": [
+   "I46"
+  ],
+  "place": "Budapest",
+  "type": "birth",
+  "year": 1872
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "kolem 1930",
+  "description": {
+   "cs": "úmrtí — Julianna Tóth",
+   "en": "death — Julianna Tóth"
+  },
+  "documents": [],
+  "id": "death-I46",
+  "people": [
+   "I46"
+  ],
+  "place": "Budapest",
+  "type": "death",
+  "year": 1930
+ },
+ {
+  "branch": "common",
+  "certainty": "document",
+  "date": "1934",
+  "description": {
+   "cs": "narození — Karl Huber",
+   "en": "birth — Karl Huber"
+  },
+  "documents": [
+   "baptism-1934"
+  ],
+  "id": "birth-I5",
+  "people": [
+   "I5"
+  ],
+  "place": "Vienna",
+  "type": "birth",
+  "year": 1934
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "2001",
+  "description": {
+   "cs": "úmrtí — Karl Huber",
+   "en": "death — Karl Huber"
+  },
+  "documents": [],
+  "id": "death-I5",
+  "people": [
+   "I5"
+  ],
+  "place": "Linz",
+  "type": "death",
+  "year": 2001
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1937",
+  "description": {
+   "cs": "narození — Helena Černá",
+   "en": "birth — Helena Černá"
+  },
+  "documents": [],
+  "id": "birth-I6",
+  "people": [
+   "I6"
+  ],
+  "place": "Prague",
+  "type": "birth",
+  "year": 1937
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "2010",
+  "description": {
+   "cs": "úmrtí — Helena Černá",
+   "en": "death — Helena Černá"
+  },
+  "documents": [],
+  "id": "death-I6",
+  "people": [
+   "I6"
+  ],
+  "place": "Linz",
+  "type": "death",
+  "year": 2010
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1959",
+  "description": {
+   "cs": "narození — Gerhard Huber",
+   "en": "birth — Gerhard Huber"
+  },
+  "documents": [],
+  "id": "birth-I7",
+  "people": [
+   "I7"
+  ],
+  "place": "Linz",
+  "type": "birth",
+  "year": 1959
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "2019",
+  "description": {
+   "cs": "úmrtí — Gerhard Huber",
+   "en": "death — Gerhard Huber"
+  },
+  "documents": [],
+  "id": "death-I7",
+  "people": [
+   "I7"
+  ],
+  "place": "Linz",
+  "type": "death",
+  "year": 2019
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1898",
+  "description": {
+   "cs": "sňatek — František Černý + Ludmila Horáková",
+   "en": "marriage — František Černý + Ludmila Horáková"
+  },
+  "documents": [],
+  "id": "marriage-F10",
+  "people": [
+   "I37",
+   "I38"
+  ],
+  "place": "Prague",
+  "type": "marriage",
+  "year": 1898
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1902",
+  "description": {
+   "cs": "sňatek — Karel Dvořák + Alžběta Procházková",
+   "en": "marriage — Karel Dvořák + Alžběta Procházková"
+  },
+  "documents": [],
+  "id": "marriage-F11",
+  "people": [
+   "I39",
+   "I40"
+  ],
+  "place": "Brno",
+  "type": "marriage",
+  "year": 1902
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1895",
+  "description": {
+   "cs": "sňatek — Wojciech Kowalski + Maria Nowak",
+   "en": "marriage — Wojciech Kowalski + Maria Nowak"
+  },
+  "documents": [],
+  "id": "marriage-F12",
+  "people": [
+   "I41",
+   "I42"
+  ],
+  "place": "Kraków",
+  "type": "marriage",
+  "year": 1895
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1875",
+  "description": {
+   "cs": "sňatek — Johann Huber + Barbara Maier",
+   "en": "marriage — Johann Huber + Barbara Maier"
+  },
+  "documents": [],
+  "id": "marriage-F14",
+  "people": [
+   "I43",
+   "I44"
+  ],
+  "place": "Vienna",
+  "type": "marriage",
+  "year": 1875
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1895",
+  "description": {
+   "cs": "sňatek — Gábor Szabó + Julianna Tóth",
+   "en": "marriage — Gábor Szabó + Julianna Tóth"
+  },
+  "documents": [],
+  "id": "marriage-F15",
+  "people": [
+   "I45",
+   "I46"
+  ],
+  "place": "Budapest",
+  "type": "marriage",
+  "year": 1895
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1986",
+  "description": {
+   "cs": "sňatek — Gerhard Huber + Claudia Weiss",
+   "en": "marriage — Gerhard Huber + Claudia Weiss"
+  },
+  "documents": [],
+  "id": "marriage-F16",
+  "people": [
+   "I7"
+  ],
+  "place": "Linz",
+  "type": "marriage",
+  "year": 1986
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1955",
+  "description": {
+   "cs": "sňatek — Josef Černý + Jitka Svobodová",
+   "en": "marriage — Josef Černý + Jitka Svobodová"
+  },
+  "documents": [],
+  "id": "marriage-F18",
+  "people": [
+   "I21"
+  ],
+  "place": "Prague",
+  "type": "marriage",
+  "year": 1955
+ },
+ {
+  "branch": "common",
+  "certainty": "document",
+  "date": "1957",
+  "description": {
+   "cs": "sňatek — Karl Huber + Helena Černá",
+   "en": "marriage — Karl Huber + Helena Černá"
+  },
+  "documents": [
+   "marriage-1957"
+  ],
+  "id": "marriage-F2",
+  "people": [
+   "I5",
+   "I6"
+  ],
+  "place": "Linz",
+  "type": "marriage",
+  "year": 1957
+ },
+ {
+  "branch": "common",
+  "certainty": "tree",
+  "date": "1958",
+  "description": {
+   "cs": "sňatek — Jan Kowalski + Judit Szabó",
+   "en": "marriage — Jan Kowalski + Judit Szabó"
+  },
+  "documents": [],
+  "id": "marriage-F3",
+  "people": [
+   "I10",
+   "I11"
+  ],
+  "place": "Budapest",
+  "type": "marriage",
+  "year": 1958
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1929",
+  "description": {
+   "cs": "sňatek — Franz Huber + Theresia Berger",
+   "en": "marriage — Franz Huber + Theresia Berger"
+  },
+  "documents": [],
+  "id": "marriage-F4",
+  "people": [
+   "I14",
+   "I15"
+  ],
+  "place": "Linz",
+  "type": "marriage",
+  "year": 1929
+ },
+ {
+  "branch": "cerny",
+  "certainty": "tree",
+  "date": "1928",
+  "description": {
+   "cs": "sňatek — Václav Černý + Anežka Dvořáková",
+   "en": "marriage — Václav Černý + Anežka Dvořáková"
+  },
+  "documents": [],
+  "id": "marriage-F5",
+  "people": [
+   "I19",
+   "I20"
+  ],
+  "place": "Brno",
+  "type": "marriage",
+  "year": 1928
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1929",
+  "description": {
+   "cs": "sňatek — Stanisław Kowalski + Zofia Wójcik",
+   "en": "marriage — Stanisław Kowalski + Zofia Wójcik"
+  },
+  "documents": [],
+  "id": "marriage-F6",
+  "people": [
+   "I24",
+   "I25"
+  ],
+  "place": "Kraków",
+  "type": "marriage",
+  "year": 1929
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "tree",
+  "date": "1925",
+  "description": {
+   "cs": "sňatek — István Szabó + Ilona Nagy",
+   "en": "marriage — István Szabó + Ilona Nagy"
+  },
+  "documents": [],
+  "id": "marriage-F7",
+  "people": [
+   "I27",
+   "I28"
+  ],
+  "place": "Budapest",
+  "type": "marriage",
+  "year": 1925
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1903",
+  "description": {
+   "cs": "sňatek — Josef Huber + Rosa Bruckner",
+   "en": "marriage — Josef Huber + Rosa Bruckner"
+  },
+  "documents": [],
+  "id": "marriage-F8",
+  "people": [
+   "I30",
+   "I31"
+  ],
+  "place": "Vienna",
+  "type": "marriage",
+  "year": 1903
+ },
+ {
+  "branch": "huber",
+  "certainty": "tree",
+  "date": "1904",
+  "description": {
+   "cs": "sňatek — Johann Berger + Katharina Lang",
+   "en": "marriage — Johann Berger + Katharina Lang"
+  },
+  "documents": [],
+  "id": "marriage-F9",
+  "people": [
+   "I35",
+   "I36"
+  ],
+  "place": "Linz",
+  "type": "marriage",
+  "year": 1904
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "chronicle",
+  "date": "1956",
+  "description": {
+   "cs": "stěhování — Jan Kowalski a Judit Szabó opouštějí Budapešť a usazují se ve Vídni",
+   "en": "move — Jan Kowalski and Judit Szabó leave Budapest and settle in Vienna"
+  },
+  "documents": [],
+  "id": "manual-kowalski-1956-move",
+  "people": [
+   "I10",
+   "I11"
+  ],
+  "place": "Vienna",
+  "type": "move",
+  "year": 1956
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "uncertain",
+  "date": "about 1944",
+  "description": {
+   "cs": "válka — rodina přečkává poslední rok války v Krakově",
+   "en": "war — the family shelters in Kraków during the last year of the war"
+  },
+  "documents": [],
+  "id": "manual-kowalski-1944-war",
+  "people": [
+   "I10"
+  ],
+  "place": "Kraków",
+  "type": "war",
+  "year": 1944
+ },
+ {
+  "branch": "kowalski",
+  "certainty": "uncertain",
+  "date": "1945",
+  "description": {
+   "cs": "transport — Judit cestuje vlakem z Krakova do Budapešti",
+   "en": "transport — Judit travels by train from Kraków to Budapest"
+  },
+  "documents": [],
+  "id": "manual-kowalski-1945-transport",
+  "people": [
+   "I11"
+  ],
+  "place": "Budapest",
+  "type": "transport",
+  "year": 1945
+ }
+]

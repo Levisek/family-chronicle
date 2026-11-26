@@ -1,0 +1,46 @@
+{
+ "bounds": [
+  46.498,
+  12.871,
+  51.075,
+  21.36
+ ],
+ "labels": [
+  {
+   "kind": "region",
+   "lat": 49.8,
+   "lon": 14.0,
+   "text": {
+    "cs": "Čechy",
+    "en": "Bohemia"
+   }
+  },
+  {
+   "kind": "region",
+   "lat": 47.6,
+   "lon": 14.6,
+   "text": {
+    "cs": "Rakousko",
+    "en": "Austria"
+   }
+  },
+  {
+   "kind": "ridge",
+   "lat": 47.0,
+   "lon": 13.4,
+   "text": {
+    "cs": "Alpy",
+    "en": "Alps"
+   }
+  },
+  {
+   "kind": "town",
+   "lat": 47.8095,
+   "lon": 13.055,
+   "text": {
+    "cs": "Salzburg",
+    "en": "Salzburg"
+   }
+  }
+ ]
+}

@@ -1,0 +1,62 @@
+{
+ "Brno": {
+  "coords": [
+   49.1951,
+   16.6068
+  ],
+  "country": {
+   "cs": "Česká republika",
+   "en": "Czechia"
+  }
+ },
+ "Budapest": {
+  "coords": [
+   47.4979,
+   19.0402
+  ],
+  "country": {
+   "cs": "Maďarsko",
+   "en": "Hungary"
+  }
+ },
+ "Kraków": {
+  "coords": [
+   50.0647,
+   19.945
+  ],
+  "country": {
+   "cs": "Polsko",
+   "en": "Poland"
+  }
+ },
+ "Linz": {
+  "coords": [
+   48.3069,
+   14.2858
+  ],
+  "country": {
+   "cs": "Rakousko",
+   "en": "Austria"
+  }
+ },
+ "Prague": {
+  "coords": [
+   50.0755,
+   14.4378
+  ],
+  "country": {
+   "cs": "Česká republika",
+   "en": "Czechia"
+  }
+ },
+ "Vienna": {
+  "coords": [
+   48.2082,
+   16.3738
+  ],
+  "country": {
+   "cs": "Rakousko",
+   "en": "Austria"
+  }
+ }
+}

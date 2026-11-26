@@ -1,0 +1,38 @@
+{
+ "baptism-1934": {
+  "crop": "documents/baptism-1934-a93bab6d.webp",
+  "description": {
+   "cs": "Záznam o křtu Karla Hubera, 1934",
+   "en": "Baptism entry of Karl Huber, Vienna, 1934"
+  },
+  "sheet": "documents/baptism-1934-sheet-caf90ac6.webp",
+  "verified": true
+ },
+ "death-1971": {
+  "crop": "documents/death-1971-fa9ccf19.webp",
+  "description": {
+   "cs": "Úmrtní záznam Franze Hubera, 1971",
+   "en": "Death record of Franz Huber, Vienna, 1971"
+  },
+  "sheet": "documents/death-1971-sheet-9ba2c938.webp",
+  "verified": true
+ },
+ "death-2015": {
+  "crop": "documents/death-2015-efae6bd9.webp",
+  "description": {
+   "cs": "Úmrtní záznam Thomase Hubera, Linec, 2015 (výřez: list zmiňuje i žijící osobu)",
+   "en": "Death record of Thomas Huber, Linz, 2015 (crop: the sheet also names a living person)"
+  },
+  "sheet": null,
+  "verified": true
+ },
+ "marriage-1957": {
+  "crop": "documents/marriage-1957-fbada080.webp",
+  "description": {
+   "cs": "Oddací záznam Karla Hubera a Heleny Černé, Linec, 1957",
+   "en": "Marriage record of Karl Huber and Helena Černá, Linz, 1957"
+  },
+  "sheet": "documents/marriage-1957-sheet-0af72ab1.webp",
+  "verified": true
+ }
+}
