@@ -42,7 +42,23 @@ the same wall: a chart script that works for three generations gets hard to exte
 as generations and special cases pile up. The last section describes what kept this one
 maintainable.
 
-## Quick start
+## Without programming: the app
+
+1. Download the repository as a ZIP (the green **Code** button, then **Download ZIP**) and unzip it.
+2. Open `Family Chronicle.html` in Chrome or Edge (double-click it). Nothing is installed and
+   nothing runs on a server: the app is a page on your own disk.
+3. Try it on the example family, or start with your own GEDCOM exported from your genealogy
+   program. A wizard asks for the starting person, the branches, the places and the living
+   people, then builds the website and checks it.
+
+Chrome and Edge save the family into a folder you pick (use a new, empty one): your settings,
+places and chronicles, and the website in `web/`. Firefox and Safari cannot write into a folder,
+so they keep the family in the browser and give you the website and a backup as ZIP downloads.
+The places are found in a bundled list of towns (GeoNames). Only if you click the online lookup
+is a place name, and nothing else, sent to OpenStreetMap's Nominatim. The website is checked
+before it is saved: if a birth date of a living person would get out, nothing is written.
+
+## Quick start (command line)
 
 You need Python 3 (developed and tested on 3.14). Node.js is only needed for the optional JavaScript tests, and a
 Chromium or Chrome only for the PDF book.
