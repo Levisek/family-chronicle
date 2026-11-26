@@ -258,7 +258,9 @@ const result = await FCEngine.build.build({
   today,       // Date for the living-people rule
   images,      // ImageAdapter, see below
 });
-// result = {ok, files, findings, warnings, approval, manifest}
+// result = {ok, files, findings, warnings, approval, manifest, fillIns}
+//   fillIns: [{file, count}] the "[Fill in: …]" marks left in the chronicles (their sentences are
+//   left off the website)
 //   files: Map with "<site_dir>/...", "manifest.json", "approval.md"
 //   ok === false when the output check found something (manifest.check === "failed")
 ```
@@ -312,8 +314,12 @@ family.ged        the last GEDCOM loaded in the wizard
 site.json         as above; the wizard writes root, branches, languages, living rules, base_url
 places.json       {town: {coords, country, aliases, source}}
 basemap.geojson   the basemap cropped to the places (engine/basemap.js, margin 2 degrees)
-chronicles/, documents/, documents.json, events.json   as before (phase 3 and 4 edit them)
-history/<YYYY-MM-DD-HHMMSS>/   copies of site.json, places.json and family.ged before they are overwritten
+chronicles/<key>.md, <key>.<lang>.md   the chronicles; the app makes a draft and edits them
+chronicles/.versions/<key>[.<lang>]-<YYYY-MM-DD-HHMMSS>.md   the text before every save
+documents/, documents.json, events.json   as before (documents get edited in phase 4)
+AGENTS.md         notes for an AI assistant with access to the folder; written once, never replaced
+history/<YYYY-MM-DD-HHMMSS>/   copies of the files the wizard is about to overwrite (site.json,
+                  places.json, family.ged, the basemap, documents.json, chronicles)
 web/              the built website: web/<site_dir>/, web/manifest.json, web/approval.md,
                   web/.family-chronicle-output (marker)
 ```
@@ -323,6 +329,24 @@ web/              the built website: web/<site_dir>/, web/manifest.json, web/app
   (`tree.placeCoords`), the gazetteer, then Nominatim only after a click (only the place string,
   at most one request a second), then a choice from candidates or a click into the map.
   Several equal matches are never picked automatically.
+- **A newer GEDCOM** (step 1 when the family already has one): `engine/match.js` pairs the people.
+  Same id + same name + same birth year = the same person; otherwise the name without diacritics,
+  the birth year within 2 years and, among several, the parents' names. One candidate is taken;
+  several or none become a question, only for ids the family uses (root, branch roots,
+  `living_extra`, `deceased_extra`, `exclude`, `living_town`, `people`/`main` of documents,
+  `<!-- person -->` in chronicles). Then `match.remap` moves all of them to the new ids (an id
+  without a pair is dropped) and `match.changes` lists added and gone people, changed birth and
+  death dates, new places and who now counts as living or deceased.
+- **Chronicle draft** (`engine/skeleton.js`): the ancestors of a branch by generations, one
+  paragraph a couple with `<!-- person -->` and `<!-- place -->`, sentences from
+  `locales/<lang>.json` > `skeleton` (a language without it gets a list of facts). A missing date or
+  place is `[<skeleton.fill_in>: <what>]`, e.g. `[Fill in: birthplace]`. Living people: name and
+  relation only. `skeleton.refresh` puts a new draft over a chronicle: blocks that still have a mark
+  are replaced, written blocks stay, people not in it yet go to the end. `skeleton` is removed from
+  the strings sent to the website.
+- **AI request** (`engine/aiprompt.js`): instructions (app texts), facts of the branch (deceased
+  with dates and places; living people name and relation only, also as children and partners)
+  and the current text redacted like the website. The app only shows it for copying.
 - The app writes only under `web/` for a build. A `web/<site_dir>/` without `web/manifest.json` and
   without the marker is never replaced (`engine/output.js`). A failed check writes nothing.
 - `check_exceptions` added in the app are always `{"text", "reason"}`; the reason is required.

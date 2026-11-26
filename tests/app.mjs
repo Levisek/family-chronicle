@@ -183,7 +183,7 @@ await scenario('chromium_folder', chromium, async (page) => {
   await page.click('#choose-folder');
   await page.waitForSelector('#saved', { timeout: 30000 });
   const files = await folderList(page, 'family-folder');
-  for (const f of ['site.json', 'places.json', 'basemap.geojson', 'family.ged', 'web/.family-chronicle-output', 'web/family/index.html', 'web/manifest.json']) assert(f in files, `missing ${f}`);
+  for (const f of ['site.json', 'places.json', 'basemap.geojson', 'family.ged', 'AGENTS.md', 'web/.family-chronicle-output', 'web/family/index.html', 'web/manifest.json']) assert(f in files, `missing ${f}`);
   assert(JSON.parse(files['web/manifest.json']).check === 'ok', 'manifest check is not ok');
   const places = JSON.parse(files['places.json']);
   assert(Object.values(places).every((p) => ['gedcom', 'gazetteer', 'online', 'manual'].includes(p.source)), 'places without a source');
@@ -262,6 +262,7 @@ await scenario('own_basemap', chromium, async (page) => {
   mine.name = 'made by hand';
   files['my-map.geojson'] = Buffer.from(JSON.stringify(mine)).toString('base64');
   delete files['basemap.geojson'];
+  files['AGENTS.md'] = Buffer.from('mine').toString('base64');   // somebody's own AGENTS.md stays
   await seedFolder(page, 'own-map', files);
   await page.click('text=Open a saved family');
   await page.click('#home-settings');
@@ -273,6 +274,7 @@ await scenario('own_basemap', chromium, async (page) => {
   assert(kept, `the hand-made basemap was not backed up: ${Object.keys(after).filter((f) => f.startsWith('history/')).join(', ')}`);
   assert(JSON.parse(after[kept]).name === 'made by hand', 'the backup is not the hand-made basemap');
   assert(JSON.parse(after['site.json']).basemap === 'my-map.geojson', 'the basemap key changed');
+  assert(after['AGENTS.md'] === 4, 'an AGENTS.md of the family was overwritten');
 });
 
 await scenario('online_only_places', chromium, async (page) => {

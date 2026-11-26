@@ -58,6 +58,21 @@ The places are found in a bundled list of towns (GeoNames). Only if you click th
 is a place name, and nothing else, sent to OpenStreetMap's Nominatim. The website is checked
 before it is saved: if a birth date of a living person would get out, nothing is written.
 
+From the home screen of a saved family you can:
+
+- **Load a newer GEDCOM** after more research. The app pairs the people of the new file with the
+  old one, asks about the unclear ones and shows what changed; your settings and chronicles move
+  over to the new file.
+- **Write the chronicle of a branch.** The app makes a draft from the data, generation by
+  generation, with yellow `[Fill in: …]` marks where a date or a place is missing. You edit it next
+  to a preview; every save keeps the previous text as a version.
+- **Let an AI chat write it.** The app puts together a request (the facts of the branch, living
+  people only by name and relation) for you to paste into your own ChatGPT, Claude or Gemini, and
+  saves the answer as a new version. It sends nothing itself. Check what the AI adds.
+
+Documents (scans with crops) and the PDF book are not in the app yet; for now they work from the
+command line below.
+
 ## Quick start (command line)
 
 You need Python 3 (developed and tested on 3.14). Node.js is only needed for the optional JavaScript tests, and a

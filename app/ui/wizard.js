@@ -44,6 +44,8 @@
     if (!w) return out;
     if (w.ged) out.set('family.ged', w.ged);
     for (const [k, v] of w.remapped || []) out.set(k, v);   // documents and chronicles with the ids of a newer GEDCOM
+    // a note for AI assistants, once: a person may change it afterwards
+    if (!w.project.files.has('AGENTS.md') && FCApp.agentsTemplate) out.set('AGENTS.md', new TextEncoder().encode(FCApp.agentsTemplate));
     out.set('site.json', E().project.serialize(w.cfg));
     out.set(w.cfg.places || 'places.json', E().project.serialize(w.places));
     if (w.basemap) out.set(w.cfg.basemap || 'basemap.geojson', new TextEncoder().encode(JSON.stringify(w.basemap)));
