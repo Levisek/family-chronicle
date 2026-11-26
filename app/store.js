@@ -190,7 +190,7 @@
     return p;
   }
 
-  const example = () => memoryProject('Huber', FCApp.data.example());
+  const example = () => Object.assign(memoryProject('Huber', FCApp.data.example()), { example: true });
   const blank = () => memoryProject('', new Map());
 
   FCApp.store = { canFolder, openFolder, saved, reopen, persist, example, blank, memoryProject };
