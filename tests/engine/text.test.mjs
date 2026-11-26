@@ -42,3 +42,15 @@ test('month_names', () => {
   assert.ok(dates.monthNames(9).includes('Sept'));
   assert.equal(dates.monthNames(9).filter((x) => x === 'září').length, 1);
 });
+
+test('py_round_like_python', () => {
+  // values checked with Python 3: round(x, 3)
+  assert.equal(text.pyRound(0.0625, 3), 0.062);     // exact tie -> even
+  assert.equal(text.pyRound(0.0635, 3), 0.064);     // 0.0635 is slightly above the tie in binary
+  assert.equal(text.pyRound(2.675, 2), 2.67);       // 2.675 is below the tie in binary
+  assert.equal(text.pyRound(-34.0 - 1.0, 3), -35);
+  assert.equal(text.pyRound(17.5, 0), 18);          // tie -> even
+  assert.equal(text.pyRound(16.5, 0), 16);
+  assert.equal(text.pyRound(-0.0625, 3), -0.062);
+  assert.equal(text.pyRound(48.30695, 4), 48.307);
+});
