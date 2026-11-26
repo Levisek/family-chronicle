@@ -62,3 +62,12 @@ test('prompt_html_name_is_text', () => {
   const ged = GED.replace('1 NAME Johann /Huber/\n2 GIVN Johann', '1 NAME <b>Johann</b> /Huber/\n2 GIVN <b>Johann</b>');
   assert.ok(prompt(ged).text.includes('<b>Johann</b> Huber [I43]'));   // plain text for a chat, not HTML
 });
+
+test('prompt_out_of_scope_living', () => {
+  const eva = GED.replace('0 TRLR', '0 @X1@ INDI\n1 NAME Eva /Huber/\n1 SEX F\n1 BIRT\n2 DATE 1941\n1 FAMC @F14@\n0 TRLR').replace(/(0 @F14@ FAM\n)/, '$11 CHIL @X1@\n');
+  const tree = G.parse(eva);
+  const cfg = { ...CFG, exclude: ['X1'] };
+  const scope = S.determineScope(tree, cfg, TODAY);
+  const text = A.build({ tree, scope, cfg, branchKey: 'huber', lang: 'en', current: '', places: PLACES, texts: TEXTS, locales: repoAssets().locales });
+  assert.ok(text.includes('Eva Huber') && !text.includes('1941'), text.split('\n').find((l) => l.includes('Eva')));
+});

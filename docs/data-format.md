@@ -334,8 +334,12 @@ web/              the built website: web/<site_dir>/, web/manifest.json, web/app
   the birth year within 2 years and, among several, the parents' names. One candidate is taken;
   several or none become a question, only for ids the family uses (root, branch roots,
   `living_extra`, `deceased_extra`, `exclude`, `living_town`, `people`/`main` of documents,
-  `<!-- person -->` in chronicles). Then `match.remap` moves all of them to the new ids (an id
-  without a pair is dropped) and `match.changes` lists added and gone people, changed birth and
+  `<!-- person -->` in chronicles, `people` of events.json; `@I5@` counts as `I5`). The person
+  confirms the answers with one button; one new person cannot answer two questions. Then
+  `match.remap` moves all of them to the new ids. An id without a pair is dropped, except in a
+  document's `people`, where it stays as `?<old id>` so the document is held back until it is linked
+  again; a branch left without roots is removed (and a `map_chapter` to it), and the overview says
+  so. Then `match.changes` lists added and gone people, changed birth and
   death dates, new places and who now counts as living or deceased.
 - **Chronicle draft** (`engine/skeleton.js`): the ancestors of a branch by generations, one
   paragraph a couple with `<!-- person -->` and `<!-- place -->`, sentences from

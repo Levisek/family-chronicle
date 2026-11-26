@@ -107,3 +107,26 @@ test('refresh_keeps_written', () => {
   assert.match(out, /## New from the data\n\n<!-- person: I99 -->\nSomeone new\.\n$/);
   assert.equal(K.refresh(current, current, pattern, 'New from the data'), current);
 });
+
+// --- review fixes ---------------------------------------------------------------------------------
+
+// Eva Huber, living (born 1941), a daughter of Johann and Barbara, excluded from the website
+const EVA = GED.replace('0 TRLR', '0 @X1@ INDI\n1 NAME Eva /Huber/\n1 SEX F\n1 BIRT\n2 DATE 1941\n1 FAMC @F14@\n0 TRLR').replace(/(0 @F14@ FAM\n)/, '$11 CHIL @X1@\n');
+
+test('skeleton_out_of_scope_people_are_living', () => {
+  assert.ok(EVA.includes('1 CHIL @X1@'));
+  const cfg = { ...CFG, exclude: ['X1', 'I35'] };
+  const md = draft(EVA, 'en', 'huber', LOCALES.en, cfg);
+  assert.match(blockOf(md, 'I43'), /Eva Huber[,.]/);
+  assert.ok(!md.includes('1941'), blockOf(md, 'I43'));
+  // an excluded ancestor gets no paragraph of their own
+  assert.ok(!md.includes('Johann Berger was born'), blockOf(md, 'I36'));
+  assert.ok(!/person: I35/.test(md));
+});
+
+test('refresh_crlf', () => {
+  const pattern = K.fillPattern(LOCALES);
+  const before = draft(GED);
+  const out = K.refresh(before.replace(/\n/g, '\r\n'), before, pattern, 'New from the data');
+  assert.ok(!out.includes('New from the data'), 'a CRLF chronicle got the whole draft again');
+});

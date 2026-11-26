@@ -13,22 +13,25 @@
 
   const MAX_CANDIDATES = 8;
   const YEARS = 2;
-  const ANCHOR = /^([ \t]*<!--[ \t]*person[ \t]*:)([\s\S]*?)(-->[ \t]*)$/gm;
+  const ANCHOR = /^([ \t]*<!--[ \t]*person[ \t]*:)([\s\S]*?)(-->[ \t]*)(\r?)$/gm;   // also CRLF files
+  const UNPAIRED = '?';   // a document keeps "?I20" for an unpaired person: out of scope, so held back
 
   const plain = (s) => String(s || '').normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ').trim();
   const nameOf = (p) => plain([p.given, p.surname].filter(Boolean).join(' '));
   const yearOf = (p) => (p.birth && p.birth.date && p.birth.date.year != null ? p.birth.date.year : null);
-  const anchorIds = (s) => s.split(';').map((x) => x.trim().replace(/^@+|@+$/g, '').trim()).filter(Boolean);
+  const clean = (x) => String(x).trim().replace(/^@+|@+$/g, '').trim();
+  const anchorIds = (s) => s.split(';').map(clean).filter(Boolean);
   const parentNames = (tree, id) => tree.parents(id).map((x) => nameOf(tree.people.get(x))).sort().join('|');
 
-  function usedIds(cfg, documents, chronicles) {
+  function usedIds(cfg, documents, chronicles, events) {
     const out = new Set();
-    const add = (x) => { if (typeof x === 'string' && x) out.add(x); };
+    const add = (x) => { if (typeof x === 'string' && clean(x)) out.add(clean(x)); };
     add(cfg.root);
     for (const b of cfg.branches || []) (b.roots || []).forEach(add);
     for (const k of ['living_extra', 'deceased_extra', 'exclude']) (cfg[k] || []).forEach(add);
     Object.keys(cfg.living_town || {}).forEach(add);
     for (const d of documents || []) { (d.people || []).forEach(add); (d.main || []).forEach(add); }
+    for (const e of events || []) (e.people || []).forEach(add);
     for (const text of (chronicles || new Map()).values()) {
       for (const m of String(text).matchAll(ANCHOR)) anchorIds(m[2]).forEach(add);
     }
@@ -74,30 +77,43 @@
     return { pairs, auto, questions, removed };
   }
 
-  function remap({ cfg, documents, chronicles }, pairs) {
-    const to = (id) => (pairs.has(id) ? pairs.get(id) : null);
+  // `events` (events.json) is optional. A branch without any root left is dropped (droppedBranches)
+  // and a `map_chapter` pointing to it goes too.
+  function remap({ cfg, documents, events, chronicles }, pairs) {
+    const to = (id) => { const k = clean(id); return pairs.has(k) ? pairs.get(k) : null; };
     const list = (a) => (Array.isArray(a) ? a.map(to).filter(Boolean) : a);
     const c = JSON.parse(JSON.stringify(cfg));
     if ('root' in c) c.root = c.root ? to(c.root) : null;
-    if (Array.isArray(c.branches)) c.branches = c.branches.map((b) => ({ ...b, roots: list(b.roots || []) })).filter((b) => b.roots.length);
+    const droppedBranches = [];
+    if (Array.isArray(c.branches)) {
+      c.branches = c.branches.map((b) => ({ ...b, roots: list(b.roots || []) }));
+      for (const b of c.branches) if (!b.roots.length) droppedBranches.push(b.key);
+      c.branches = c.branches.filter((b) => b.roots.length);
+      for (const b of c.branches) if (droppedBranches.includes(b.map_chapter)) delete b.map_chapter;
+    }
     for (const k of ['living_extra', 'deceased_extra', 'exclude']) if (Array.isArray(c[k])) c[k] = list(c[k]);
     if (c.living_town && typeof c.living_town === 'object') {
       c.living_town = Object.fromEntries(Object.entries(c.living_town).map(([id, town]) => [to(id), town]).filter(([id]) => id));
     }
     const docs = (documents || []).map((d) => {
       const x = JSON.parse(JSON.stringify(d));
-      if (Array.isArray(x.people)) x.people = list(x.people);
+      if (Array.isArray(x.people)) x.people = x.people.map((id) => to(id) || (clean(id).startsWith(UNPAIRED) ? clean(id) : UNPAIRED + clean(id)));
       if (Array.isArray(x.main)) x.main = list(x.main);
+      return x;
+    });
+    const evs = (events || []).map((e) => {
+      const x = JSON.parse(JSON.stringify(e));
+      if (Array.isArray(x.people)) x.people = list(x.people);
       return x;
     });
     const chron = new Map();
     for (const [path, text] of chronicles || new Map()) {
-      chron.set(path, String(text).replace(new RegExp(ANCHOR.source + '\\n?', 'gm'), (all, a, ids, b) => {
+      chron.set(path, String(text).replace(new RegExp(ANCHOR.source + '\\n?', 'gm'), (all, a, ids, b, cr) => {
         const kept = anchorIds(ids).map(to).filter(Boolean);
-        return kept.length ? `${a} ${kept.join('; ')} ${b}${all.endsWith('\n') ? '\n' : ''}` : '';
+        return kept.length ? `${a} ${kept.join('; ')} ${b}${cr}${all.endsWith('\n') ? '\n' : ''}` : '';
       }));
     }
-    return { cfg: c, documents: docs, chronicles: chron };
+    return { cfg: c, documents: docs, events: evs, chronicles: chron, droppedBranches };
   }
 
   function placeStrings(tree) {

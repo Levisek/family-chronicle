@@ -8,7 +8,7 @@
 // interface (window.__folders); the origin private file system is not open to file:// pages.
 // Scenarios: chromium_example, chromium_folder, xss_name, leak_refused, own_basemap,
 // online_only_places, firefox_backup_warning, firefox_saved_family, firefox_suggested_root,
-// new_gedcom_renumbered, chronicle_editor, chronicle_xss_preview,
+// new_gedcom_renumbered, new_gedcom_same_answer_twice, chronicle_editor, chronicle_xss_preview,
 // firefox_chronicle, ai_dialog.
 // ONLY=<name>,<name> runs just those.
 import { createRequire } from 'node:module';
@@ -405,12 +405,13 @@ await scenario('firefox_suggested_root', firefox, async (page) => {
 });
 
 await scenario('new_gedcom_renumbered', chromium, async (page) => {
-  // a saved family; the new GEDCOM has every id renumbered (I -> X) and a second Karl Huber 1934
-  // with the same parents, so Karl (the branch root) is a question
+  // a saved family; the new GEDCOM has every id renumbered (I -> X), a second Karl Huber 1934 and a
+  // second Franz Huber 1905 with the same parents, so both are questions
   await seedFolder(page, 'renumbered', exampleFiles());
   let ged = readFileSync(join(REPO, 'example/family.ged'), 'utf8').replace(/@I(\d+)@/g, '@X$1@');
-  ged = ged.replace('1 CHIL @X5@\n', '1 CHIL @X5@\n1 CHIL @X99@\n')
-    .replace('0 TRLR', '0 @X99@ INDI\n1 NAME Karl /Huber/\n1 SEX M\n1 BIRT\n2 DATE 1934\n1 DEAT\n2 DATE 1935\n1 FAMC @F4@\n0 TRLR');
+  ged = ged.replace('1 CHIL @X5@\n', '1 CHIL @X5@\n1 CHIL @X99@\n').replace('1 CHIL @X14@\n', '1 CHIL @X14@\n1 CHIL @X98@\n')
+    .replace('0 TRLR', '0 @X99@ INDI\n1 NAME Karl /Huber/\n1 SEX M\n1 BIRT\n2 DATE 1934\n1 DEAT\n2 DATE 1935\n1 FAMC @F4@\n'
+      + '0 @X98@ INDI\n1 NAME Franz /Huber/\n1 SEX M\n1 BIRT\n2 DATE 1905\n1 DEAT\n2 DATE 1906\n1 FAMC @F8@\n0 TRLR');
   const path = join(TMP, 'renumbered.ged');
   writeFileSync(path, ged);
   await page.click('text=Open a saved family');
@@ -419,9 +420,16 @@ await scenario('new_gedcom_renumbered', chromium, async (page) => {
   await page.waitForSelector('#questions');
   await page.click('#next');
   assert(await page.isVisible('.messages .error'), 'the next step opens with an open question');
-  await page.click('#questions input[value="X5"]');   // the answer re-renders the step (check() would wait for the old element)
+  // a misclick can be changed; nothing is applied before the button
+  await page.click('#questions input[name="q-I5"][value=""]');
+  await page.click('#questions input[name="q-I5"][value="X5"]');
+  assert(await page.locator('#questions input[name="q-I14"][value="X5"]').count() === 0, 'Karl is offered for Franz');
+  assert(!(await page.isVisible('#changes')), 'the answers were applied before the button');
+  await page.click('#questions input[name="q-I14"][value="X98"]');
+  await page.click('#questions input[name="q-I14"][value="X14"]');
+  await page.click('#update-apply');
   await page.waitForSelector('#changes');
-  assert((await page.textContent('#changes')).includes('1'), 'no overview of the changes');
+  assert((await page.textContent('#changes')).includes('New people: 2'), `overview: ${await page.textContent('#changes')}`);
   await nextTo(page, 6);
   await page.click('#build');
   await page.waitForSelector('#saved, #findings, .error', { timeout: 60000 });
@@ -431,10 +439,31 @@ await scenario('new_gedcom_renumbered', chromium, async (page) => {
   assert(site.root === 'X1', `root ${site.root}`);
   assert(site.branches.find((b) => b.key === 'huber').roots[0] === 'X5', 'the branch root is not X5');
   assert(!/"I\d+"/.test(files['documents.json']), 'documents.json keeps old ids');
+  assert(!/"I\d+"/.test(files['events.json']), 'events.json keeps old ids');
+  assert(JSON.parse(files['documents.json'])[0].people.includes('X14'), 'Franz is not X14 in the documents');
   const chron = await page.evaluate(() => new TextDecoder().decode(window.__folders.renumbered.dirs.get('chronicles').files.get('huber.md')));
   assert(chron.includes('<!-- person: X43; X44 -->'), 'the chronicle anchors keep old ids');
   assert(Object.keys(files).some((f) => /^history\/[^/]+\/family\.ged$/.test(f)), 'the old family.ged is not in history/');
   assert(Object.keys(files).some((f) => /^history\/[^/]+\/chronicles\/huber\.md$/.test(f)), 'the old chronicle is not in history/');
+});
+
+await scenario('new_gedcom_same_answer_twice', chromium, async (page) => {
+  // two people answered with the same new person: refused
+  await seedFolder(page, 'twice', exampleFiles());
+  let ged = readFileSync(join(REPO, 'example/family.ged'), 'utf8').replace(/@I(\d+)@/g, '@X$1@');
+  ged = ged.replace('1 NAME Karl /Huber/\n2 GIVN Karl', '1 NAME Carl /Huber/\n2 GIVN Carl').replace('1 NAME Franz /Huber/\n2 GIVN Franz', '1 NAME Frank /Huber/\n2 GIVN Frank');
+  const path = join(TMP, 'twice.ged');
+  writeFileSync(path, ged);
+  await page.click('text=Open a saved family');
+  await page.click('#home-new-gedcom');
+  await page.setInputFiles('#ged-input', path);
+  await page.waitForSelector('#questions');
+  for (const id of ['I5', 'I14']) {
+    await page.fill(`#questions input[data-for="${id}"]`, 'Carl');
+    await page.click(`#questions input[name="q-${id}"][value="X5"]`);
+  }
+  await page.click('#update-apply');
+  assert((await page.textContent('#questions .error')).includes('more than one'), 'two answers with one person were accepted');
 });
 
 await scenario('chronicle_editor', chromium, async (page) => {

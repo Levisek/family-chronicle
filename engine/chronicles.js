@@ -134,11 +134,16 @@
     return new RegExp(`\\[(?:${all}): [^\\]\\n]*\\]`, 'g');
   }
 
-  // A sentence with a mark is left off the website.
+  // A sentence with a mark is left off the website. A sentence ends with . ! or ? followed by a
+  // space and a capital (or an opening quote or bracket), so "12. 3. 1890" stays one sentence.
+  // Runs after the hidden blocks are gone (privacy.redact), so it never cuts into their markers.
+  const SENTENCE_END = /(?<=[.!?])[ \t]+(?=[\p{Lu}\p{Lt}„“"‚‘'(\[*_])/u;
   function withoutFillIns(src, pattern) {
-    const mark = pattern.source;
-    const sentence = new RegExp(`[^.!?\\n]*${mark}[^.!?\\n]*(?:[.!?]+|$)[ \\t]*`, 'gm');
-    return src.replace(sentence, '').replace(/[ \t]+$/gm, '');
+    const one = new RegExp(pattern.source);
+    return src.split('\n').map((line) => {
+      if (!one.test(line)) return line;
+      return line.split(SENTENCE_END).filter((x) => !one.test(x)).join(' ').replace(/[ \t]+$/, '');
+    }).join('\n');
   }
 
   function render(mdFile, lang, sensitive, published, exports, files, options = {}) {
@@ -152,9 +157,9 @@
     }
     if (!files.has(path)) throw new Error(`chronicle not found: ${path}`);
     let src = readText(files, path);
-    if (marks) src = withoutFillIns(src, marks);
     src = src.replace(TEXT, (all, t) => text.escapeText(t.replace(/^\n+|\n+$/g, '')));
     src = privacy.redact(src, sensitive, ext);
+    if (marks) src = withoutFillIns(src, marks);
     src = markers(src);
     src = insertImages(src, slugName, lang, published, exports, strings, rootUrl, images, docFiles);
     src = src.replace(COMMENT, '').replace(REST, '');

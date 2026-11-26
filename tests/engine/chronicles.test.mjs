@@ -208,3 +208,12 @@ test('fill_in_hidden_on_web', () => {
   // without a pattern nothing is removed (the Python build and old callers)
   assert.ok(render('# T\n\nA [Fill in: x].\n').html.includes('[Fill in: x]'));
 });
+
+test('fill_in_sentences_with_dots_and_hidden_blocks', () => {
+  const pattern = C.fillPattern({ cs: { skeleton: { fill_in: 'Doplňte' } } });
+  const cs = render('# T\n\nJan se narodil 12. 3. 1890 v obci [Doplňte: místo narození]. Zemřel 1950.\n', { fillPattern: pattern });
+  assert.ok(!cs.html.includes('12. 3.') && cs.html.includes('Zemřel 1950.'), cs.html);
+  const hidden = render('# T\n\n<!-- web:hide -->Jan [Doplňte: x]. Secret rest.<!-- /web:hide -->\n\nShown.\n', { fillPattern: pattern });
+  assert.ok(!hidden.html.includes('Secret'), hidden.html);
+  assert.ok(hidden.html.includes('Shown.'));
+});

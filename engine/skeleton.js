@@ -29,7 +29,8 @@
     const town = (ev) => (ev && ev.place ? esc(P.town(ev.place) || placesMod.toTown(ev.place) || ev.place.split(',')[0].trim()) : '');
     const date = (ev) => (ev && ev.date ? esc(events.formatDate(ev.date, dl) || '') : '');
     const mark = (what) => `[${sk.fill_in}: ${sk[what]}]`;
-    const living = (id) => scope.living.has(id);
+    // outside the website's scope (excluded, or not related) nothing is known to be safe: name only
+    const living = (id) => scope.living.has(id) || !scope.people.has(id);
 
     const branch = (cfg.branches || []).find((b) => b.key === branchKey);
     const title = branch ? (branch.name[lang] || Object.values(branch.name)[0] || branchKey) : branchKey;
@@ -38,7 +39,7 @@
     // couples by the number of their child in the ahnentafel; generations from the oldest
     const couples = new Map();
     for (const [id, n] of scope.ahnentafel) {
-      if (n < 2 || scope.branchOf.get(id) !== branchKey) continue;
+      if (n < 2 || scope.branchOf.get(id) !== branchKey || !scope.people.has(id)) continue;   // not the excluded
       const k = Math.floor(n / 2);
       if (!couples.has(k)) couples.set(k, []);
       couples.get(k).push([n, id]);
@@ -141,6 +142,8 @@
   // replaced by the new draft of the same people; written blocks stay; people the chronicle does
   // not mention yet go to the end under `heading`.
   function refresh(current, fresh, pattern, heading) {
+    current = String(current).replace(/\r\n?/g, '\n');
+    fresh = String(fresh).replace(/\r\n?/g, '\n');
     const test = (s) => new RegExp(pattern.source).test(s);
     const freshBlocks = new Map();
     for (const b of split(fresh)) { const k = keyOf(b); if (k && !freshBlocks.has(k)) freshBlocks.set(k, b); }

@@ -144,3 +144,46 @@ test('changes_overview', () => {
   assert.deepEqual(c.nowDeceased, ['I3']);
   assert.deepEqual(c.nowLiving, []);   // only paired people change status; I9 is new
 });
+
+// --- review fixes ---------------------------------------------------------------------------------
+
+test('remap_keeps_unpaired_document_people_withheld', () => {
+  const docs = [{ id: 'd', people: ['I20', 'I3'], main: ['I20'] }];
+  const r = M.remap({ cfg: CFG, documents: docs, chronicles: new Map() }, new Map([['I3', 'P3']]));
+  // an unpaired person stays as "?I20": out of scope for the build, so the document is held back
+  assert.deepEqual(r.documents[0].people, ['?I20', 'P3']);
+  assert.deepEqual(r.documents[0].main, []);
+});
+
+test('crlf_anchors', () => {
+  const chronicles = new Map([['chronicles/x.md', 'a\r\n<!-- person: I43; @I44@ -->\r\ntext\r\n<!-- person: I9 -->\r\nmore\r\n']]);
+  assert.ok(M.usedIds({}, [], chronicles).has('I44'));
+  const r = M.remap({ cfg: {}, documents: [], chronicles }, new Map([['I43', 'P43'], ['I44', 'P44']]));
+  assert.equal(r.chronicles.get('chronicles/x.md'), 'a\r\n<!-- person: P43; P44 -->\r\ntext\r\nmore\r\n');
+});
+
+test('events_follow_the_people', () => {
+  const events = [{ id: 'e', people: ['I10', 'I11'] }];
+  assert.ok(M.usedIds({}, [], new Map(), events).has('I11'));
+  const r = M.remap({ cfg: {}, documents: [], events, chronicles: new Map() }, new Map([['I10', 'P10']]));
+  assert.deepEqual(r.events[0].people, ['P10']);
+  assert.deepEqual(events[0].people, ['I10', 'I11']);
+});
+
+test('dropped_branch_leaves_no_map_chapter', () => {
+  const cfg = { root: 'I1', branches: [{ key: 'a', roots: ['I5'], map_chapter: 'b' }, { key: 'b', roots: ['I6'] }] };
+  const r = M.remap({ cfg, documents: [], chronicles: new Map() }, new Map([['I1', 'I1'], ['I5', 'I5']]));
+  assert.deepEqual(r.cfg.branches, [{ key: 'a', roots: ['I5'] }]);
+  assert.deepEqual(r.droppedBranches, ['b']);
+});
+
+test('at_sign_ids_in_settings', () => {
+  const cfg = { root: '@I1@', living_extra: ['@I5@'], living_town: { '@I5@': 'Linz' }, branches: [{ key: 'a', roots: ['@I6@'] }] };
+  const used = M.usedIds(cfg, [], new Map());
+  assert.ok(used.has('I1') && used.has('I5') && used.has('I6'));
+  const r = M.remap({ cfg, documents: [], chronicles: new Map() }, new Map([['I1', 'P1'], ['I5', 'P5'], ['I6', 'P6']]));
+  assert.equal(r.cfg.root, 'P1');
+  assert.deepEqual(r.cfg.living_extra, ['P5']);
+  assert.deepEqual(r.cfg.living_town, { P5: 'Linz' });
+  assert.deepEqual(r.cfg.branches[0].roots, ['P6']);
+});

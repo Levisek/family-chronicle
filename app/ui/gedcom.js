@@ -50,11 +50,13 @@
   function startUpdate(s, tree, bytes, name) {
     const paths = [...new Set([...s.project.files.keys(), ...(s.remapped ? s.remapped.keys() : [])])];
     const chronicles = new Map(paths.filter((p) => CHRONICLE.test(p)).map((p) => [p, dec.decode(current(s, p))]));
-    let documents = [];
-    const docBytes = s.cfg.documents ? current(s, s.cfg.documents) : null;
-    try { documents = docBytes ? JSON.parse(dec.decode(docBytes)) : []; } catch (e) { documents = []; }
-    const r = E().match.pair(s.tree, tree, E().match.usedIds(s.cfg, documents, chronicles));
-    s.update = { oldTree: s.tree, tree, bytes, name, r, answers: new Map(), documents, chronicles };
+    const list = (key) => {
+      const b = s.cfg[key] ? current(s, s.cfg[key]) : null;
+      try { const x = b ? JSON.parse(dec.decode(b)) : []; return Array.isArray(x) ? x : []; } catch (e) { return []; }
+    };
+    const documents = list('documents'), events = list('events');
+    const r = E().match.pair(s.tree, tree, E().match.usedIds(s.cfg, documents, chronicles, events));
+    s.update = { oldTree: s.tree, tree, bytes, name, r, answers: new Map(), documents, events, chronicles, problem: null };
     if (!r.questions.length) finishUpdate(s);
   }
 
@@ -62,11 +64,12 @@
     const u = s.update;
     const pairs = new Map(u.r.pairs);
     for (const [id, to] of u.answers) if (to) pairs.set(id, to);
-    const out = E().match.remap({ cfg: s.cfg, documents: u.documents, chronicles: u.chronicles }, pairs);
+    const out = E().match.remap({ cfg: s.cfg, documents: u.documents, events: u.events, chronicles: u.chronicles }, pairs);
     const remapped = new Map(s.remapped || []);
     if (s.cfg.documents && JSON.stringify(out.documents) !== JSON.stringify(u.documents)) remapped.set(s.cfg.documents, E().project.serialize(out.documents));
+    if (s.cfg.events && JSON.stringify(out.events) !== JSON.stringify(u.events)) remapped.set(s.cfg.events, E().project.serialize(out.events));
     for (const [p, text] of out.chronicles) if (text !== u.chronicles.get(p)) remapped.set(p, enc.encode(text));
-    s.changes = { ...E().match.changes(u.oldTree, u.tree, pairs, out.cfg, new Date()), oldTree: u.oldTree };
+    s.changes = { ...E().match.changes(u.oldTree, u.tree, pairs, out.cfg, new Date()), oldTree: u.oldTree, droppedBranches: out.droppedBranches };
     Object.assign(s, { tree: u.tree, ged: u.bytes, gedName: u.name, remapped, update: null });
     replaceCfg(s, out.cfg);
   }
@@ -75,12 +78,26 @@
     const s = w.state, u = s.update;
     const locale = w.locale();
     const card = (tree, id) => { const x = E().project.personInfo(tree, id, locale); return x ? `${x.label} ${x.years}${x.parents ? ` · ${x.parents}` : ''}` : id; };
-    const answer = (id, to) => {
-      u.answers.set(id, to || null);
-      if (u.r.questions.every((q) => u.answers.has(q.id))) finishUpdate(s);
+    const paired = new Set(u.r.pairs.values());
+    const name = (tree, id) => { const p = tree.people.get(id); return p ? [p.given, p.surname].filter(Boolean).join(' ') || id : id; };
+    // an answer only remembers the choice: a misclick can be changed until "Use these answers"
+    const answer = (id, to) => { u.answers.set(id, to || null); u.problem = null; };
+    const apply = () => {
+      if (!u.r.questions.every((q) => u.answers.has(q.id))) u.problem = t('update_need');
+      else {
+        const seen = new Map();
+        for (const [id, to] of u.answers) {
+          if (!to) continue;
+          if (seen.has(to) || paired.has(to)) { u.problem = t('update_duplicate', { name: name(u.tree, to) }); break; }
+          seen.set(to, id);
+        }
+      }
+      if (!u.problem) finishUpdate(s);
       w.changed();
       w.rerender();
     };
+    const msg = h('div', { class: 'messages' });
+    if (u.problem) FCApp.error(msg, u.problem);
     return h('section', { class: 'panel', id: 'questions' },
       h('h2', {}, t('update_title')), h('p', { class: 'note' }, t('update_lead')),
       u.r.questions.map((q) => {
@@ -89,14 +106,16 @@
         const radio = (value, label) => h('label', { class: 'answer' },
           h('input', { type: 'radio', name: group, value, checked: u.answers.has(q.id) && (u.answers.get(q.id) || '') === value, onchange: () => answer(q.id, value) }), ' ', label);
         const found = h('div', { class: 'candidates' });
-        const search = h('input', { type: 'search', placeholder: t('update_search'), 'aria-label': t('update_search'), oninput: (e) => {
+        const search = h('input', { type: 'search', 'data-for': q.id, placeholder: t('update_search'), 'aria-label': t('update_search'), oninput: (e) => {
           FCApp.dom.clear(found);
-          for (const x of E().project.searchPeople(u.tree, e.target.value, 8, locale)) found.appendChild(radio(x.id, card(u.tree, x.id)));
+          for (const x of E().project.searchPeople(u.tree, e.target.value, 8, locale)) if (!paired.has(x.id)) found.appendChild(radio(x.id, card(u.tree, x.id)));
         } });
         return h('fieldset', { class: 'question' }, h('legend', {}, t('update_question', { name: old.label, years: old.years })),
           q.candidates.map((c) => radio(c, card(u.tree, c))), radio('', t('update_none')),
           q.candidates.length ? null : h('div', {}, search, found));
-      }));
+      }),
+      msg,
+      h('p', {}, h('button', { type: 'button', class: 'primary-button', id: 'update-apply', onclick: apply }, t('update_apply'))));
   }
 
   function changes(s) {
@@ -108,7 +127,8 @@
     const items = [group('changes_added', c.added, s.tree), group('changes_removed', c.removed, c.oldTree),
       group('changes_dates', [...new Set(c.dates.map((d) => d.id))], s.tree),
       c.places.length ? h('li', {}, t('changes_places', { n: c.places.length }), h('span', { class: 'note' }, ` ${c.places.slice(0, MAX).join(', ')}`)) : null,
-      group('changes_now_deceased', c.nowDeceased, s.tree), group('changes_now_living', c.nowLiving, s.tree)].filter(Boolean);
+      group('changes_now_deceased', c.nowDeceased, s.tree), group('changes_now_living', c.nowLiving, s.tree),
+      (c.droppedBranches || []).length ? h('li', { class: 'warning' }, t('changes_branches_dropped', { list: c.droppedBranches.join(', ') })) : null].filter(Boolean);
     return h('section', { class: 'panel', id: 'changes' }, h('h2', {}, t('changes_title')),
       items.length ? h('ul', {}, items) : h('p', { class: 'note' }, t('changes_none')));
   }

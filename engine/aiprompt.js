@@ -28,7 +28,8 @@
       const x = [ev.date ? events.formatDate(ev.date, 'en') : '', town(ev)].filter(Boolean).join(', ');
       return x ? `${label} ${x}` : null;
     };
-    const living = (id) => scope.living.has(id);
+    // outside the website's scope (excluded, or not related) nothing is known to be safe: name only
+    const living = (id) => scope.living.has(id) || !scope.people.has(id);
     const short = (id) => {
       const p = tree.people.get(id);
       if (!p) return id;
