@@ -107,3 +107,37 @@ test('parse_nominatim', () => {
   ]);
   assert.deepEqual(Z.parseNominatim({ error: 'x' }), []);
 });
+
+test('same_town_different_places_not_merged', () => {
+  // "Lhota, Středočeský kraj" and "Lhota, Olomoucký kraj" are two villages: never one silent pick
+  const strings = ['Lhota, Central Bohemia', 'Lhota, Olomoucký kraj'];
+  const towns = Z.groupTowns(strings, Z.resolveAll(strings, EMPTY, GAZ, {}));
+  assert.equal(towns.length, 1);
+  assert.equal(towns[0].status, 'pending');
+  assert.equal(towns[0].coords, undefined);
+  assert.equal(towns[0].candidates.length, 2);
+});
+
+test('same_town_consistent_kept', () => {
+  // a bare ambiguous "Lhota" and a unique "Lhota, Olomoucký kraj" that is one of its candidates agree
+  const strings = ['Lhota', 'Lhota, Olomoucký kraj', 'Wien', 'Wien, Austria'];
+  const towns = Object.fromEntries(Z.groupTowns(strings, Z.resolveAll(strings, EMPTY, GAZ, {})).map((x) => [x.town, x]));
+  assert.equal(towns.Lhota.status, 'found');
+  assert.deepEqual(towns.Lhota.coords, [49.7111, 17.6011]);
+  assert.deepEqual(towns.Lhota.strings, ['Lhota', 'Lhota, Olomoucký kraj']);
+  assert.equal(towns.Wien.status, 'found');
+  // a unique match that is not among the candidates of another string of the same town: ask
+  const g2 = { ...GAZ, names: [...GAZ.names, ['Wien', 40.0, -80.0, 'US', 'PA']] };
+  const s2 = ['Wien, Austria', 'Wien'];
+  assert.equal(Z.groupTowns(s2, Z.resolveAll(s2, EMPTY, g2, {}))[0].status, 'found');
+  const s3 = ['Wien, Austria', 'Wien, US'];
+  assert.equal(Z.groupTowns(s3, Z.resolveAll(s3, EMPTY, g2, {}))[0].status, 'pending');
+});
+
+test('online_query_no_house_numbers', () => {
+  assert.equal(Z.onlineQuery('Hlavní 12, Malá Ves, Czechia'), 'Hlavní, Malá Ves, Czechia');
+  assert.equal(Z.onlineQuery('Malá Ves č. p. 34'), 'Malá Ves');
+  assert.equal(Z.onlineQuery('12 High Street, Leeds'), 'Leeds');
+  assert.equal(Z.onlineQuery('ul. Długa 5, Kraków'), 'Kraków');
+  assert.equal(Z.onlineQuery('Xyzzy Hamlet, Neverland'), 'Xyzzy Hamlet, Neverland');
+});

@@ -11,6 +11,7 @@
   const E = () => g.FCEngine;
   const EUROPE = [-12, 42, 34, 62];
   const ONLINE_GAP_MS = 1100;   // Nominatim: at most one request per second
+  let lastRequestAt = 0;        // over every lookup of the session, also a repeated click
 
   function placeStrings(tree) {
     const out = new Set();
@@ -23,21 +24,9 @@
     const known = new (E().places.Places)(s.places, s.cfg.ignore_places || []);
     const strings = placeStrings(s.tree).filter((p) => !known.isIgnored(p));
     const res = E().gazetteer.resolveAll(strings, s.tree, g.FC_GAZ, s.places);
-    const towns = new Map();
-    for (const p of strings) {
-      const e = res[p];
-      if (!e) continue;
-      let x = towns.get(e.town);
-      if (!x) { x = { town: e.town, strings: [], status: 'pending', candidates: [] }; towns.set(e.town, x); }
-      x.strings.push(p);
-      if (e.coords && x.status === 'pending') {
-        Object.assign(x, { status: e.source === 'online' ? 'online' : 'found', source: e.source, coords: e.coords, country: e.country, existing: !!e.existing });
-      } else if (!e.coords) {
-        for (const c of e.candidates) if (!x.candidates.some((y) => y.lat === c.lat && y.lon === c.lon)) x.candidates.push(c);
-      }
-    }
-    for (const x of towns.values()) if (x.status !== 'pending' && !x.existing) setPlace(s, x, x.coords, x.source, x.country);
-    return { towns: [...towns.values()], active: null, running: null };
+    const towns = E().gazetteer.groupTowns(strings, res);
+    for (const x of towns) if (x.status !== 'pending' && !x.existing) setPlace(s, x, x.coords, x.source, x.country);
+    return { towns, active: null, running: null };
   }
 
   function setPlace(s, x, coords, source, country) {
@@ -50,14 +39,18 @@
   const countryOf = (cc) => (g.FC_GAZ && g.FC_GAZ.countryNames && g.FC_GAZ.countryNames[cc]) || {};
 
   async function lookupOnline(w, ps) {
+    if (ps.running) return;
     const pending = ps.towns.filter((x) => x.status === 'pending');
     for (let i = 0; i < pending.length; i++) {
       if (FCApp.steps.current !== 4) break;
       ps.running = t('places_online_running', { i: i + 1, n: pending.length });
       w.rerender();
       const x = pending[i];
+      const wait = lastRequestAt + ONLINE_GAP_MS - Date.now();
+      if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+      lastRequestAt = Date.now();
       try {
-        const r = await fetch(E().gazetteer.nominatimUrl(x.strings[0]), { headers: { 'Accept-Language': FCApp.lang }, referrerPolicy: 'no-referrer', credentials: 'omit' });
+        const r = await fetch(E().gazetteer.nominatimUrl(E().gazetteer.onlineQuery(x.strings[0])), { headers: { 'Accept-Language': FCApp.lang }, referrerPolicy: 'no-referrer', credentials: 'omit' });
         const found = E().gazetteer.parseNominatim(await r.json()).map((c) => ({ ...c, origin: 'online' }));
         if (found.length) {
           x.online = found;
@@ -71,7 +64,6 @@
         w.message(t('places_online_failed', { error: e.message }));
         return;
       }
-      if (i + 1 < pending.length) await new Promise((r) => setTimeout(r, ONLINE_GAP_MS));
     }
     ps.running = null;
     w.rerender();

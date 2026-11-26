@@ -80,7 +80,7 @@
     }
   }
 
-  const api = { Places, toTown, key };
+  const api = { Places, toTown, key, cleanSegment };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).places = api;
 })(typeof window !== 'undefined' ? window : globalThis);

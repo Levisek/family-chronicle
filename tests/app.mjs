@@ -29,12 +29,12 @@ const TMP = mkdtempSync(join(tmpdir(), 'fc-app-'));
 const results = [];
 
 // a small GEDCOM: `name` is the person with the most ancestors, the place `place` is in no gazetteer
-function gedcom(name, place = 'Linz') {
+function gedcom(name, place = 'Linz', fatherPlace = 'Linz') {
   const people = [[1, name, 'M', 1990, 1], [2, 'Otto /Alt/', 'M', 1960, 2], [3, 'Ida /Berg/', 'F', 1962, 3],
     [4, 'Karl /Alt/', 'M', 1930, 0], [5, 'Rosa /Alt/', 'F', 1932, 0], [6, 'Emil /Berg/', 'M', 1931, 0], [7, 'Anna /Berg/', 'F', 1933, 0]];
   const lines = ['0 HEAD', '1 CHAR UTF-8'];
   for (const [id, n, sex, year, famc] of people) {
-    lines.push(`0 @I${id}@ INDI`, `1 NAME ${n}`, `1 SEX ${sex}`, '1 BIRT', `2 DATE ${year}`, `2 PLAC ${id === 1 ? place : 'Linz'}`);
+    lines.push(`0 @I${id}@ INDI`, `1 NAME ${n}`, `1 SEX ${sex}`, '1 BIRT', `2 DATE ${year}`, `2 PLAC ${id === 1 ? place : id === 2 ? fatherPlace : 'Linz'}`);
     if (year < 1940) lines.push('1 DEAT', '2 DATE 2000');
     if (famc) lines.push(`1 FAMC @F${famc}@`);
   }
@@ -227,19 +227,25 @@ await scenario('online_only_places', chromium, async (page) => {
   const seen = [];
   await page.route('https://nominatim.openstreetmap.org/**', (route) => {
     seen.push({ url: route.request().url(), headers: route.request().headers(), at: Date.now() });
-    route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify([{ lat: '47.1', lon: '9.5', display_name: 'Xyzzy Hamlet, Nowhere', name: 'Xyzzy Hamlet' }]) });
+    const q = new URL(route.request().url()).searchParams.get('q');
+    const body = q.startsWith('Xyzzy') ? [{ lat: '47.1', lon: '9.5', display_name: 'Xyzzy Hamlet, Nowhere', name: 'Xyzzy Hamlet' }] : [];
+    route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
   });
   await page.goto(APP);
   await page.click('text=Start with your own GEDCOM');
-  await page.setInputFiles('#ged-input', gedcom('Ann /Smith/', 'Xyzzy Hamlet, Neverland'));
+  await page.setInputFiles('#ged-input', gedcom('Ann /Smith/', 'Xyzzy Hamlet, Neverland', 'Hlavní 12, Qwzz Dorf'));
   await page.waitForSelector('#gedcom-summary');
   await nextTo(page, 4);
   await page.waitForSelector('#online');
   await page.click('#online');
   await page.waitForFunction(() => document.querySelector('#places-panel') && !document.querySelector('#places-panel .progress'), null, { timeout: 15000 });
+  // the place that was not found can be looked up again at once: still at most one request a second
+  await page.click('#online');
+  await page.waitForFunction(() => !document.querySelector('#places-panel .progress'), null, { timeout: 15000 });
   // only place strings of the GEDCOM go out, with the fixed parameters, at most one a second
-  const places = new Set(['Xyzzy Hamlet, Neverland', 'Linz']);
+  const places = new Set(['Xyzzy Hamlet, Neverland', 'Hlavní, Qwzz Dorf', 'Linz']);
   assert(seen.some((x) => new URL(x.url).searchParams.get('q') === 'Xyzzy Hamlet, Neverland'), 'the unknown place was not looked up');
+  assert(!seen.some((x) => x.url.includes('12')), 'a house number went out');
   for (const [i, x] of seen.entries()) {
     const u = new URL(x.url);
     assert(JSON.stringify([...u.searchParams.keys()].sort()) === '["format","limit","q"]', `parameters: ${u.search}`);
@@ -274,6 +280,47 @@ await scenario('firefox_backup_warning', firefox, async (page) => {
   await web.saveAs(webPath);
   execFileSync('unzip', ['-tq', webPath]);
   assert(execFileSync('unzip', ['-Z1', webPath], { encoding: 'utf8' }).includes('family/index.html'), 'the website ZIP has no index.html');
+});
+
+await scenario('firefox_saved_family', firefox, async (page) => {
+  const keys = () => page.evaluate(() => new Promise((resolve) => {
+    const r = indexedDB.open('fc-app', 1);
+    r.onsuccess = () => { const q = r.result.transaction('projects').objectStore('projects').getAllKeys(); q.onsuccess = () => { r.result.close(); resolve(q.result); }; };
+  }));
+  const newFamily = async () => {
+    await page.click('text=Start with your own GEDCOM');
+    await page.setInputFiles('#ged-input', gedcom('Ann /Smith/'));
+    await page.waitForSelector('#gedcom-summary');
+    await nextTo(page, 6);
+    await page.fill('#family-name', 'Smith');
+    await page.click('#build');
+    await page.waitForSelector('#choose-folder', { timeout: 60000 });
+    assert((await page.textContent('#choose-folder')).includes('this browser'), 'Firefox offers a folder');
+    await page.click('#choose-folder');
+    await page.waitForSelector('#download-web', { timeout: 60000 });
+  };
+  await page.goto(APP);
+  await newFamily();
+  // saved only in the browser: the warning is there at once
+  assert(await page.isVisible('.banner.warn'), 'no backup warning after saving into the browser');
+  // saved again with a change: the old site.json is kept in history/ and goes into the backup
+  await page.click('#home');
+  await page.click('#home-settings');
+  await page.check('input[type="checkbox"] >> nth=1');
+  await nextTo(page, 6);
+  await page.click('#build');
+  await page.waitForSelector('#download-web', { timeout: 60000 });
+  const [backup] = await Promise.all([page.waitForEvent('download'), page.click('.banner.warn button')]);
+  const path = join(TMP, 'saved-backup.zip');
+  await backup.saveAs(path);
+  const names = execFileSync('unzip', ['-Z1', path], { encoding: 'utf8' });
+  assert(/^history\/\d{4}-\d\d-\d\d-\d{6}\/site\.json$/m.test(names), `no history/ in the backup:\n${names}`);
+  // a second family of the same name does not replace the first one
+  await page.click('#home');
+  await page.click('text=Start screen');
+  await newFamily();
+  const k = await keys();
+  assert(k.includes('Smith') && k.length === 2, `families in the browser: ${JSON.stringify(k)}`);
 });
 
 for (const [name, status, note] of results) console.log(`${status.padEnd(4)} ${name}  ${note}`);

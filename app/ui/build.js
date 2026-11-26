@@ -134,8 +134,8 @@
       }
       if (b.phase === 'saved' && project.mode === 'folder') el.appendChild(h('p', { class: 'ok', id: 'saved' }, t('build_saved', { name: project.name })));
       if (b.phase === 'ok' && project.mode === 'memory' && !isExample) {
-        el.append(h('p', {}, h('button', { type: 'button', class: 'primary-button', id: 'choose-folder', onclick: () => chooseFolder(w) }, t('build_choose_folder'))),
-          h('p', { class: 'note' }, t('build_folder_note')));
+        el.append(h('p', {}, h('button', { type: 'button', class: 'primary-button', id: 'choose-folder', onclick: () => chooseFolder(w) }, FCApp.store.canFolder() ? t('build_choose_folder') : t('build_save_browser'))),
+          FCApp.store.canFolder() ? h('p', { class: 'note' }, t('build_folder_note')) : null);
       }
       if ((b.phase === 'ok' && isExample) || (b.phase === 'saved' && project.mode === 'browser')) {
         el.appendChild(h('p', {}, h('button', { type: 'button', class: 'button', id: 'download-web', onclick: () => project.downloadWeb(b.result.files) }, t('build_download_web'))));

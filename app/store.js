@@ -4,7 +4,7 @@
 //   browser  Firefox/Safari: the files read from a folder (<input webkitdirectory>) or made in the
 //            wizard, kept in IndexedDB; the website and a backup are downloaded as ZIP files
 //   memory   the example and a new family before the first save
-// Project = {name, mode, files: Map<path, Uint8Array> (no web/ and history/ contents), paths: Set
+// Project = {name, mode, files: Map<path, Uint8Array> (no web/; history/ only outside folder mode), paths: Set
 //            (every path, also web/), write(path, bytes), remove(path), dirty, downloadBackup(extra),
 //            downloadWeb(webFiles)}
 (function (g) {
@@ -107,7 +107,7 @@
     const p = base(name, mode, files);
     p.write = async (path, bytes) => {
       p.paths.add(path);
-      if (SKIP.test(path)) return;    // the website is downloaded, not kept
+      if (/^web\//.test(path)) return;    // the website is downloaded, not kept; history/ is kept
       p.files.set(path, bytes);
       p.dirty = true;
       if (p.mode === 'browser') await idbPut('projects', p.name, { files: p.files, dirty: true });
@@ -134,6 +134,15 @@
   // Remembering the folder is a convenience; a failure must not stop the saving.
   const remember = (handle) => idbPut('handles', 'last', handle).catch(() => {});
 
+  // A family kept in this browser is never replaced by another one of the same name: "Smith (2)".
+  // Re-reading the same folder may replace a stored copy that has no unsaved changes.
+  async function freeName(name, replaceClean) {
+    const keys = await idbKeys('projects').catch(() => []);
+    if (!keys.includes(name)) return name;
+    if (replaceClean) { const rec = await idbGet('projects', name).catch(() => null); if (rec && !rec.dirty) return name; }
+    for (let i = 2; ; i++) if (!keys.includes(`${name} (${i})`)) return `${name} (${i})`;
+  }
+
   // Chrome/Edge: the folder picker. Firefox/Safari: read the folder once into IndexedDB.
   async function openFolder() {
     if (canFolder()) {
@@ -143,11 +152,11 @@
     }
     const list = await pickDirectoryFiles();
     if (!list.length) return null;
-    const name = list[0].webkitRelativePath.split('/')[0];
+    const name = await freeName(list[0].webkitRelativePath.split('/')[0], true);
     const files = new Map();
     for (const f of list) {
       const path = f.webkitRelativePath.split('/').slice(1).join('/');
-      if (!SKIP.test(path)) files.set(path, new Uint8Array(await f.arrayBuffer()));
+      if (!/^web\//.test(path)) files.set(path, new Uint8Array(await f.arrayBuffer()));
     }
     const p = memoryProject(name, files, 'browser');
     await idbPut('projects', name, { files, dirty: false });
@@ -188,8 +197,8 @@
       await remember(handle);
       return folderProject(handle);
     }
-    const p = memoryProject(name, new Map(), 'browser');
-    await idbPut('projects', name, { files: p.files, dirty: true });
+    const p = memoryProject(await freeName(name, false), new Map(), 'browser');
+    await idbPut('projects', p.name, { files: p.files, dirty: true });
     return p;
   }
 

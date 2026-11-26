@@ -98,6 +98,49 @@
     return out;
   }
 
+  // One entry per places.json key (town). Strings of the same town that point to different places
+  // (two villages called Lhota) are never merged silently: the town goes to the manual step with
+  // all candidates. A bare ambiguous string agrees with a unique one when that one is among its
+  // candidates. Entries: {town, strings, status: 'found' | 'online' | 'pending', candidates,
+  // coords?, source?, country?, existing?}.
+  const NEAR = 0.05;   // degrees; GEDCOM and gazetteer coordinates of one town differ a little
+  const near = (a, b) => Math.abs(a[0] - b[0]) <= NEAR && Math.abs(a[1] - b[1]) <= NEAR;
+
+  function groupTowns(strings, resolved) {
+    const towns = new Map();
+    for (const p of strings) {
+      const e = resolved[p];
+      if (!e) continue;
+      if (!towns.has(e.town)) towns.set(e.town, { town: e.town, strings: [], results: [] });
+      const x = towns.get(e.town);
+      if (!x.strings.includes(p)) { x.strings.push(p); x.results.push(e); }
+    }
+    const out = [];
+    for (const x of towns.values()) {
+      const placed = x.results.filter((e) => e.coords);
+      const base = placed.find((e) => e.existing) || placed[0];
+      const candidates = [];
+      const addCandidate = (c) => { if (!candidates.some((y) => y.lat === c.lat && y.lon === c.lon)) candidates.push(c); };
+      for (const e of x.results) for (const c of e.candidates || []) addCandidate(c);
+      const agree = base && (base.existing || (placed.every((e) => near(e.coords, base.coords)) &&
+        x.results.every((e) => e.coords || e.status !== 'ambiguous' || e.candidates.some((c) => near([c.lat, c.lon], base.coords)))));
+      if (agree) {
+        out.push({ town: x.town, strings: x.strings, status: base.source === 'online' ? 'online' : 'found', candidates,
+          coords: base.coords, source: base.source, country: base.country, existing: !!base.existing });
+      } else {
+        for (const e of placed) addCandidate({ name: e.name || x.town, lat: e.coords[0], lon: e.coords[1], cc: '', admin1: '' });
+        out.push({ town: x.town, strings: x.strings, status: 'pending', candidates: candidates.slice(0, MAX_CANDIDATES) });
+      }
+    }
+    return out;
+  }
+
+  // What goes to the online lookup: the place without house numbers and street addresses.
+  function onlineQuery(place) {
+    return String(place).split(',').map((s) => s.trim()).filter((s) => s && !/^\d/.test(s) && !/^ul\.\s/i.test(s))
+      .map((s) => placesMod.cleanSegment(s)).filter(Boolean).join(', ');
+  }
+
   // Only the place string goes out, nothing about people.
   const nominatimUrl = (place) => `${NOMINATIM}?format=jsonv2&limit=5&q=${encodeURIComponent(place)}`;
 
@@ -114,7 +157,7 @@
     return out;
   }
 
-  const api = { normalize, lookup, resolveAll, nominatimUrl, parseNominatim, MAX_CANDIDATES };
+  const api = { normalize, lookup, resolveAll, groupTowns, onlineQuery, nominatimUrl, parseNominatim, MAX_CANDIDATES };
   if (typeof module !== 'undefined') module.exports = api;
   else (g.FCEngine = g.FCEngine || {}).gazetteer = api;
 })(typeof window !== 'undefined' ? window : globalThis);
