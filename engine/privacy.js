@@ -531,7 +531,16 @@
     return problems;
   }
 
+  // The living people a finding's quoted text points to (so the app can say whose date or name
+  // it looks like): the check run on that text alone, person by person.
+  function whoseFinding(text, tree, scope, ext = null) {
+    const file = new Map([['finding.txt', new TextEncoder().encode(String(text))]]);
+    return livingForCheck(tree, scope).map((x, i) => [x, [...sensitiveDates(tree, scope).keys()][i]])
+      .filter(([x]) => checkOutput(file, [x], [], new Set(), ext).length).map(([, id]) => id);
+  }
+
   const api = {
+    whoseFinding,
     extensions, localeExtensions, dateForms, patternSources, sensitiveDates, livingForCheck, redact,
     unescape, checkOutput, EXTENSIONS, DATA_TWIN,
   };

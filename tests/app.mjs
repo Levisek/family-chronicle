@@ -245,11 +245,14 @@ await scenario('leak_refused', chromium, async (page) => {
   assert((await page.textContent('#findings')).includes('12 March 1990'), 'the finding does not name the date');
   const list = await folderList(page, 'leak');
   assert(!Object.keys(list).some((f) => f.startsWith('web/')), 'web/ was written despite the finding');
-  await page.click('#findings >> text=Add an exception');
-  const save = page.locator('#findings button.primary-button').first();
-  assert(await save.isDisabled(), 'the exception can be saved without a reason');
-  await page.fill('#findings textarea >> nth=0', 'test');
-  assert(!(await save.isDisabled()), 'a reason does not enable the button');
+  // in words: whose date it looks like and where; the same date from several files is one item
+  const said = await page.textContent('#findings > li > p:first-child');
+  assert(/Daniel/.test(said) && /home page/.test(said) && !/\.html/.test(said), `the finding does not say whose date and where: ${said}`);
+  assert(await page.locator('#findings > li').count() === 1, `one date, ${await page.locator('#findings > li').count()} items: ${(await page.locator('#findings > li > p:first-child').allTextContents()).slice(0, 6).join(' | ')}`);
+  await page.click('#findings .finding-ok');
+  await page.waitForSelector('#saved', { timeout: 60000 });
+  const site2 = JSON.parse((await folderList(page, 'leak'))['site.json']);
+  assert(site2.check_exceptions.some((x) => x.text === '12 March 1990' && /Daniel/.test(x.reason)), 'the exception has no reason in words');
 });
 
 await scenario('own_basemap', chromium, async (page) => {

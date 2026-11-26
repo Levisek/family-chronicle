@@ -290,3 +290,15 @@ test('exception_for_name_finding_works', () => {
   const text = /"(.*)"$/s.exec(found[0])[1];
   assert.deepEqual(runCheck(files, living, [{ text, reason: 'a namesake' }]), []);
 });
+
+test('whose_finding', () => {
+  // which living people a finding's text belongs to (the app says it in words)
+  const tree = G.parse(['0 HEAD', '0 @A@ INDI', '1 NAME Anna /Červeňáková/', '1 SEX F', '1 BIRT', '2 DATE 1952', '1 FAMC @F@',
+    '0 @B@ INDI', '1 NAME Ludmila /Skotnicová/', '1 SEX F', '1 BIRT', '2 DATE SEP 1944', '1 FAMC @F@',
+    '0 @C@ INDI', '1 NAME Rudolf /Červeňák/', '1 BIRT', '2 DATE 1951', '1 DEAT', '2 DATE 1952', '1 FAMS @F@', '0 @F@ FAM', '1 HUSB @C@', '1 CHIL @A@', '1 CHIL @B@', '0 TRLR', ''].join('\n'));
+  const scope = S.determineScope(tree, { root: 'A' }, new Date(2026, 10, 26));
+  assert.deepEqual(PV.whoseFinding('9. 1944', tree, scope), ['B']);
+  assert.deepEqual(PV.whoseFinding('Sep 1944', tree, scope), ['B']);
+  assert.deepEqual(PV.whoseFinding('   rudolf cervenak   born  1951   died  1952   age', tree, scope), ['A']);
+  assert.deepEqual(PV.whoseFinding('nothing here', tree, scope), []);
+});
